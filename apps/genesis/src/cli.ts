@@ -221,6 +221,7 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       const result = await executeTurn(deps, {
         worldId: config.worldId,
         actorId: config.founder.id,
+        expectedSequence: turn,
         simTime: simTime(turn * 120),
         taskId: `demo-turn-${turn}`,
       });

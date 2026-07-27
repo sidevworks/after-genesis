@@ -17,11 +17,15 @@ import {
   type CanonicalEvent,
   type EventStore,
   type IdempotencyStore,
+  type ModelAuditStore,
+  type ModelRequest,
+  type ModelResponse,
   type Sha256Hex,
   type StateStore,
   type WorldState,
 } from "@after-genesis/core";
 import {
+  AuditIntegrityError,
   ChainIntegrityError,
   SequenceConflictError,
   SnapshotChecksumError,
@@ -269,4 +273,113 @@ export class FirestoreIdempotencyStore implements IdempotencyStore {
       if (current.exists && current.get("ownerId") === this.ownerId) tx.delete(ref);
     });
   }
+}
+
+interface FirestoreAuditRecord {
+  readonly worldId: string;
+  readonly sequence: number;
+  readonly attempt: number;
+  readonly request: ModelRequest & { readonly responseSchema: unknown };
+  readonly requestHash: Sha256Hex;
+  readonly response: ModelResponse | null;
+  readonly responseHash: Sha256Hex | null;
+  readonly costMicros: number;
+  readonly entryDigest: Sha256Hex;
+}
+
+/** Write-once model audit storage for production replay. */
+export class FirestoreModelAuditStore implements ModelAuditStore {
+  constructor(private readonly db: Firestore) {}
+
+  async record(entry: Parameters<ModelAuditStore["record"]>[0]): Promise<void> {
+    const attempt = entry.attempt ?? 1;
+    if (!Number.isSafeInteger(entry.sequence) || entry.sequence < 0) {
+      throw new RangeError("audit sequence must be a non-negative safe integer");
+    }
+    if (!Number.isSafeInteger(attempt) || attempt < 1 || attempt > 2) {
+      throw new RangeError("audit attempt must be 1 or 2");
+    }
+    const record = auditRecord(entry, attempt);
+    canonicalJson(record);
+    const ref = this.db.doc(
+      `${worldPath(entry.worldId)}/private/modelAudit/entries/` +
+        `${firestoreSequenceId(entry.sequence)}-a${String(attempt).padStart(2, "0")}`,
+    );
+
+    await this.db.runTransaction(async (tx) => {
+      const snapshot = await tx.get(ref);
+      if (!snapshot.exists) {
+        tx.create(ref, {
+          ...record,
+          recordedAt: FieldValue.serverTimestamp(),
+        });
+        return;
+      }
+      const existing = snapshot.data() as FirestoreAuditRecord;
+      if (hashEquals(existing.entryDigest, record.entryDigest)) return;
+      if (!hashEquals(existing.requestHash, record.requestHash)) {
+        throw new AuditIntegrityError(
+          entry.worldId,
+          entry.sequence,
+          "a different model request is already recorded for this attempt",
+        );
+      }
+      if (existing.response !== null) {
+        throw new AuditIntegrityError(
+          entry.worldId,
+          entry.sequence,
+          "a model response is already recorded and cannot be rewritten",
+        );
+      }
+      if (record.response === null) {
+        throw new AuditIntegrityError(
+          entry.worldId,
+          entry.sequence,
+          "request-only audit records are not editable",
+        );
+      }
+      tx.set(ref, {
+        ...record,
+        recordedAt: snapshot.get("recordedAt") ?? FieldValue.serverTimestamp(),
+        responseRecordedAt: FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  async get(
+    worldId: string,
+    sequence: number,
+    attempt: number = 1,
+  ): Promise<{ rawText: string; modelId: string } | null> {
+    const snapshot = await this.db
+      .doc(
+        `${worldPath(worldId)}/private/modelAudit/entries/` +
+          `${firestoreSequenceId(sequence)}-a${String(attempt).padStart(2, "0")}`,
+      )
+      .get();
+    if (!snapshot.exists) return null;
+    const response = snapshot.get("response") as ModelResponse | null | undefined;
+    if (response === null || response === undefined) return null;
+    return { rawText: response.rawText, modelId: response.modelId };
+  }
+}
+
+function auditRecord(
+  entry: Parameters<ModelAuditStore["record"]>[0],
+  attempt: number,
+): FirestoreAuditRecord {
+  const base = {
+    worldId: entry.worldId,
+    sequence: entry.sequence,
+    attempt,
+    request: {
+      ...entry.request,
+      responseSchema: entry.request.responseSchema ?? null,
+    },
+    requestHash: entry.requestHash,
+    response: entry.response,
+    responseHash: entry.responseHash,
+    costMicros: entry.costMicros,
+  };
+  return { ...base, entryDigest: sha256Hex(canonicalJson(base)) };
 }

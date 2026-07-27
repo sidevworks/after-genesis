@@ -107,6 +107,8 @@ export interface TurnDependencies {
 export interface TurnRequest {
   readonly worldId: string;
   readonly actorId: string;
+  /** Sequence reserved by the scheduler when this immutable task was created. */
+  readonly expectedSequence: number;
   /** When this turn occurs. Must not precede the world's current time. */
   readonly simTime: SimTime;
   /**
@@ -173,6 +175,14 @@ export async function executeTurn(
 
   const headSequence = await deps.eventStore.headSequence(worldId);
   const sequence = headSequence + 1;
+  if (request.expectedSequence !== sequence) {
+    return {
+      status: "duplicate",
+      reason:
+        `stale task ${taskId} expected sequence ${request.expectedSequence}, ` +
+        `but the next sequence is ${sequence}`,
+    };
+  }
 
   // Never include the current sequence in this key. The head advances after a
   // successful delivery; including it would turn a retry of the same task into

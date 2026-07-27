@@ -134,7 +134,7 @@ Three properties matter:
    validated against `ProposedActionSchema` plus the per-action payload schema. Two invalid
    responses in a row become a no-op event (§14.10–11), never a retry loop.
 
-### C. Turn scheduler — `packages/runtime/` (**Not started**)
+### C. Turn scheduler — `packages/runtime/` (**Initial implementation complete**)
 
 Cloud Tasks issues one task per eligible turn. Each carries an idempotency key derived from
 `(worldId, inhabitantId, turnNumber)`. `IdempotencyStore.claim()` (`ports.ts`, **Implemented**

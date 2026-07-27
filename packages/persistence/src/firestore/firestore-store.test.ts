@@ -3,11 +3,15 @@ import {
   GENESIS_PREV_HASH,
   buildGenesis,
   sealEvent,
+  type ModelRequest,
+  type ModelResponse,
+  type Sha256Hex,
 } from "@after-genesis/core";
 import { describe, expect, it } from "vitest";
-import { SequenceConflictError } from "../errors.js";
+import { AuditIntegrityError, SequenceConflictError } from "../errors.js";
 import {
   FirestoreCanonicalStore,
+  FirestoreModelAuditStore,
   firestoreSequenceId,
 } from "./firestore-store.js";
 
@@ -133,5 +137,75 @@ describe("FirestoreCanonicalStore", () => {
     await expect(
       store.commit(event, built.state, 0, built.stateChecksum),
     ).rejects.toBeInstanceOf(SequenceConflictError);
+  });
+});
+
+describe("FirestoreModelAuditStore", () => {
+  const request: ModelRequest = {
+    modelId: "gemini-test",
+    systemPrompt: "system",
+    userPrompt: "user",
+    maxOutputTokens: 100,
+    temperature: 0,
+  };
+  const response: ModelResponse = {
+    rawText: "{\"action\":\"wait\"}",
+    modelId: "gemini-test-001",
+    inputTokens: 10,
+    outputTokens: 5,
+    finishReason: "stop",
+  };
+  const requestHash = "a".repeat(64) as Sha256Hex;
+  const responseHash = "b".repeat(64) as Sha256Hex;
+
+  it("permits only the request-only to request-plus-response transition", async () => {
+    const fake = new FakeFirestore();
+    const store = new FirestoreModelAuditStore(fake as unknown as Firestore);
+    const base = {
+      worldId: "world_audit",
+      sequence: 1,
+      request,
+      requestHash,
+      costMicros: 0,
+    };
+
+    await store.record({ ...base, response: null, responseHash: null });
+    expect(await store.get(base.worldId, base.sequence)).toBeNull();
+    await store.record({ ...base, response, responseHash, costMicros: 25 });
+    expect(await store.get(base.worldId, base.sequence)).toEqual({
+      rawText: response.rawText,
+      modelId: response.modelId,
+    });
+    await store.record({ ...base, response, responseHash, costMicros: 25 });
+
+    await expect(
+      store.record({
+        ...base,
+        response: { ...response, rawText: "different" },
+        responseHash: "c".repeat(64) as Sha256Hex,
+        costMicros: 25,
+      }),
+    ).rejects.toBeInstanceOf(AuditIntegrityError);
+  });
+
+  it("stores correction attempts independently", async () => {
+    const fake = new FakeFirestore();
+    const store = new FirestoreModelAuditStore(fake as unknown as Firestore);
+    await store.record({
+      worldId: "world_audit",
+      sequence: 2,
+      attempt: 2,
+      request,
+      requestHash,
+      response,
+      responseHash,
+      costMicros: 25,
+    });
+
+    expect(await store.get("world_audit", 2, 1)).toBeNull();
+    expect(await store.get("world_audit", 2, 2)).toEqual({
+      rawText: response.rawText,
+      modelId: response.modelId,
+    });
   });
 });

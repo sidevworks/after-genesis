@@ -93,3 +93,21 @@ jobs:
           # Public web config only. A canonical write credential must never be
           # available to the frontend build (§17).
           NEXT_PUBLIC_BUILD_COMMIT: ${{ github.sha }}
+
+  firestore-emulator:
+    name: Firestore emulator contracts
+    runs-on: ubuntu-latest
+    needs: secrets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+      - run: npm ci
+      - name: Rules and atomic-store emulator tests
+        run: npm run test:emulators

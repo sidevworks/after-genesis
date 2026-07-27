@@ -43,7 +43,7 @@ That command should print nothing.
 
 ## 2. GitHub
 
-The repository is initialised locally but has no remote and no commits yet.
+The private repository is connected and CI gates every push.
 
 Confirm what would be committed before creating anything public:
 
@@ -51,17 +51,7 @@ Confirm what would be committed before creating anything public:
 git status --porcelain
 ```
 
-Then stage, commit, and create the remote:
-
-```bash
-git add -A && git commit -m "Initial scaffold: deterministic core, event chain, docs"
-```
-
-```bash
-gh repo create after-genesis --private --source=. --remote=origin --push
-```
-
-Create it **private** first. Make it public only after the secret scan passes on
+Keep it **private**. Make it public only after the secret scan passes on
 a full history scan — `docs/threat-model.md` explains why a public repository
 raises the cost of a leaked credential considerably.
 
@@ -134,6 +124,29 @@ The server runtime needs IAM-based credentials and these non-secret settings:
 | `AG_TASKS_QUEUE` | Turn queue name |
 | `AG_TURN_WORKER_URL` | HTTPS-only authenticated worker endpoint |
 | `AG_TASKS_SERVICE_ACCOUNT` | OIDC caller identity for the worker |
+| `AG_SOURCE_COMMIT` | Exact Git commit recorded on canonical events |
+| `AG_DEPLOYED_DIGEST` | Immutable deployed container digest |
+
+The deployable worker is `apps/worker`. Its `/turn` route accepts only the
+configured queue name and verifies that the Cloud Tasks short task name is the
+deterministic hash of the immutable body. These headers are defence in depth,
+not authentication: deploy Cloud Run privately and grant `roles/run.invoker`
+only to `AG_TASKS_SERVICE_ACCOUNT`. Cloud Tasks supplies the OIDC token and
+Cloud Run IAM validates it before the application runs.
+
+Build the root `Dockerfile`; `.dockerignore` excludes `.env`, local credentials,
+world outputs and Git history from the image context.
+
+Before deploying, the Firestore emulator gate must pass:
+
+```bash
+npm run test:emulators
+```
+
+That suite proves public projections are readable, canonical/private documents
+are not, every client write is denied, Firestore round-trips canonical Genesis,
+and ten writers racing for one sequence produce exactly one winner. It requires
+Java 21+; CI installs it explicitly.
 
 Grant the runtime identity only the Firestore and queue permissions it needs.
 Grant the task identity permission to invoke only the turn worker. Do not use a

@@ -19,6 +19,9 @@
     },
     {
       "path": "./apps/genesis"
+    },
+    {
+      "path": "./apps/worker"
     }
   ]
 }

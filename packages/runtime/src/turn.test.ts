@@ -119,6 +119,7 @@ describe("executeTurn", () => {
     const result = await executeTurn(deps, {
       worldId: WORLD_ID,
       actorId: ACTOR_ID,
+      expectedSequence: 1,
       simTime: simTime(1),
       taskId: "task-1",
     });
@@ -135,6 +136,7 @@ describe("executeTurn", () => {
     const request = {
       worldId: WORLD_ID,
       actorId: ACTOR_ID,
+      expectedSequence: 1,
       simTime: simTime(1),
       taskId: "same-task",
     };
@@ -162,6 +164,7 @@ describe("executeTurn", () => {
     const request = {
       worldId: WORLD_ID,
       actorId: ACTOR_ID,
+      expectedSequence: 1,
       simTime: simTime(1),
       taskId: "retryable-task",
     };
@@ -170,5 +173,22 @@ describe("executeTurn", () => {
     expect(await events.headSequence(WORLD_ID)).toBe(0);
     expect((await executeTurn(deps, request)).status).toBe("committed");
     expect(await events.headSequence(WORLD_ID)).toBe(1);
+  });
+
+  it("rejects a stale scheduled sequence before cognition", async () => {
+    const cognition = waitCognition();
+    const { deps, events } = await setup(cognition);
+
+    const result = await executeTurn(deps, {
+      worldId: WORLD_ID,
+      actorId: ACTOR_ID,
+      expectedSequence: 2,
+      simTime: simTime(1),
+      taskId: "stale-task",
+    });
+
+    expect(result.status).toBe("duplicate");
+    expect(await events.headSequence(WORLD_ID)).toBe(0);
+    expect(cognition.propose).not.toHaveBeenCalled();
   });
 });
