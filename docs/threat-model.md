@@ -267,30 +267,51 @@ A7 directly. A8 indirectly (the world halts). T-4f additionally threatens A1.
 
 ---
 
-### T-5 — Service-account key exposure *(live, present-tense finding)*
+### T-5 — Service-account key exposure *(incident: original key ROTATED; unsafe practice REPEATED)*
 
-#### Current state — verified, not hypothetical
+#### Incident record
 
-A Firebase Admin service-account credential for project `after-genesis`, including its RSA private
-key, is present in plaintext in the repository working directory at `.env`.
+**Original exposure.** A Firebase Admin service-account credential for project `after-genesis`,
+including its RSA private key, was present in plaintext at `.env`, embedded as raw multi-line JSON.
 
-Mitigating facts, verified:
+**Resolution.** The key has been **rotated** — verified by inspection: the `private_key_id` and key
+body in `.env` are both different from the exposed values. The original credential should be treated
+as revoked.
 
-- `.env` is matched by `.gitignore` (`.env`, `.env.*`, `!.env.example`, plus `*service-account*.json`
-  and similar patterns).
-- `git ls-files` returns nothing for `.env`.
-- **The repository has no commits at all.** The key has therefore never entered git history and
-  cannot be recovered from any clone, fork, or reflog.
+**Mitigating facts about the original exposure, verified:**
 
-Aggravating facts:
+- `.env` was and remains matched by `.gitignore` (`.env`, `.env.*`, `!.env.example`, plus
+  `*service-account*.json` and similar patterns).
+- `git log --all --diff-filter=A` confirms `.env` **never entered git history**. 72 files are now
+  tracked; `.env` is not among them. The key cannot be recovered from any clone, fork or reflog.
+- CI now gates on a secret scan before anything else runs (§ below).
+
+#### ⚠ The unsafe practice was not fixed — only the key was
+
+**Verified by inspection: the replacement credential has been pasted into `.env` in exactly the same
+form as the one it replaced** — raw multi-line service-account JSON, including a live
+`-----BEGIN PRIVATE KEY-----` block, inside an environment file.
+
+Rotating a key without changing how it is stored resets the clock on the incident; it does not close
+it. The lesson from this incident, which still needs applying:
+
+> **Credentials belong in Secret Manager, or in a file referenced by
+> `GOOGLE_APPLICATION_CREDENTIALS` — never pasted into an env file.** Env files are printed by
+> tooling: by `docker run --env-file` diagnostics, by `printenv`, by crash reporters, by CI debug
+> modes, by `console.log(process.env)`, by shell history, and by any process or agent that reads the
+> file. A path is safe to print. A key is not.
+
+`.env.example` already specifies `GOOGLE_APPLICATION_CREDENTIALS` correctly, as a **path**. The real
+`.env` does not follow its own template.
+
+#### Standing aggravating factors
 
 - A Firebase Admin SDK credential is effectively **omnipotent within its project**: it bypasses all
   Firestore and Storage security rules by design. It is not a scoped key.
-- It exists in plaintext on a developer workstation, is readable by any process running as that
-  user, and has been read into at least one AI agent's context window during this project.
-- The value is embedded as raw multi-line JSON inside a `.env` file rather than referenced by path.
-  `.env.example` correctly specifies `GOOGLE_APPLICATION_CREDENTIALS` as a *path*; the actual file
-  does not follow that shape.
+- It exists in plaintext on a developer workstation, readable by any process running as that user.
+- The repository is now live at `github.com/sidevworks/after-genesis`. It is **private**, which
+  limits blast radius, but "private" is an access-control setting that can be changed by one click
+  or one misconfigured collaborator invite. It is not a substitute for the key not being there.
 
 #### Paths
 
@@ -313,30 +334,22 @@ rules-bypassing write is exactly the corruption that identity is supposed to exc
 
 #### Required actions
 
-Ordered. Items 1–3 are prerequisites for Genesis (§28).
+| # | Action | Status |
+|---|---|---|
+| 1 | **Rotate the exposed credential.** | ✅ **Done** — verified: new `private_key_id`, new key body |
+| 2 | **Add a CI secret scan so `.gitignore` is not the only control.** | ✅ **Done** — `.github/workflows/ci.yml` runs `gitleaks` over full history (`fetch-depth: 0`) as job `secrets`, and `typecheck`/`test`/`build` all declare `needs: secrets`. It additionally fails if `.env` is tracked or if a `service-account*.json` / `credentials.json` is tracked |
+| 3 | **Stop storing key material in `.env`.** Move to Secret Manager (§17) or Workload Identity Federation; if a file must be used locally, reference it by path via `GOOGLE_APPLICATION_CREDENTIALS` as `.env.example` already specifies. | ❌ **Outstanding — the replacement key is again raw JSON in `.env`** |
+| 4 | **Confirm the four projects are separate** (§17: dev / staging / rehearsal / production). The credential is for a single project named `after-genesis`; if that is to become production, it must not also be the development project. | ❌ Outstanding |
+| 5 | **Grant least privilege.** The runtime does not need Firebase Admin. It needs `datastore.user` scoped to specific collections plus a Storage writer role on the media bucket. Admin SDK bypasses all security rules, which is why a non-Admin identity is what makes [firestore-design.md](./firestore-design.md) §6 enforced rather than advisory. | ❌ Outstanding |
+| 6 | **Add a pre-commit secret scan** so a key is caught before it reaches CI. | ❌ Outstanding (CI-side only today) |
+| 7 | **CI assertion that the Vercel spectator project has no `GOOGLE_APPLICATION_CREDENTIALS`, no `*_PRIVATE_KEY` and no `GEMINI_API_KEY`.** | ❌ Outstanding |
 
-1. **Rotate the credential now.** Delete the key in the Google Cloud console for
-   `firebase-adminsdk-fbsvc@after-genesis.iam.gserviceaccount.com`, and confirm deletion rather than
-   assuming it. Rotation is required regardless of the low exposure, because the key has been
-   handled in plaintext by multiple processes. *This must be done by a human with console access —
-   it is not an action this documentation process performs.*
-2. **Do not re-download a key file.** Adopt Secret Manager (§17) or Workload Identity Federation.
-   The production runtime should obtain credentials at runtime from Secret Manager, never from a
-   file on disk and never from an environment variable containing key material.
-3. **Confirm the four projects are separate** (§17: dev / staging / rehearsal / production). The
-   present credential is for a single project named `after-genesis`; if that project is intended to
-   become production, it must not also be the development project.
-4. **Grant least privilege.** The production runtime does not need Firebase Admin. It needs
-   `datastore.user` scoped to specific collections plus a Storage writer role on the media bucket.
-   Firestore rules must be written so that even the runtime SA cannot update or delete events —
-   Admin SDK bypass makes this advisory rather than enforced, which is why a non-Admin identity
-   matters.
-5. **Add a pre-commit secret scan** (`gitleaks` or equivalent) and a CI secret scan, so `.gitignore`
-   is not the only control.
-6. **Add a CI assertion that the Vercel spectator project has no `GOOGLE_APPLICATION_CREDENTIALS`,
-   no `*_PRIVATE_KEY`, and no `GEMINI_API_KEY`.**
-7. **Verify the key never appears in a commit** — with zero commits present this is currently
-   trivially true, and should be re-verified before the first push.
+Items 3, 4 and 5 remain Genesis prerequisites (§28).
+
+**Note on the CI gate.** `gitleaks` running with `fetch-depth: 0` is a genuine control — it scans
+history, not just the diff, so a key committed and then removed still fails the build. Its limit is
+that it protects the *repository*, not the *workstation*. The current key is not in the repository;
+it is on a developer's disk, which no CI job can see.
 
 #### How it is tested
 
@@ -473,12 +486,29 @@ context without a valid disclosure event."
 
 | Test name | What it asserts |
 |---|---|
+| `packages/core/src/engine/observation.test.ts` › *"does not leak undisclosed organisation membership"* | **EXISTS AND IS CURRENTLY FAILING — see below** |
 | `invariants/no-private-info-in-observation.test.ts` | Property test: generate random worlds; for every pair (viewer, entity), assert every field in the viewer's observation is derivable from an event the viewer could observe |
 | `invariants/rejection-reason-leaks-nothing.test.ts` | For all rejection codes, the rendered reason string contains no value drawn from another inhabitant's private state (taint-tracking over generated worlds) |
 | `invariants/memory-respects-visibility.test.ts` | After a `participants`-visibility conversation, non-participants' memory stores are byte-identical to before |
 | `invariants/observation-and-memory-use-same-filter.test.ts` | Both call the identical exported function (asserted structurally) |
 | `invariants/private-ledger-not-in-public-feed.test.ts` | Transfers of a private currency appear in no public projection |
 | `arch/cognition-cannot-import-spectator.test.ts` | Dependency-direction assertion over the module graph |
+
+#### ⚠ Live finding: the observation leakage test is currently RED
+
+Verified by running the suite (`npx vitest run`): **252 tests, 250 passing, 2 failing**, both in
+`packages/core/src/engine/observation.test.ts`:
+
+| Failing test | Significance |
+|---|---|
+| `buildObservation — leakage (§15 security boundary)` › *does not leak undisclosed organisation membership* | **This is T-8 firing.** An undisclosed organisation membership is appearing in an observation that should not contain it — precisely §15's "private information cannot appear in another inhabitant's context without a valid disclosure event" |
+| `buildObservation — range and perception` › *sees less at night (§5 day/night)* | `currentSightRadius` returns 2 both by day and at night — expected strictly less at night. Lower severity, but note it widens the night-time observation window, so it compounds the first |
+
+This is the good case, not the bad one: the boundary was tested, and the test caught the leak before
+any world existed. It is recorded here because [testing-strategy.md](./testing-strategy.md) treats an
+untested boundary and a failing boundary test as different states, and because §26 forbids
+describing the observation builder as working. **`buildObservation` is `In progress`, not
+`Implemented`, and T-8 has a demonstrated live failure rather than a theoretical one.**
 
 ---
 
@@ -568,13 +598,15 @@ Risks that are accepted rather than mitigated. Each should appear on the public 
 
 Ranked by (impact × likelihood × how far the mitigation is from done).
 
+Re-ranked after the key rotation and the observation-test failure.
+
 | Rank | Risk | Why it ranks here |
 |---|---|---|
-| **1** | **T-5 service-account key exposure** | The only *live, present-tense* vulnerability in the list. An Admin credential bypasses every other control in this document simultaneously. Everything else is a design risk; this one exists right now on disk. Requires human action (rotation) that documentation cannot perform. |
-| **2** | **T-1 prompt injection via inhabitant-authored text** | Novel, central, unavoidable, and permanently unsolvable in the general case. The system is only safe because the output channel is one enum plus a validated payload. That narrowness must be defended in every future design decision, and the pressure to widen it will be constant. |
-| **3** | **T-3 replay forgery / history rewriting** | Attacks the experiment's only claim to authenticity. The single effective control against a privileged actor — external anchoring — is **Not started**, and the nightly replay that would detect divergence is also **Not started**. |
-| **4** | **T-4 spend exhaustion** | Highest *likelihood* of all ten. It needs no adversary: population growth and context growth produce it naturally. §19's memory budget and §15's spend freeze are both currently **Not started**, so today the system has no bound on per-turn cost at all. |
-| **5** | **T-8 information leakage across observation boundaries** | Most likely to be introduced accidentally, by well-intentioned code, and least likely to be noticed. A leak does not crash anything — it just quietly makes every inhabitant slightly omniscient, invalidating the experiment without ever failing a build. |
+| **1** | **T-8 information leakage across observation boundaries** | Promoted to first because it is no longer theoretical: `observation.test.ts` › *does not leak undisclosed organisation membership* **is failing right now**. Private organisation membership is reaching an observation that should not contain it. This is the class of bug that never crashes and never gets noticed in production — it just quietly makes every inhabitant slightly omniscient and invalidates the experiment. The test caught it, which is the system working; leaving it red is the risk. |
+| **2** | **T-1 prompt injection via inhabitant-authored text** | Novel, central, unavoidable, and permanently unsolvable in the general case. The system is only safe because the output channel is one enum plus a validated payload. That narrowness must be defended in every future design decision, and the pressure to widen it will be constant. Compounded by T-8: an inhabitant that can *see* more than it should can also be *injected* through more channels than intended. |
+| **3** | **T-5 credential handling** | Demoted from first: the exposed key is rotated, CI now gates every job behind a full-history `gitleaks` scan, and `.env` never entered git history. **But only the key was fixed, not the practice** — the replacement credential is again raw JSON inside `.env`, so the same incident can recur at any time, and an Admin credential still bypasses every Firestore control simultaneously. |
+| **4** | **T-3 replay forgery / history rewriting** | Attacks the experiment's only claim to authenticity. The chain verifier is real and well-tested (20 passing tests in `packages/audit`), which is genuine progress. But external anchoring — the only control that constrains a privileged operator — and nightly production replay are both **Not started**. |
+| **5** | **T-4 spend exhaustion** | Highest *likelihood* of all ten; it needs no adversary. `packages/cognition/src/budget.ts` now exists, which is more than there was, but the ceiling ladder is unproven and the memory-retrieval budget that bounds per-turn cost is not yet enforced end to end. See [cost-control.md](./cost-control.md). |
 
 T-2 (inhabitant escalation) ranks just outside the top five, because the frozen 60-action catalogue
 already makes most escalation paths *inexpressible* rather than merely forbidden — the strongest

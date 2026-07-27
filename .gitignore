@@ -44,6 +44,7 @@ test-results/
 
 # Local world data (simulation output is regenerable from seed + model log)
 .worlds/
+.after-genesis/
 *.local.jsonl
 
 # OS / editor

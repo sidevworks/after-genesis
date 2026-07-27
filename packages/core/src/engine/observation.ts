@@ -159,6 +159,7 @@ export interface ObservedMemory {
   readonly kind: "episodic" | "reflection";
   readonly summary: string;
   readonly participants: readonly string[];
+  readonly eventSequence: number;
 }
 
 /** The observer's own condition, as it experiences it (§11H, §8). */
@@ -199,6 +200,7 @@ export interface SelfView {
   readonly relationships: Readonly<Record<string, Relationship>>;
   readonly beliefs: Readonly<Record<string, string>>;
   readonly reputation: number;
+  readonly integrity: number;
   readonly memberships: readonly string[];
   readonly contracts: readonly string[];
   readonly conditions: readonly {
@@ -355,6 +357,7 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
       kind: memory.kind,
       summary: memory.summary,
       participants: [...memory.participants].sort(),
+      eventSequence: memory.sequence,
     });
   }
   memories.sort((a, b) => a.simTime - b.simTime || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
@@ -409,6 +412,7 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
     relationships: { ...self.relationships },
     beliefs: { ...self.beliefs },
     reputation: self.reputation,
+    integrity: Math.max(0, 100 - Math.max(0, ...ownConditions.map((item) => item.severity))),
     memberships: [...self.memberships].sort(),
     contracts: [...self.contracts].sort(),
     conditions: ownConditions,

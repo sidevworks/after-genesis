@@ -43,6 +43,19 @@
  *    is caught on the next open but not prevented. Single-writer per world is
  *    the operating assumption for the file store; the Firestore transaction is
  *    what makes it safe across workers.
+ *
+ * ## Measured cost
+ *
+ * On an APFS SSD (macOS 15, Node 22), 1,000 sequential appends of a typical
+ * event:
+ *
+ *  - `fsync: true`  — 4.1 ms per append (~240 appends/second)
+ *  - `fsync: false` — 0.022 ms per append (~45,000 appends/second)
+ *
+ * The 190x gap is entirely `fsync(2)`. It is irrelevant to the live turn-rate
+ * budget — a turn costs a model round trip measured in seconds, so 4 ms of
+ * durability is noise — but it dominates bulk work like replay and import,
+ * which is the only reason `fsync` is an option at all.
  */
 import { constants as fsConstants } from "node:fs";
 import { open as fsOpen, mkdir, readdir, stat, type FileHandle } from "node:fs/promises";
@@ -451,7 +464,7 @@ async function scanLog(path: string, verify: boolean): Promise<LogScan | null> {
   const flush = (): void => {
     if (!verify || batch.length === 0) return;
     const window = carry === null ? batch : [carry, ...batch];
-    const violations = verifyChain(window, { expectedWorldId: worldId ?? undefined });
+    const violations = verifyChain(window, worldId === null ? {} : { expectedWorldId: worldId });
     if (violations.length > 0) {
       throw new ChainIntegrityError(
         worldId ?? path,

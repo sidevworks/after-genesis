@@ -17,10 +17,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "lint": "tsc --build --force",
-    "world": "node --experimental-strip-types apps/genesis/src/cli.ts"
+    "verify": "tsx packages/audit/src/cli.ts",
+    "world": "tsx apps/genesis/src/cli.ts"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "tsx": "^4.23.1",
     "typescript": "^5.7.2",
     "vitest": "^2.1.8"
   },

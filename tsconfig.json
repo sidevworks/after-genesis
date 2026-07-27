@@ -1,0 +1,24 @@
+{
+  "//": "Solution file. Builds every package in dependency order. apps/spectator is excluded: Next.js needs bundler module resolution and builds via its own toolchain.",
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/persistence"
+    },
+    {
+      "path": "./packages/cognition"
+    },
+    {
+      "path": "./packages/audit"
+    },
+    {
+      "path": "./packages/runtime"
+    },
+    {
+      "path": "./apps/genesis"
+    }
+  ]
+}

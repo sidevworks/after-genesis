@@ -36,13 +36,14 @@ in [`docs/testing-strategy.md`](docs/testing-strategy.md) passes.
 | --- | --- |
 | Determinism primitives (canonical JSON, hashing, seeded RNG) | Implemented, tested |
 | Canonical event envelope + hash chain + verifier | Implemented, tested |
-| Action catalogue (60 actions) | In progress |
-| Deterministic world engine | In progress |
-| Persistence adapters | In progress |
-| Cognition service | In progress |
-| Spectator application | In progress |
+| Action catalogue (60 actions; 6 resolvers implemented) | In progress |
+| Deterministic world engine | Vertical-slice actions implemented and tested |
+| Persistence adapters | Local memory/file adapters implemented and tested |
+| Cognition service | Provider boundary implemented and tested |
+| Turn runtime | Local worker implemented and integration-tested |
+| Spectator application | Read-only static application implemented |
 | Firestore adapter | Designed, not implemented |
-| Genesis tooling | Not started |
+| Genesis tooling | Offline vertical-slice command implemented |
 
 Nothing in this table is marked complete unless it has tests that pass. §26 of
 the spec forbids claiming otherwise, and that rule applies to this README.
@@ -90,6 +91,42 @@ npx tsc --build --force
 ```bash
 npx vitest run
 ```
+
+## Run the safe vertical slice
+
+The demo command creates a new local world under the gitignored `.worlds/`
+directory. It performs Genesis, runs limited-observation mechanical cognition,
+commits deterministic actions, writes a hash-chained JSONL history, replays that
+history, and refuses success unless the reconstructed checksum matches.
+
+```bash
+npm run world -- demo
+```
+
+Replay the exported history independently:
+
+```bash
+npm run world -- replay
+```
+
+Use `--output <directory>` and `--turns <n>` to change the output location or
+turn count. The demo is intentionally offline and incurs no model cost. It is
+not the public Genesis and does not claim to satisfy the later real-Gemini,
+Firestore, accelerated-civilisation, or fourteen-day dress-rehearsal gates.
+
+An explicitly opted-in Gemini run uses the same turn pipeline:
+
+```bash
+npm run world -- demo --provider gemini --turns 1 --output .worlds/gemini-check
+```
+
+This mode requires `GEMINI_API_KEY`, both `AG_MODEL_*` values, and both spend
+limits from `.env.example`. It records every prompt and untouched response under
+the output directory’s `model-audit/` tree. It refuses an unpriced model, checks
+the spend ceiling before contacting the provider, and never silently falls back
+to offline cognition. For local runs, the CLI loads the gitignored repository
+`.env` with Node’s built-in environment loader; shell, CI, and secret-manager
+variables take precedence.
 
 ## Security
 

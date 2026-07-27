@@ -130,6 +130,8 @@ export interface ModelAuditStore {
   record(entry: {
     readonly worldId: string;
     readonly sequence: number;
+    /** Model call within the turn: 1 for initial, 2 for format correction. */
+    readonly attempt?: number;
     readonly request: ModelRequest;
     readonly requestHash: Sha256Hex;
     readonly response: ModelResponse | null;
@@ -138,5 +140,9 @@ export interface ModelAuditStore {
   }): Promise<void>;
 
   /** Used by replay to serve the recorded response instead of calling a model. */
-  get(worldId: string, sequence: number): Promise<{ rawText: string; modelId: string } | null>;
+  get(
+    worldId: string,
+    sequence: number,
+    attempt?: number,
+  ): Promise<{ rawText: string; modelId: string } | null>;
 }

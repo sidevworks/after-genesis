@@ -1,0 +1,12 @@
+{
+  "name": "@after-genesis/runtime",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": { ".": "./src/index.ts" },
+  "dependencies": {
+    "@after-genesis/cognition": "*",
+    "@after-genesis/core": "*",
+    "@after-genesis/persistence": "*"
+  }
+}

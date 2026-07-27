@@ -5,4 +5,8 @@ export * from "./ids.js";
 export * from "./time.js";
 export * from "./event.js";
 export * from "./ports.js";
+export * from "./genesis.js";
 export * from "./schema/primitives.js";
+export * from "./schema/action-spec.js";
+export { getActionSpec } from "./schema/actions/index.js";
+export * from "./engine/index.js";

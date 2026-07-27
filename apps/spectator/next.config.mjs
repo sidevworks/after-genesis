@@ -19,7 +19,6 @@ const nextConfig = {
   reactStrictMode: true,
   trailingSlash: true,
   images: { unoptimized: true },
-  eslint: { ignoreDuringBuilds: true },
 };
 
 export default nextConfig;

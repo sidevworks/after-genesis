@@ -24,7 +24,7 @@
  *    deliberately *excluded* from the checksum (see checksum.ts).
  */
 import type { ActionType, ActivityState, InterruptionPolicy } from "../schema/action-spec.js";
-import type { Coord, Quantity, ResourceBundle, ResourceKind, Terrain } from "../schema/primitives.js";
+import type { Coord, Quantity, ResourceBundle, Terrain } from "../schema/primitives.js";
 import { RESOURCE_KINDS, addBundles, coordKey } from "../schema/primitives.js";
 import type { SimTime } from "../time.js";
 import { GENESIS_TIME } from "../time.js";

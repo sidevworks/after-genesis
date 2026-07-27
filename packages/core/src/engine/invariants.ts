@@ -195,13 +195,16 @@ export const singlePrimaryActivity: Check = (state) => {
       );
     }
     const handle = inhabitant.activity;
-    if (handle.state === "idle" && handle.activityId !== null) {
+    // Holding no activity means being idle. The converse is not required:
+    // `wait` books an activity whose state is legitimately `idle`, because
+    // deliberate idleness still consumes the clock (§11A).
+    if (handle.activityId === null && handle.state !== "idle") {
       out.push(
         violation(
           "single_primary_activity",
           spec,
           inhabitant.id,
-          `is idle but still holds activity ${handle.activityId}`,
+          `holds no activity but reports state "${handle.state}"`,
         ),
       );
     }
