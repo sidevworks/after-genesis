@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@after-genesis/core": "*",
+    "@google-cloud/firestore": "^8.7.0",
     "zod": "^3.24.1"
   }
 }

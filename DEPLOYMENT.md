@@ -119,6 +119,38 @@ credential must not exist anywhere near the frontend. See
 
 Rules must have automated tests that pass before Genesis (§28).
 
+The checked-in rules deliberately expose only `worlds/{worldId}` and
+`worlds/{worldId}/public/**`. Canonical events, state, idempotency leases and
+private cognition are denied to every client SDK identity.
+
+### Runtime and Cloud Tasks configuration
+
+The server runtime needs IAM-based credentials and these non-secret settings:
+
+| Variable | Purpose |
+| --- | --- |
+| `GOOGLE_CLOUD_PROJECT` | Firebase/GCP project hosting Firestore and Tasks |
+| `AG_TASKS_LOCATION` | Cloud Tasks region |
+| `AG_TASKS_QUEUE` | Turn queue name |
+| `AG_TURN_WORKER_URL` | HTTPS-only authenticated worker endpoint |
+| `AG_TASKS_SERVICE_ACCOUNT` | OIDC caller identity for the worker |
+
+Grant the runtime identity only the Firestore and queue permissions it needs.
+Grant the task identity permission to invoke only the turn worker. Do not use a
+downloaded Admin SDK key in production; attach identities to the deployed
+services through IAM.
+
+### Dependency advisory gate
+
+As of 2026-07-28, `npm audit --omit=dev` reports upstream high-severity
+advisories in the current Google `google-gax` dependency chain and in the
+current Next.js release's bundled PostCSS/sharp versions. The npm-proposed
+`--force` remediation downgrades to unsupported major versions and must not be
+used. Staging deployment may proceed only after assessing exposure; public
+Genesis remains blocked until supported patched releases are available,
+installed, and the audit is clean or each advisory has a written,
+scope-specific risk acceptance.
+
 ---
 
 ## 4. Genesis

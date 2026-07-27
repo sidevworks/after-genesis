@@ -3,6 +3,7 @@ import {
   buildGenesis,
   sealEvent,
   type CanonicalEvent,
+  type AtomicCanonicalStore,
   type Clock,
   type EventStore,
   type GenesisConfig,
@@ -13,6 +14,7 @@ import {
 export interface GenesisDependencies {
   readonly eventStore: EventStore;
   readonly stateStore: StateStore<WorldState>;
+  readonly atomicStore?: AtomicCanonicalStore<WorldState>;
   readonly clock: Clock;
   readonly provenance: {
     readonly sourceCommit: string;
@@ -66,12 +68,16 @@ export async function commitGenesis(
     prevHash: GENESIS_PREV_HASH,
   });
 
-  await deps.eventStore.append(event, 0);
-  await deps.stateStore.save(
-    built.config.worldId,
-    built.state,
-    0,
-    built.stateChecksum,
-  );
+  if (deps.atomicStore !== undefined) {
+    await deps.atomicStore.commit(event, built.state, 0, built.stateChecksum);
+  } else {
+    await deps.eventStore.append(event, 0);
+    await deps.stateStore.save(
+      built.config.worldId,
+      built.state,
+      0,
+      built.stateChecksum,
+    );
+  }
   return { event, state: built.state };
 }

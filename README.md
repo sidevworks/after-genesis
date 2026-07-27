@@ -42,7 +42,8 @@ in [`docs/testing-strategy.md`](docs/testing-strategy.md) passes.
 | Cognition service | Provider boundary implemented and tested |
 | Turn runtime | Local worker implemented and integration-tested |
 | Spectator application | Read-only static application implemented |
-| Firestore adapter | Designed, not implemented |
+| Firestore adapter | Atomic server adapter implemented; emulator validation pending |
+| Turn scheduler | Deterministic selection and Cloud Tasks queue adapter implemented |
 | Genesis tooling | Offline vertical-slice command implemented |
 
 Nothing in this table is marked complete unless it has tests that pass. §26 of

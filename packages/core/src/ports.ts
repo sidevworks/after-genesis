@@ -113,6 +113,19 @@ export interface StateStore<TState> {
 }
 
 /**
+ * Optional production capability: append the event and replace its materialised
+ * snapshot in one database transaction.
+ */
+export interface AtomicCanonicalStore<TState> {
+  commit(
+    event: CanonicalEvent,
+    state: TState,
+    expectedSequence: number,
+    checksum: Sha256Hex,
+  ): Promise<void>;
+}
+
+/**
  * Idempotency: guarantees a turn commits at most once regardless of how many
  * times the queue delivers it (§14.2, §18).
  */

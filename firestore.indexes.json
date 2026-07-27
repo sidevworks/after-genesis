@@ -1,0 +1,20 @@
+{
+  "indexes": [],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "events",
+      "fieldPath": "inputs",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "events",
+      "fieldPath": "resolution",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "state",
+      "fieldPath": "state",
+      "indexes": []
+    }
+  ]
+}

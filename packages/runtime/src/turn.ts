@@ -25,6 +25,7 @@ import {
   runAction,
   sealEvent,
   type CanonicalEvent,
+  type AtomicCanonicalStore,
   type Clock,
   type EventStore,
   type IdempotencyStore,
@@ -90,6 +91,7 @@ export interface CognitionService {
 export interface TurnDependencies {
   readonly eventStore: EventStore;
   readonly stateStore: StateStore<WorldState>;
+  readonly atomicStore?: AtomicCanonicalStore<WorldState>;
   readonly idempotency: IdempotencyStore;
   readonly clock: Clock;
   readonly cognition: CognitionService;
@@ -296,7 +298,16 @@ export async function executeTurn(
     try {
       // Optimistic concurrency: if another worker beat us to this sequence the
       // append fails and we discard our work rather than overwrite theirs.
-      await deps.eventStore.append(event, sequence);
+      if (deps.atomicStore !== undefined) {
+        await deps.atomicStore.commit(
+          event,
+          resolution.state,
+          sequence,
+          postStateChecksum,
+        );
+      } else {
+        await deps.eventStore.append(event, sequence);
+      }
     } catch (error) {
       return {
         status: "duplicate",
@@ -309,7 +320,9 @@ export async function executeTurn(
     // The event is the source of truth and is now durable. If this save fails,
     // the world is recoverable by replay — which is precisely why the event is
     // written first and the snapshot second.
-    await deps.stateStore.save(worldId, resolution.state, sequence, postStateChecksum);
+    if (deps.atomicStore === undefined) {
+      await deps.stateStore.save(worldId, resolution.state, sequence, postStateChecksum);
+    }
 
     return {
       status: "committed",

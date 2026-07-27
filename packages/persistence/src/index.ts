@@ -17,3 +17,4 @@ export * from "./file-event-store.js";
 export * from "./state-store.js";
 export * from "./memory-idempotency-store.js";
 export * from "./file-model-audit-store.js";
+export * from "./firestore/firestore-store.js";

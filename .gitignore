@@ -26,6 +26,8 @@ gha-creds-*.json
 !/tsconfig.json
 !/tsconfig.base.json
 !/vercel.json
+!/firebase.json
+!/firestore.indexes.json
 
 # Build / deps
 node_modules/

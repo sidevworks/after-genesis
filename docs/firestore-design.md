@@ -1,7 +1,12 @@
 # Firestore design
 
-**Status:** Designed. No Firestore adapter, no `firestore.rules`, no `firestore.indexes.json` and no
-emulator tests exist in the repository yet. Everything below is a target.
+**Status:** Initial server adapter implemented. `FirestoreCanonicalStore` performs
+the event append, world-head compare-and-set, and snapshot replacement in one
+transaction; `FirestoreIdempotencyStore` uses owner-scoped TTL leases.
+`firestore.rules` exposes only the world header and generated `public/**`
+projections, with no client write grant. Unit contract tests pass. A real
+Firebase Emulator Suite run and production IAM verification remain staging
+gates.
 
 **The one requirement that dominates this document:**
 
@@ -19,9 +24,9 @@ anywhere. Adapters:
 
 | Adapter | Package | Status | Used for |
 |---|---|---|---|
-| In-memory | `packages/persistence` | Not started | Unit tests, property tests, mechanical simulation |
-| File (JSONL) | `packages/persistence` | Not started | Local worlds, replay, the public export format |
-| Firestore | `packages/persistence` | Not started | Staging, rehearsal, production |
+| In-memory | `packages/persistence` | Implemented | Unit tests, property tests, mechanical simulation |
+| File (JSONL) | `packages/persistence` | Implemented | Local worlds, replay, the public export format |
+| Firestore | `packages/persistence` | Initial adapter implemented | Staging, rehearsal, production |
 
 **Replay must run with zero cloud dependency** — that is why the file adapter exists and why
 `verifyChain()` in `event.ts` takes a plain array of events rather than a database handle. A member
