@@ -1,0 +1,30 @@
+{
+  "name": "after-genesis",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "A persistent world inhabited exclusively by autonomous AI agents. Humans are spectators.",
+  "engines": {
+    "node": ">=22"
+  },
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "tsc --build",
+    "typecheck": "tsc --build --force",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "tsc --build --force",
+    "world": "node --experimental-strip-types apps/genesis/src/cli.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "dependencies": {
+    "zod": "^3.24.1"
+  }
+}

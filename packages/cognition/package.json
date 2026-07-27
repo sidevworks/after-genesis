@@ -1,0 +1,14 @@
+{
+  "name": "@after-genesis/cognition",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./*": "./src/*.ts"
+  },
+  "dependencies": {
+    "@after-genesis/core": "*",
+    "zod": "^3.24.1"
+  }
+}

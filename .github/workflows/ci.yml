@@ -1,0 +1,95 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# The engine is deterministic, so CI is a genuine gate rather than a smoke test:
+# a checksum mismatch here means the world could not be replayed.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  secrets:
+    name: Secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # §3: "Never commit API keys, service-account credentials, debug tokens or
+      # private configuration." A service-account key reaching this repository
+      # would compromise the canonical database, so this job gates everything.
+      - name: Scan history for committed secrets
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Fail if a .env file is tracked
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env is tracked by git. Remove it from the index and rotate every key it contained."
+            exit 1
+          fi
+          echo "No tracked .env — good."
+
+      - name: Fail if a service-account key is tracked
+        run: |
+          matches=$(git ls-files | grep -Ei 'service[-_]?account.*\.json|credentials\.json' || true)
+          if [ -n "$matches" ]; then
+            echo "::error::Possible service-account key committed: $matches"
+            exit 1
+          fi
+          echo "No tracked service-account keys — good."
+
+  verify:
+    name: Typecheck, test, replay
+    runs-on: ubuntu-latest
+    needs: secrets
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --build --force
+
+      - name: Unit and integration tests
+        run: npx vitest run --reporter=verbose
+
+      # §15: "Replayed history produces an identical state checksum."
+      # This is the property the whole audit story depends on. If the engine
+      # ever becomes non-deterministic, this job is where it must fail.
+      - name: Determinism check
+        run: npx vitest run --reporter=dot -t "determinis"
+
+  build:
+    name: Build spectator
+    runs-on: ubuntu-latest
+    needs: secrets
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build
+        run: npm run build --workspace=@after-genesis/spectator --if-present
+        env:
+          # Public web config only. A canonical write credential must never be
+          # available to the frontend build (§17).
+          NEXT_PUBLIC_BUILD_COMMIT: ${{ github.sha }}

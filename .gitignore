@@ -1,0 +1,39 @@
+# ---------------------------------------------------------------------------
+# SECRETS — never commit. See docs/threat-model.md.
+# The canonical world must be reproducible from public data alone; credentials
+# are never part of that data.
+# ---------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*serviceAccount*.json
+*service-account*.json
+*-key.json
+credentials.json
+gha-creds-*.json
+
+# Build / deps
+node_modules/
+dist/
+build/
+out/
+.next/
+.turbo/
+*.tsbuildinfo
+
+# Test / coverage
+coverage/
+.vitest/
+playwright-report/
+test-results/
+
+# Local world data (simulation output is regenerable from seed + model log)
+.worlds/
+*.local.jsonl
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
