@@ -6,11 +6,26 @@
 .env
 .env.*
 !.env.example
+
+# Service-account / admin credentials.
+# Firebase names downloaded keys `<project>-firebase-adminsdk-<id>.json`, which
+# matches neither "serviceAccount" nor "service-account" — the obvious patterns
+# miss the actual filename the console gives you. Match the real shapes.
+*firebase-adminsdk*.json
+*adminsdk*.json
 *serviceAccount*.json
 *service-account*.json
 *-key.json
 credentials.json
 gha-creds-*.json
+# Belt and braces: any JSON at the repo root is credential-shaped until proven
+# otherwise. Config files that genuinely belong here are re-included below.
+/*.json
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/tsconfig.base.json
+!/vercel.json
 
 # Build / deps
 node_modules/
