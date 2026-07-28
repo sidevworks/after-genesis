@@ -27,13 +27,13 @@ Key rotation verification on 2026-07-28:
 - Repository: `sidevworks/after-genesis` (private)
 - Branch: `main`
 - Last source commit deployed to staging:
-  `f589ff255f955bfbbc220228180299e7919404b4`
+  `a514d3f2541e23e5abc36bfde86d33ebbb0e83d2`
 - Staging infrastructure-hardening commits pushed to `main`:
   - `b4bde8a` — explicit Cloud Build upload exclusions
   - `5f2a58c` — use the Cloud Run origin as the task OIDC audience
   - `f589ff2` — install only worker production dependencies in the image
 - Earlier CI-verified staging-worker commit: `ce9d706`
-- Current pushed repository head at handover: `10de338`
+- Current pushed repository head at handover: `a514d3f`
 
 ## Staging project
 
@@ -67,7 +67,7 @@ The tested `firestore.rules` and `firestore.indexes.json` are deployed.
 - Private URL:
   `https://after-genesis-worker-1010409904803.me-central1.run.app`
 - Turn endpoint: `/turn`
-- Current deployed revision at handover: `after-genesis-worker-00003-5v8`
+- Current deployed revision at handover: `after-genesis-worker-00004-4zq`
 - Runtime identity:
   `after-genesis-runtime@after-genesis-staging.iam.gserviceaccount.com`
 - Unauthenticated access: disabled
@@ -82,8 +82,8 @@ The tested `firestore.rules` and `firestore.indexes.json` are deployed.
 - Repository:
   `me-central1-docker.pkg.dev/after-genesis-staging/after-genesis`
 - Image:
-  `worker@sha256:eb6b3af72dc421ab27685b75e29de94df424e0edc1e7ef35596f5a4c78cce45b`
-- Build ID: `18f28ce3-b490-441a-a0a0-c1bc0a1a6fa2`
+  `worker@sha256:e05a8906a0305e01bb54757af2d66a027b098f5fc2e4e168b6acfcc53c041f44`
+- Build ID: `095a5005-65d7-4e0d-800b-79a32b83ea56`
 - The build used the explicit `.gcloudignore`; `.env`, Git history, local
   worlds, old Claude worktrees, credentials, and build outputs were excluded.
 
@@ -111,9 +111,10 @@ The tested `firestore.rules` and `firestore.indexes.json` are deployed.
 - `AG_SPEND_LIMIT_TOTAL_USD=5`
 - Cloud Run maximum instances is one for staging.
 
-The currently deployed revision still uses process-local limits. Durable
-Firestore reservation/settlement code is implemented locally and must pass the
-CI emulator contention gate and be deployed before paid staging inference.
+The deployed revision atomically reserves worst-case spend in Firestore before
+inference, settles actual usage afterward, releases unanswered calls, and
+replays a settled recorded response after a crash. Daily and total ceilings
+therefore survive restarts and concurrent workers.
 
 ## IAM boundary
 
@@ -146,6 +147,10 @@ GitHub Actions run for the final staging handover head `e17b9ef`:
 
 `https://github.com/sidevworks/after-genesis/actions/runs/30316373918`
 
+GitHub Actions run for durable spend commit `a514d3f`:
+
+`https://github.com/sidevworks/after-genesis/actions/runs/30317076091`
+
 Passed:
 
 - Secret scan
@@ -167,22 +172,28 @@ Live staging smoke test:
 - Firestore REST query of `worlds` returned `{}` afterward.
 - No model call, canonical event, or Genesis state was created.
 
+Post-deployment durable-budget smoke test:
+
+- Revision `after-genesis-worker-00004-4zq` received an authenticated
+  Cloud Tasks `POST /turn` and returned HTTP 200.
+- Firestore queries returned `{}` for both `worlds` and `spend` afterward.
+- No model call, reservation, canonical event, or Genesis state was created.
+
 ## Remaining work, in order
 
-1. Push, pass CI, and deploy the durable Firestore spend-reservation change.
-2. Add a staging-only, reversible fixture/bootstrap path. Do not reuse the
+1. Add a staging-only, reversible fixture/bootstrap path. Do not reuse the
    irreversible production Genesis command for integration testing.
-3. Run a real staging world fixture through:
+2. Run a real staging world fixture through:
    Cloud Tasks → OIDC → worker → Gemini → audit store → atomic Firestore commit.
-4. Test duplicate delivery, worker crash after commit, provider outage,
+3. Test duplicate delivery, worker crash after commit, provider outage,
    Firestore contention, queue outage, and replay from recorded responses.
-5. Connect and deploy the read-only spectator against public projections only.
-6. Resolve or formally accept the remaining production dependency advisories.
+4. Connect and deploy the read-only spectator against public projections only.
+5. Resolve or formally accept the remaining production dependency advisories.
    The slim worker image currently reports five high advisories in the Google
    client dependency chain.
-7. Complete accelerated civilization testing and the required continuous
+6. Complete accelerated civilization testing and the required continuous
    fourteen-day dress rehearsal.
-8. Produce a written launch-readiness report before considering Genesis.
+7. Produce a written launch-readiness report before considering Genesis.
 
 ## Useful inspection commands
 
