@@ -12,7 +12,7 @@ COPY packages/audit/package.json packages/audit/package.json
 COPY apps/genesis/package.json apps/genesis/package.json
 COPY apps/spectator/package.json apps/spectator/package.json
 COPY apps/worker/package.json apps/worker/package.json
-RUN npm ci --include=dev
+RUN npm ci --omit=dev --workspace=@after-genesis/worker --include-workspace-root=false
 
 COPY tsconfig.base.json tsconfig.json ./
 COPY packages packages
