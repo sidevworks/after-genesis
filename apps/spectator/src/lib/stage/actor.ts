@@ -199,7 +199,11 @@ export class ActorRig {
    * Called once per actor per frame. It allocates the pose objects from
    * `clips.ts` and nothing else — no geometry, no material, no texture.
    */
-  apply(sample: ActorSample, spec: PerformanceSpec): void {
+  apply(
+    sample: ActorSample,
+    spec: PerformanceSpec,
+    visualOffset: { readonly x: number; readonly y: number } = { x: 0, y: 0 },
+  ): void {
     if (!sample.present) {
       this.group.visible = false;
       return;
@@ -231,9 +235,9 @@ export class ActorRig {
 
     // Position. Canonical tile (x, y) is renderer (x, 0, y); see scene-adapter.
     this.group.position.set(
-      sample.position.x + pose.root.x,
+      sample.position.x + visualOffset.x + pose.root.x,
       pose.root.y,
-      sample.position.y + pose.root.z,
+      sample.position.y + visualOffset.y + pose.root.z,
     );
     this.group.rotation.set(
       pose.rootTilt.x,

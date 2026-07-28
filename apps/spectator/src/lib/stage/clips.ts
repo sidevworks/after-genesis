@@ -525,22 +525,26 @@ const walk: ClipFn = ({ phase, speed }) => {
   return pose;
 };
 
-/** Crouch, reach down, rise. One full cycle per phase revolution. */
+/** Kneel, pick, and stow. Kept asymmetric to avoid a repetitive pelvic hinge. */
 const harvest: ClipFn = ({ phase }) => {
   const pose = restPose();
-  const reach = swell(phase);
-  pose.root.y = -0.34 * reach;
-  pose.legL.x = 0.3 * reach;
-  pose.legR.x = 0.3 * reach;
-  pose.legL.z = -0.1 * reach;
-  pose.legR.z = 0.1 * reach;
-  pose.hips.x = 0.42 * reach;
-  pose.torso.x = 0.28 * reach;
-  pose.head.x = 0.3 * reach;
-  pose.armL.x = 0.06 + 1.25 * reach;
-  pose.armR.x = 0.06 + 1.25 * reach;
-  pose.armL.z = -0.12;
-  pose.armR.z = 0.12;
+  const kneel = smoothstep01(Math.min(phase * 3, 1)) *
+    (1 - smoothstep01(Math.max((phase - 0.72) / 0.28, 0)));
+  const pick = swell(Math.min(Math.max((phase - 0.2) / 0.48, 0), 1));
+  const stow = swell(Math.min(Math.max((phase - 0.52) / 0.48, 0), 1));
+  pose.root.y = -0.3 * kneel;
+  pose.legL.x = 0.62 * kneel;
+  pose.legR.x = 0.14 * kneel;
+  pose.legL.z = -0.18 * kneel;
+  pose.legR.z = 0.12 * kneel;
+  pose.hips.x = 0.12 * kneel;
+  pose.torso.x = 0.34 * kneel;
+  pose.torso.z = -0.08 * kneel;
+  pose.head.x = 0.2 * kneel;
+  pose.armL.x = 0.15 + 1.05 * pick;
+  pose.armR.x = 0.12 + 0.5 * pick - 0.35 * stow;
+  pose.armL.z = -0.3;
+  pose.armR.z = 0.22 + 0.35 * stow;
   return pose;
 };
 

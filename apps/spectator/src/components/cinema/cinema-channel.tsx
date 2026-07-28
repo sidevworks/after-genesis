@@ -12,8 +12,9 @@
  * entertaining."
  */
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { CinemaViewport } from "./cinema-viewport";
+import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 
 export interface ChannelSubject {
   readonly id: string;
@@ -23,14 +24,39 @@ export interface ChannelSubject {
   readonly refId: string | null;
 }
 
+export interface ChannelActivity {
+  readonly id: string;
+  readonly sequence: number;
+  readonly actionType: string;
+  readonly activityState: string;
+  readonly participants: readonly string[];
+  readonly startedAt: number;
+  readonly contentsDisclosed: boolean;
+}
+
 export function CinemaChannel({
   subjects,
+  activities,
+  endTick,
   initialSubjectId = null,
 }: {
   readonly subjects: readonly ChannelSubject[];
+  readonly activities: readonly ChannelActivity[];
+  readonly endTick: number;
   readonly initialSubjectId?: string | null;
 }) {
   const [subjectId, setSubjectId] = useState<string | null>(initialSubjectId);
+  const [jumpTick, setJumpTick] = useState<number | undefined>(undefined);
+  const [jumpKey, setJumpKey] = useState(0);
+  const conversations = useMemo(
+    () => activities.filter((activity) => activity.activityState === "conversing"),
+    [activities],
+  );
+  const maxDay = Math.floor(endTick / MINUTES_PER_DAY) + 1;
+  const jump = (tick: number) => {
+    setJumpTick(Math.max(0, Math.min(tick, endTick)));
+    setJumpKey((value) => value + 1);
+  };
 
   return (
     <div className="space-y-4">
@@ -61,9 +87,55 @@ export function CinemaChannel({
         ))}
       </div>
 
+      <div className="panel grid gap-3 p-4 sm:grid-cols-2" aria-label="Replay navigator">
+        <label className="text-sm text-muted">
+          <span className="eyebrow mb-1 block">Go to world day</span>
+          <input
+            type="number"
+            min={1}
+            max={maxDay}
+            placeholder={`1–${maxDay}`}
+            className="w-full rounded-sm border border-line bg-panel-2 px-2.5 py-1.5 text-ink"
+            onKeyDown={(event) => {
+              if (event.key !== "Enter") return;
+              const day = Number(event.currentTarget.value);
+              if (Number.isFinite(day)) jump((day - 1) * MINUTES_PER_DAY);
+            }}
+          />
+          <small>Enter a day and press Return.</small>
+        </label>
+        <label className="text-sm text-muted">
+          <span className="eyebrow mb-1 block">Replay a conversation</span>
+          <select
+            defaultValue=""
+            className="w-full rounded-sm border border-line bg-panel-2 px-2.5 py-1.5 text-ink"
+            onChange={(event) => {
+              const activity = conversations.find((item) => item.id === event.target.value);
+              if (activity !== undefined) jump(activity.startedAt);
+            }}
+          >
+            <option value="">Choose a recorded conversation…</option>
+            {conversations.map((activity) => (
+              <option key={activity.id} value={activity.id}>
+                Day {Math.floor(activity.startedAt / MINUTES_PER_DAY) + 1} · event{" "}
+                {activity.sequence} · {activity.participants.length} participant
+                {activity.participants.length === 1 ? "" : "s"}
+                {activity.contentsDisclosed ? "" : " · contents withheld"}
+              </option>
+            ))}
+          </select>
+          <small>{conversations.length.toLocaleString()} conversation records retained.</small>
+        </label>
+      </div>
+
       {/* Remounting on subject change resets the shot plan and the rig pool
           cleanly, and a channel change is exactly when a hard reset is correct. */}
-      <CinemaViewport key={subjectId ?? "world"} subjectId={subjectId} />
+      <CinemaViewport
+        key={`${subjectId ?? "world"}:${jumpKey}`}
+        subjectId={subjectId}
+        {...(jumpTick === undefined ? {} : { initialTick: jumpTick })}
+        initialRate={60}
+      />
     </div>
   );
 }

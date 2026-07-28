@@ -69,6 +69,9 @@ const POSE_LERP = 0.16;
 /** Shadow frustum half-width in metres, around the camera target. */
 const SHADOW_EXTENT = 26;
 
+/** Presentation-only personal space when several canonical positions share a tile. */
+const ACTOR_SEPARATION = 0.62;
+
 export class Stage {
   private readonly mount: HTMLElement;
   private readonly renderer: WebGLRenderer;
@@ -218,6 +221,18 @@ export class Stage {
     this.terrain.update(frame.tick);
     applySky(skyAt(frame.dayFraction), this.skyTargets);
 
+    const occupied = new Map<string, ActorSample[]>();
+    for (const actor of frame.actors) {
+      if (!actor.present) continue;
+      const key = `${actor.position.x.toFixed(3)}:${actor.position.y.toFixed(3)}`;
+      const group = occupied.get(key);
+      if (group === undefined) occupied.set(key, [actor]);
+      else group.push(actor);
+    }
+    for (const group of occupied.values()) {
+      group.sort((left, right) => left.inhabitantId.localeCompare(right.inhabitantId));
+    }
+
     for (const actor of frame.actors) {
       let rig = this.rigs.get(actor.inhabitantId);
       if (rig === undefined) {
@@ -225,7 +240,15 @@ export class Stage {
         rig.setHighlighted(actor.inhabitantId === this.highlightId);
         this.rigs.set(actor.inhabitantId, rig);
       }
-      rig.apply(actor, performanceFor(actor));
+      const key = `${actor.position.x.toFixed(3)}:${actor.position.y.toFixed(3)}`;
+      const group = occupied.get(key) ?? [actor];
+      const index = group.findIndex((candidate) => candidate.inhabitantId === actor.inhabitantId);
+      const radius = group.length > 1 ? ACTOR_SEPARATION : 0;
+      const angle = group.length > 1 ? (index / group.length) * Math.PI * 2 : 0;
+      rig.apply(actor, performanceFor(actor), {
+        x: Math.cos(angle) * radius,
+        y: Math.sin(angle) * radius,
+      });
     }
 
     this.applyCamera(pose);

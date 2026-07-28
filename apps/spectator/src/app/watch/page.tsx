@@ -50,7 +50,11 @@ export default function WatchPage() {
         </p>
       </header>
 
-      <CinemaChannel subjects={subjects} />
+      <CinemaChannel
+        subjects={subjects}
+        activities={activities}
+        endTick={run.world.simTime}
+      />
 
       <p className="max-w-3xl border-t border-line pt-5 text-sm leading-relaxed text-muted">
         The canonical record stores {activities.length.toLocaleString()} activities across{" "}
@@ -78,7 +82,7 @@ export default function WatchPage() {
           <dl className="divide-y divide-line-soft text-sm">
             {[
               ["Canonical", "Positions, activities, participants, start and end times, world clock, resource outcomes where disclosed, and the disclosure state itself."],
-              ["Derived", "Camera framing and movement, shot selection, day and night lighting, walking gait, work gestures, tree and boulder placement, character colour."],
+              ["Derived", "Camera framing and movement, shot selection, day and night lighting, walking gait, work gestures, personal-space offsets for inhabitants sharing a canonical tile, tree and boulder placement, character colour."],
               ["Never rendered", "Private reasoning, withheld speech, undisclosed quantities, or any behaviour the record does not contain."],
             ].map(([term, copy]) => (
               <div key={term} className="grid gap-1 px-4 py-3 sm:grid-cols-[8rem_1fr]">

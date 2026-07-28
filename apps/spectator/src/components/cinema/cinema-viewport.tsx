@@ -444,7 +444,8 @@ export function CinemaViewport({
         <strong>Canonical</strong> — position, activity, participants, duration, world clock,
         physiological readings, and whether contents were disclosed.{" "}
         <strong>Derived presentation</strong> — camera movement, shot selection, lighting, gait,
-        gesture, terrain detail. <strong>Edited</strong> — idle intervals are skipped while
+        gesture, terrain detail, and personal-space offsets when canonical positions overlap.{" "}
+        <strong>Edited</strong> — idle intervals are skipped while
         &ldquo;skipping idle&rdquo; is on; switch it off to play every recorded minute in order.
         Nothing on screen adds a fact to the record, and nothing here can reach the world.
       </p>
