@@ -15,6 +15,8 @@ import { addBundles, coordKey, subtractBundles } from "../../schema/primitives.j
 import { deriveActivityId } from "../../ids.js";
 import { addDuration, duration, isNight, type SimTime } from "../../time.js";
 import type { Rng } from "../../util/rng.js";
+import { advanceHealth } from "../health.js";
+import type { DerivedEvent } from "./types.js";
 import {
   IDLE_ACTIVITY,
   MAX_SKILL,
@@ -196,7 +198,7 @@ export function beginActivity(input: BeginActivityInput): {
  * open forever and the single-primary-activity invariant would fire on the
  * second action anyone took.
  */
-export function settleExpiredActivities(state: WorldState, now: SimTime): WorldState {
+export function closeExpiredActivities(state: WorldState, now: SimTime): WorldState {
   let next = state;
   for (const activity of sortedValues(state.activities)) {
     if (!activity.open || activity.endsAt > now) continue;
@@ -210,6 +212,57 @@ export function settleExpiredActivities(state: WorldState, now: SimTime): WorldS
     }
   }
   return next;
+}
+
+/**
+ * Everything the world does to itself at the start of a turn, before the actor
+ * acts (§11A, §8).
+ *
+ * There are exactly two such things, and the order between them matters:
+ *
+ * 1. Finished activities close, so nobody is killed while still nominally
+ *    holding a task they had in fact completed.
+ * 2. Health advances for **every living inhabitant**, not only the actor.
+ *
+ * Point 2 is the reason this hook exists at all. `advanceNeeds` runs inside a
+ * resolver, which means it only ever touches whoever is taking the turn. Decline
+ * and death cannot work that way: an inhabitant the scheduler never reaches
+ * would be immortal, and mortality would become a function of queue depth. The
+ * tick is the one place in the engine that iterates the whole population, and it
+ * is deliberately the *only* one — a second such loop elsewhere would be a
+ * second, unaudited set of physics.
+ *
+ * `sequence` is the sequence number the current turn will occupy. Conditions and
+ * deaths raised here are recorded against it, which keeps them inside the same
+ * atomic state transition as the action that follows — the turn is one event, so
+ * everything it caused must share its sequence number.
+ *
+ * Determinism: pure in `(state, now, sequence)`. No RNG is consulted, so the
+ * numbers a resolver draws from `ctx.rng` are unaffected by whether anybody
+ * happened to fall ill this turn.
+ */
+export function worldTick(
+  state: WorldState,
+  now: SimTime,
+  sequence: number = state.sequence + 1,
+): { readonly state: WorldState; readonly events: readonly DerivedEvent[] } {
+  return advanceHealth(closeExpiredActivities(state, now), now, sequence);
+}
+
+/**
+ * The world tick, keeping the name and signature every existing caller uses.
+ *
+ * The derived events are dropped on this path. That is a real limitation and is
+ * stated rather than hidden: a death resolved here still changes canonical state
+ * — `status`, `deathTime`, `deathSequence` and the causing condition all land in
+ * the world and therefore in the turn's `postStateChecksum` and its hash chain —
+ * but the death's own `DerivedEvent` reaches the log only once the turn pipeline
+ * calls `worldTick` directly and threads the events into the turn's resolution.
+ * Nothing is lost from the replayable record either way; what is lost is the
+ * human-readable "X died of dehydration" line in the event's `derived` array.
+ */
+export function settleExpiredActivities(state: WorldState, now: SimTime): WorldState {
+  return worldTick(state, now).state;
 }
 
 /* ------------------------------------------------------------------------- */

@@ -14,6 +14,7 @@ import {
   type MemoryRecord,
   type Observation,
   type PriceTable,
+  type SpendEnforcement,
   type SpendLimits,
 } from "@after-genesis/cognition";
 import { IMPLEMENTED_ACTIONS } from "@after-genesis/core";
@@ -30,6 +31,12 @@ export interface ProviderCognitionOptions {
   readonly modelId: string;
   readonly prices: readonly PriceTable[];
   readonly limits: SpendLimits;
+  /**
+   * Whether a reached ceiling stops paid inference or merely records it.
+   * Defaults to `"freeze"`; see `SpendEnforcement` in the cognition package for
+   * why `"observe"` must never reach a sealed world.
+   */
+  readonly enforcement?: SpendEnforcement;
   /** Explicit calendar partition supplied by the scheduler, e.g. 2026-07-28. */
   readonly dayKey: string;
   readonly durableSpend?: SpendReservationStore;
@@ -58,7 +65,11 @@ export class ProviderCognitionService implements CognitionService {
     this.#provider = options.provider;
     this.#audit = options.audit;
     this.#modelId = options.modelId;
-    this.#ledger = new SpendLedger({ prices: options.prices, limits: options.limits });
+    this.#ledger = new SpendLedger({
+      prices: options.prices,
+      limits: options.limits,
+      ...(options.enforcement === undefined ? {} : { enforcement: options.enforcement }),
+    });
     this.#dayKey = options.dayKey;
     this.#durableSpend = options.durableSpend;
     this.#temperature = options.temperature;

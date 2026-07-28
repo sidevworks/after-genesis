@@ -25,6 +25,7 @@ import {
   geminiFromEnv,
   resolveModelRouting,
   usdToMicros,
+  type SpendEnforcement,
   type PriceTable,
 } from "@after-genesis/cognition";
 import {
@@ -94,7 +95,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   return { command, output: resolve(output), turns, provider, resume, maxSpendUsd };
 }
 
-function demoConfig(modelId: string = "offline-mechanical-cognition-v1"): GenesisConfig {
+function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
@@ -133,24 +134,203 @@ function demoConfig(modelId: string = "offline-mechanical-cognition-v1"): Genesi
 }
 
 /**
- * Offline cognition for the safe demo. It reads exactly the limited observation
- * available to the founder and emits one schema-shaped proposal. It never reads
- * global state fields outside `buildObservation`.
+ * A deterministic 0..1 from a turn's identity. Never `Math.random()`: the
+ * offline provider has to be replayable like everything else, or an offline run
+ * could not be used to test replay.
+ */
+function turnHash(actorId: string, sequence: number, salt: string): number {
+  let hash = 0x811c9dc5;
+  const input = `${actorId}:${sequence}:${salt}`;
+  for (let index = 0; index < input.length; index++) {
+    hash ^= input.charCodeAt(index);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return (hash >>> 0) / 0x100000000;
+}
+
+/**
+ * Offline cognition: an instinct-driven stand-in for a model.
+ *
+ * ## Why the previous version was not good enough
+ *
+ * It cycled four hardcoded proposals — `observe`, `wait`, `observe`, `rest` —
+ * regardless of what the inhabitant could see or needed. A 365-simulated-day
+ * run using it completed with all three inhabitants standing on their spawn
+ * tile, hunger and thirst pinned at the ceiling, having never eaten, drunk,
+ * moved or spoken. It verified the event chain and the replay, and it exercised
+ * almost nothing else. An offline provider that cannot starve an inhabitant
+ * cannot test the rules that decide whether starving matters.
+ *
+ * ## What this does instead
+ *
+ * A priority ladder over the inhabitant's **own legitimate observation** — the
+ * same `buildObservation` boundary a real model gets, with no privileged read of
+ * world state. Needs first, because they are the only pressure the world applies
+ * on its own; then work; then, occasionally, the social and creative actions
+ * that only matter once survival is handled.
+ *
+ * It is emphatically **not** a model and makes no attempt to be one. It has no
+ * goals, no memory and no strategy, and it will never produce a civilisation.
+ * Its job is to drive the engine hard enough, and broadly enough, that the rules
+ * are exercised at zero API cost — including the rejection paths, which is why
+ * it will occasionally propose an action the build may not implement.
+ *
+ * Deterministic by construction: every branch is a function of the observation
+ * and a hash of `(actorId, sequence)`, so an offline run replays exactly.
  */
 function mechanicalCognition(): CognitionService {
   return {
     async propose(input) {
       const observation = buildObservation(input.state, input.actorId);
-      const actions: readonly ProposedAction[] = [
-        { type: "observe", payload: {} },
-        { type: "wait", payload: { durationMinutes: 30 } },
-        { type: "observe", payload: {} },
-        { type: "rest", payload: { durationMinutes: 60 } },
-      ];
-      const action = actions[(input.sequence - 1) % actions.length]!;
+      const self = observation.self;
+      const roll = (salt: string): number => turnHash(input.actorId, input.sequence, salt);
+
+      const held = (resource: string): number =>
+        (self.inventory as Record<string, number | undefined>)[resource] ?? 0;
+
+      /** Deposits within reach, nearest first, for a chosen resource. */
+      const nearestWith = (resource: string) =>
+        observation.tiles
+          .filter((tile) => ((tile.deposit as Record<string, number | undefined>)[resource] ?? 0) > 0)
+          .sort((left, right) => left.distance - right.distance)[0];
+
+      /**
+       * NOTE: payload shapes follow what each resolver **actually reads**, which
+       * is not always what its declared zod schema says.
+       *
+       * There are two generations of resolver in this engine. The newer ones
+       * (`communicate`, `create_artifact`, `build`) call `Schema.safeParse` and
+       * so match their declared payload. The older ones (`move`, `gather`,
+       * `consume`, `rest`, `wait`, `announce`) hand-parse with `asObject` /
+       * `readEnum` / `readCoord` and use *different key names*:
+       *
+       *   move     schema `destination`     resolver `to`
+       *   consume  schema `items[]`         resolver `resource` + `amount`
+       *   rest     schema `intendedHours`   resolver `minutes`
+       *   wait     schema `durationMinutes` resolver `minutes`
+       *   gather   schema `targetQuantity`  resolver ignores it
+       *
+       * Those declared schemas are never parsed anywhere, so they are currently
+       * documentation that disagrees with the code. Matching the resolver is the
+       * only way to produce an accepted action until that is reconciled.
+       *
+       * Gather reaches the tile underfoot, and reaches an *adjacent* tile only
+       * for water — you stand on the bank, not in the channel. See
+       * `REACHABLE_FROM_ADJACENT` in `engine/resolvers/gather.ts`. Proposing a
+       * gather from further away is simply rejected, so the planner walks first.
+       */
+      const canReach = (resource: string, distance: number): boolean =>
+        distance === 0 || (resource === "water" && distance <= 1);
+
+      /** Take what is in reach, otherwise walk to it, otherwise say so. */
+      const fetch = (resource: string): ProposedAction | null => {
+        const source = nearestWith(resource);
+        if (source === undefined) return null;
+        if (canReach(resource, source.distance)) {
+          return { type: "gather", payload: { resource } };
+        }
+        return { type: "move", payload: { to: { x: source.x, y: source.y } } };
+      };
+
+      const action = ((): ProposedAction => {
+        // 1. Drink and eat before anything else. Thirst kills faster than
+        //    hunger, so it is checked first — and both are checked before work,
+        //    because an inhabitant who works through starvation is not being
+        //    frugal, it is being badly simulated.
+        if (self.needs.thirst >= 55 && held("water") > 0) {
+          return { type: "consume", payload: { resource: "water", amount: 1 } };
+        }
+        if (self.needs.hunger >= 55 && held("food") > 0) {
+          return { type: "consume", payload: { resource: "food", amount: 1 } };
+        }
+
+        // 2. Nothing to consume: go and get it.
+        for (const [need, resource] of [
+          ["thirst", "water"],
+          ["hunger", "food"],
+        ] as const) {
+          if (self.needs[need] < 45 || held(resource) > 0) continue;
+          const errand = fetch(resource);
+          if (errand !== null) return errand;
+        }
+
+        // 3. Rest when tired or short of energy. `rest` is the only action that
+        //    restores energy, so an inhabitant that never rests eventually
+        //    cannot afford to act at all.
+        if (self.needs.fatigue >= 60 || self.energy < 120 || observation.night) {
+          return { type: "rest", payload: { minutes: 360 } };
+        }
+
+        // 4. Occasional non-survival behaviour. Kept rare so runs stay
+        //    productive, and deliberately including actions this build may not
+        //    resolve — a rejected proposal is a canonical no-op and exercising
+        //    that path is part of the point.
+        const chance = roll("ambition");
+        const neighbour = observation.inhabitants.find(
+          (other) => other.status === "alive" && other.distance <= 2,
+        );
+
+        if (chance > 0.94 && neighbour !== undefined) {
+          return {
+            type: "communicate",
+            payload: {
+              recipients: [neighbour.id],
+              message: `I am at (${self.location.x}, ${self.location.y}).`,
+              intendedMinutes: 15,
+            },
+          };
+        }
+        if (chance > 0.9) {
+          return {
+            type: "create_artifact",
+            payload: {
+              kind: "research_note",
+              title: `Record ${input.sequence}`,
+              content: `Observed ${observation.tiles.length} tiles at minute ${observation.simTime}.`,
+            },
+          };
+        }
+        if (chance > 0.87 && held("wood") >= 4 && held("stone") >= 2) {
+          return {
+            type: "build",
+            payload: {
+              structureKind: "shelter",
+              coord: { x: self.location.x, y: self.location.y },
+              name: `Shelter ${input.sequence}`,
+              materials: { wood: 4, stone: 2 },
+            },
+          };
+        }
+        if (chance > 0.85 && neighbour !== undefined) {
+          return {
+            type: "teach",
+            payload: {
+              studentIds: [neighbour.id],
+              skill: "gathering",
+              lessonSummary: "Where the deposits are and how quickly they run out.",
+            },
+          };
+        }
+        if (chance > 0.83) {
+          return { type: "study", payload: { skill: "gathering" } };
+        }
+        if (chance > 0.81 && held("food") >= 20 && held("water") >= 20 && self.energy > 600) {
+          return { type: "create_inhabitant", payload: {} };
+        }
+
+        // 5. Otherwise stock up on whatever is nearest, and look around when
+        //    there is nothing within reach.
+        for (const resource of ["water", "food", "wood", "stone"]) {
+          if (held(resource) >= 30) continue;
+          const errand = fetch(resource);
+          if (errand !== null) return errand;
+        }
+        return { type: "observe", payload: {} };
+      })();
+
       return {
         action,
-        modelId: "offline-mechanical-cognition-v1",
+        modelId: "offline-instinct-cognition-v2",
         requestHash: null,
         responseHash: null,
         costMicros: 0,
@@ -239,7 +419,7 @@ async function runDemo(args: ParsedArgs): Promise<void> {
         : productionCognition(auditStore, priorModelCostMicros, args.maxSpendUsd);
     const modelId =
       args.provider === "offline"
-        ? "offline-mechanical-cognition-v1"
+        ? "offline-instinct-cognition-v2"
         : resolveModelRouting(process.env).routine;
     const config = demoConfig(modelId);
     if (!args.resume) {
@@ -350,20 +530,49 @@ function productionCognition(
     maxSpendUsd === null ? configuredTotal : Math.min(configuredTotal, usdToMicros(maxSpendUsd));
   const remainingTotal = hardLifetimeCeiling - priorModelCostMicros;
   const remainingDaily = configuredDaily - priorModelCostMicros;
-  if (remainingTotal <= 0 || remainingDaily <= 0) {
+
+  /*
+   * Spend enforcement (see `SpendEnforcement` in @after-genesis/cognition).
+   *
+   * This repository is a disposable testbed: the intent is to discard it and
+   * rebuild a sealed world before Genesis. In that setting a mid-run freeze is
+   * more expensive than an unexpected bill, because it invalidates the run
+   * rather than the budget. So the default here is "observe" — every charge is
+   * still priced, recorded and reported, and none of them is ever refused.
+   *
+   * `assertSealedWorldPolicy` (called by the Genesis command) refuses to seal a
+   * world in this mode, so the setting cannot travel into a real world silently.
+   * Set AG_SPEND_ENFORCEMENT=freeze to restore the constitutional behaviour.
+   */
+  const enforcement: SpendEnforcement =
+    process.env.AG_SPEND_ENFORCEMENT === "freeze" ? "freeze" : "observe";
+
+  if (enforcement === "freeze" && (remainingTotal <= 0 || remainingDaily <= 0)) {
     throw new Error(
       `Paid inference is frozen: prior audited cost $${(priorModelCostMicros / 1_000_000).toFixed(6)} ` +
         "has reached the configured cumulative ceiling.",
     );
   }
+  if (enforcement === "observe") {
+    console.warn(
+      `[spend] enforcement=observe — no ceiling will stop this run. ` +
+        `Prior audited cost $${(priorModelCostMicros / 1_000_000).toFixed(6)}. ` +
+        `Stated ceilings: daily $${(configuredDaily / 1_000_000).toFixed(2)}, ` +
+        `total $${(hardLifetimeCeiling / 1_000_000).toFixed(2)}.`,
+    );
+  }
+
   return new ProviderCognitionService({
     provider: geminiFromEnv(process.env),
     audit,
     modelId,
     prices,
+    enforcement,
     limits: {
-      dailyMicros: remainingDaily,
-      totalMicros: remainingTotal,
+      // Under "observe" these are reporting thresholds, not brakes. They are
+      // still passed so the meter can say when a stated ceiling was passed.
+      dailyMicros: Math.max(remainingDaily, 0),
+      totalMicros: Math.max(remainingTotal, 0),
     },
     dayKey: new Date().toISOString().slice(0, 10),
     // Audited constitutional setting for emergence trials. Diversity is useful;

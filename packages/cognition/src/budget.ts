@@ -74,6 +74,33 @@ export interface SpendLimits {
   readonly totalMicros: number;
 }
 
+/**
+ * What the ledger does when a ceiling is reached.
+ *
+ * `"freeze"` is the constitutional behaviour required by §15 ("Spend limits
+ * freeze further paid inference safely") and §28 ("Spending limits work"). It
+ * throws `SpendLimitExceededError` before the provider is contacted, so the
+ * turn is rescheduled rather than half-resolved.
+ *
+ * `"observe"` records exactly the same numbers and never throws. Spend becomes
+ * a meter rather than a brake: nothing pauses, nothing is refused, and the
+ * operator is expected to watch the total themselves.
+ *
+ * ---
+ *
+ * ⚠ **`"observe"` MUST NOT be used by a world intended to be sealed.**
+ *
+ * A world running in `"observe"` mode cannot satisfy §15 or §28, because the
+ * invariant those sections require is precisely the one this mode disables.
+ * It exists for a disposable testbed, where an unexpected freeze costs more
+ * than an unexpected bill, and where the repository is going to be discarded
+ * and rebuilt before Genesis.
+ *
+ * `assertSealedWorldPolicy` below is the guard that keeps this decision from
+ * travelling into a real world by accident.
+ */
+export type SpendEnforcement = "freeze" | "observe";
+
 /** A recorded charge. Append-only, like everything else in this world. */
 export interface SpendEntry {
   /** Caller-supplied day key, e.g. "2026-07-28". Never derived from a clock here. */
@@ -91,6 +118,10 @@ export interface SpendSnapshot {
   readonly byDay: Readonly<Record<string, number>>;
   readonly entryCount: number;
   readonly limits: SpendLimits;
+  /** Which mode produced this snapshot, so a report cannot hide that it was unmetered. */
+  readonly enforcement: SpendEnforcement;
+  /** True when spend has passed a stated ceiling — reported even under `"observe"`. */
+  readonly overLimit: boolean;
 }
 
 /**
@@ -121,7 +152,14 @@ export class SpendLedger {
   private readonly dayTotals = new Map<string, number>();
   private total = 0;
 
-  constructor(options: { readonly limits: SpendLimits; readonly prices: readonly PriceTable[] }) {
+  /** `"freeze"` by default: the safe behaviour is the one you get for free. */
+  readonly enforcement: SpendEnforcement;
+
+  constructor(options: {
+    readonly limits: SpendLimits;
+    readonly prices: readonly PriceTable[];
+    readonly enforcement?: SpendEnforcement;
+  }) {
     assertNonNegativeInteger(options.limits.dailyMicros, "dailyMicros");
     assertNonNegativeInteger(options.limits.totalMicros, "totalMicros");
     for (const price of options.prices) {
@@ -129,6 +167,7 @@ export class SpendLedger {
       assertNonNegativeInteger(price.outputMicrosPerMillionTokens, "outputMicrosPerMillionTokens");
     }
     this.limits = options.limits;
+    this.enforcement = options.enforcement ?? "freeze";
     this.prices = new Map(options.prices.map((price) => [price.modelId, price]));
   }
 
@@ -163,6 +202,11 @@ export class SpendLedger {
       options.maxOutputTokens,
     );
 
+    // In `"observe"` mode the projection is still computed — the caller uses it
+    // to reserve spend, and the arithmetic is what makes the meter accurate —
+    // but no ceiling is consulted and nothing is refused.
+    if (this.enforcement === "observe") return projected;
+
     const dayAlready = this.dayTotals.get(options.dayKey) ?? 0;
     if (dayAlready + projected > this.limits.dailyMicros) {
       throw new SpendLimitExceededError(
@@ -196,8 +240,27 @@ export class SpendLedger {
     return recorded;
   }
 
-  /** True if either ceiling is already at or past its limit. */
+  /**
+   * True if either ceiling is already at or past its limit.
+   *
+   * Always false under `"observe"`: there is no ceiling to be at, so there is
+   * no frozen state to report. Callers use this to decide whether to stop, and
+   * under `"observe"` the answer is always "keep going".
+   */
   isFrozen(dayKey: string): boolean {
+    if (this.enforcement === "observe") return false;
+    return this.isOverLimit(dayKey);
+  }
+
+  /**
+   * Whether spend has passed a ceiling, regardless of enforcement mode.
+   *
+   * This is the *meter* reading, and it keeps working under `"observe"` — which
+   * is the whole point of turning enforcement off rather than deleting the
+   * ledger. An operator running unmetered can still ask "am I past what I said
+   * I would spend?" and get a true answer.
+   */
+  isOverLimit(dayKey: string): boolean {
     return (
       this.total >= this.limits.totalMicros ||
       (this.dayTotals.get(dayKey) ?? 0) >= this.limits.dailyMicros
@@ -228,7 +291,39 @@ export class SpendLedger {
       byDay,
       entryCount: this.entries.length,
       limits: this.limits,
+      enforcement: this.enforcement,
+      overLimit: this.isOverLimit(
+        [...this.dayTotals.keys()].sort().at(-1) ?? "",
+      ),
     };
+  }
+}
+
+/**
+ * Refuse to seal a world whose spend ledger cannot enforce its own ceilings.
+ *
+ * `"observe"` is a legitimate testbed setting and an illegitimate production
+ * one. The difference is not a matter of taste: §15 requires that "spend limits
+ * freeze further paid inference safely" and §28 makes "spending limits work" a
+ * precondition of Genesis, so a world sealed in `"observe"` mode is one that
+ * fails its own definition of readiness at the moment it becomes irreversible.
+ *
+ * Call this from the Genesis command. It is deliberately a hard throw rather
+ * than a warning, because the failure it prevents is unrecoverable: §22 forbids
+ * resetting a live world under the same identity, so a world sealed with the
+ * wrong policy cannot be corrected, only abandoned.
+ */
+export function assertSealedWorldPolicy(ledger: {
+  readonly enforcement: SpendEnforcement;
+}): void {
+  if (ledger.enforcement !== "freeze") {
+    throw new Error(
+      "Refusing to seal a world with spend enforcement disabled. " +
+        `The ledger is in "${ledger.enforcement}" mode, which never refuses a paid ` +
+        "request. claude.md §15 requires spend limits to freeze paid inference, and " +
+        '§28 requires them to work before Genesis. Set enforcement to "freeze" ' +
+        "(AG_SPEND_ENFORCEMENT=freeze) before sealing.",
+    );
   }
 }
 

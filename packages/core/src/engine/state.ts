@@ -334,16 +334,87 @@ export type ContractStatus =
   | "terminated"
   | "rejected";
 
+/**
+ * An amount of one agent-created currency (§10).
+ *
+ * Currency is deliberately *not* a `ResourceKind`. It is not matter, it is not
+ * conserved by `conservedResourceTotals`, and it lives only in the issuing
+ * currency's own ledger — see `Currency.holdings`.
+ */
+export interface CurrencyAmount {
+  readonly currencyId: string;
+  readonly amount: number;
+}
+
+/**
+ * What one party puts into an exchange or promises under a contract.
+ *
+ * A gift, a sale, a barter and a wage differ only in what these fields contain
+ * and in which direction they point (§10). `labourMinutes` is the one member
+ * that cannot settle instantly: time can be promised but must then actually be
+ * spent (§11A), so it survives settlement as an outstanding undertaking.
+ */
+export interface Consideration {
+  readonly resources: ResourceBundle;
+  readonly currency: readonly CurrencyAmount[];
+  readonly artifactIds: readonly string[];
+  readonly structureIds: readonly string[];
+  readonly labourMinutes: number;
+}
+
+export const EMPTY_CONSIDERATION: Consideration = Object.freeze({
+  resources: Object.freeze({}),
+  currency: Object.freeze([]),
+  artifactIds: Object.freeze([]),
+  structureIds: Object.freeze([]),
+  labourMinutes: 0,
+});
+
+/**
+ * One thing one party undertook to do.
+ *
+ * `promised` and `delivered` are held apart so that partial performance is a
+ * fact rather than a judgement: a party that delivered nine of ten promised wood
+ * is neither performing nor in breach until the deadline decides. Nothing here
+ * penalises anyone — the engine records; enforcement is a social project that
+ * costs real resources (§11G).
+ */
+export interface Undertaking {
+  readonly index: number;
+  /** A party id, or `null` on the open side of a trade offer: whoever accepts owes it. */
+  readonly obligor: string | null;
+  readonly description: string;
+  readonly dueAt: SimTime | null;
+  readonly promised: Consideration;
+  readonly delivered: Consideration;
+  /** `released` means it never bound anyone: it was offered and not accepted. */
+  readonly status: "pending" | "partially_performed" | "performed" | "released";
+}
+
 export interface Contract {
   readonly id: string;
   readonly kind: string;
   /** Sorted inhabitant/organisation ids. */
   readonly parties: readonly string[];
   readonly terms: string;
-  /** §11E: only published contracts are publicly recorded. */
+  /**
+   * §11E: only published contracts are publicly recorded. On a trade offer this
+   * is exactly `isOpenOffer` — an open offer is one anyone present may take up.
+   */
   readonly published: boolean;
   readonly status: ContractStatus;
-  readonly obligations: ResourceBundle;
+  readonly obligations: readonly Undertaking[];
+  readonly offeredBy: string;
+  /**
+   * Parties who have agreed to be bound, sorted. §11J: a contract cannot bind a
+   * party who never accepted it, so every rule in the resolvers reads this list
+   * rather than `parties`.
+   */
+  readonly accepted: readonly string[];
+  /** Parties who refused, sorted. Refusal is recorded as an act, never as silence. */
+  readonly declined: readonly string[];
+  /** When the offer lapses if not accepted. Null on an offer that never lapses. */
+  readonly offerExpiresAt: SimTime | null;
   readonly createdSequence: number;
   readonly createdAt: SimTime;
 }
@@ -353,15 +424,25 @@ export interface Currency {
   readonly issuer: string;
   readonly name: string;
   readonly symbol: string;
-  readonly supplyRule: "fixed" | "issuer_mint";
+  readonly supplyRule: "fixed" | "issuer_mint" | "backed_issue" | "scheduled" | "burn_only";
   readonly issuedSupply: number;
   /** Holder id -> units. Sum must equal `issuedSupply`. */
   readonly holdings: Readonly<Record<string, number>>;
   /** §11E: currencies may choose transparent or private accounting. */
   readonly publicLedger: boolean;
   readonly transferRule: string;
+  /**
+   * §10 "Optional backing" — a *declaration*, not an escrow. The units are not
+   * held anywhere by the engine and this bundle is not counted in
+   * `totalHeldResources`, so a backing claim neither creates nor immobilises
+   * matter. Whether the reserves exist is a question for `audit_records`, and a
+   * false claim is an available strategy with the consequences its discovery
+   * brings (§11F).
+   */
   readonly backing: ResourceBundle;
   readonly governance: string;
+  /** The organisation named by `governance` or by a `members_only` transfer rule. */
+  readonly governingOrganisation: string | null;
   readonly description: string;
   readonly createdSequence: number;
   readonly createdAt: SimTime;

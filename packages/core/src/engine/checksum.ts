@@ -32,6 +32,7 @@ import type {
   Artifact,
   Condition,
   Confinement,
+  Consideration,
   Contract,
   Currency,
   Inhabitant,
@@ -199,6 +200,19 @@ function organisation(o: Organisation): Normal {
   };
 }
 
+/** Currency amounts are ordered by currency id: the order carries no meaning. */
+function consideration(c: Consideration): Normal {
+  return {
+    resources: bundle(c.resources),
+    currency: [...c.currency]
+      .sort((a, b) => (a.currencyId < b.currencyId ? -1 : a.currencyId > b.currencyId ? 1 : 0))
+      .map((amount) => ({ currencyId: amount.currencyId, amount: amount.amount })),
+    artifactIds: sortedCopy(c.artifactIds),
+    structureIds: sortedCopy(c.structureIds),
+    labourMinutes: c.labourMinutes,
+  };
+}
+
 function contract(c: Contract): Normal {
   return {
     id: c.id,
@@ -207,7 +221,21 @@ function contract(c: Contract): Normal {
     terms: c.terms,
     published: c.published,
     status: c.status,
-    obligations: bundle(c.obligations),
+    // Undertaking order IS meaning: `index` is what `perform_contract` names,
+    // and what a party accepted by index must keep meaning the same thing.
+    obligations: c.obligations.map((u) => ({
+      index: u.index,
+      obligor: u.obligor,
+      description: u.description,
+      dueAt: u.dueAt,
+      promised: consideration(u.promised),
+      delivered: consideration(u.delivered),
+      status: u.status,
+    })),
+    offeredBy: c.offeredBy,
+    accepted: sortedCopy(c.accepted),
+    declined: sortedCopy(c.declined),
+    offerExpiresAt: c.offerExpiresAt,
     createdSequence: c.createdSequence,
     createdAt: c.createdAt,
   };
@@ -226,6 +254,7 @@ function currency(c: Currency): Normal {
     transferRule: c.transferRule,
     backing: bundle(c.backing),
     governance: c.governance,
+    governingOrganisation: c.governingOrganisation,
     description: c.description,
     createdSequence: c.createdSequence,
     createdAt: c.createdAt,

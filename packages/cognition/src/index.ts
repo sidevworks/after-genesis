@@ -27,8 +27,10 @@ export type {
 export {
   SpendLedger,
   UnknownModelPriceError,
+  assertSealedWorldPolicy,
   usdToMicros,
   type PriceTable,
+  type SpendEnforcement,
   type SpendEntry,
   type SpendLimits,
   type SpendSnapshot,

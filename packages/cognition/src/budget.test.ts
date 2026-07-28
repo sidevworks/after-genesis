@@ -6,7 +6,12 @@
  */
 import { describe, expect, it, vi } from "vitest";
 import { SpendLimitExceededError } from "@after-genesis/core";
-import { SpendLedger, UnknownModelPriceError, usdToMicros } from "./budget.js";
+import {
+  SpendLedger,
+  UnknownModelPriceError,
+  assertSealedWorldPolicy,
+  usdToMicros,
+} from "./budget.js";
 import { TEST_PRICES } from "./testing.js";
 
 const limits = { dailyMicros: 1_000_000, totalMicros: 5_000_000 };
@@ -227,3 +232,130 @@ function catchError(fn: () => void): unknown {
     return error;
   }
 }
+
+/* -------------------------------------------------------------------------- */
+/* Observe mode — the meter without the brake                                  */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * `"observe"` exists for a disposable testbed, where an unexpected freeze costs
+ * more than an unexpected bill. These tests pin both halves of that bargain:
+ * nothing is ever refused, and every number is still correct — because a mode
+ * that stopped counting would leave an operator with no way to notice a runaway.
+ */
+function observing(overrides: Partial<typeof limits> = {}): SpendLedger {
+  return new SpendLedger({
+    limits: { ...limits, ...overrides },
+    prices: TEST_PRICES,
+    enforcement: "observe",
+  });
+}
+
+describe("observe mode never stops the world", () => {
+  it("defaults to freeze, so the safe behaviour is the one you get for free", () => {
+    expect(ledger().enforcement).toBe("freeze");
+  });
+
+  it("permits a request that would blow the daily ceiling many times over", () => {
+    const observer = observing({ dailyMicros: 1 });
+    expect(() =>
+      observer.assertCanSpend({
+        modelId: "test-model",
+        dayKey: "2026-07-28",
+        estimatedInputTokens: 10_000_000,
+        maxOutputTokens: 10_000_000,
+      }),
+    ).not.toThrow();
+  });
+
+  it("permits a request that would blow the lifetime ceiling", () => {
+    const observer = observing({ totalMicros: 1 });
+    expect(() =>
+      observer.assertCanSpend({
+        modelId: "test-model",
+        dayKey: "2026-07-28",
+        estimatedInputTokens: 10_000_000,
+        maxOutputTokens: 0,
+      }),
+    ).not.toThrow();
+  });
+
+  it("keeps refusing an unpriced model — that is a bug, not a budget", () => {
+    // Turning off the ceiling must not turn off correctness. An unpriced model
+    // would silently record zero cost and make the meter lie.
+    expect(() =>
+      observing().assertCanSpend({
+        modelId: "unknown-model",
+        dayKey: "2026-07-28",
+        estimatedInputTokens: 1,
+        maxOutputTokens: 1,
+      }),
+    ).toThrow(UnknownModelPriceError);
+  });
+
+  it("still returns the true projected cost", () => {
+    const projected = observing({ dailyMicros: 1 }).assertCanSpend({
+      modelId: "test-model",
+      dayKey: "2026-07-28",
+      estimatedInputTokens: 1_000_000,
+      maxOutputTokens: 0,
+    });
+    expect(projected).toBe(100_000);
+  });
+
+  it("never reports itself frozen, however much has been spent", () => {
+    const observer = observing({ dailyMicros: 1, totalMicros: 1 });
+    observer.record({
+      dayKey: "2026-07-28",
+      modelId: "test-model",
+      inputTokens: 5_000_000,
+      outputTokens: 0,
+      sequence: 1,
+    });
+    expect(observer.isFrozen("2026-07-28")).toBe(false);
+  });
+
+  it("still tells the truth about having passed a stated ceiling", () => {
+    // This is the distinction that makes "observe" safe to operate: the brake is
+    // gone, the warning light is not.
+    const observer = observing({ dailyMicros: 1, totalMicros: 1 });
+    observer.record({
+      dayKey: "2026-07-28",
+      modelId: "test-model",
+      inputTokens: 5_000_000,
+      outputTokens: 0,
+      sequence: 1,
+    });
+    expect(observer.isOverLimit("2026-07-28")).toBe(true);
+    expect(observer.snapshot().overLimit).toBe(true);
+    expect(observer.snapshot().enforcement).toBe("observe");
+  });
+
+  it("accounts identically to freeze mode", () => {
+    const strict = ledger();
+    const relaxed = observing();
+    const entry = {
+      dayKey: "2026-07-28",
+      modelId: "test-model",
+      inputTokens: 1_234_567,
+      outputTokens: 7_654,
+      sequence: 1,
+    } as const;
+    expect(relaxed.record(entry).micros).toBe(strict.record(entry).micros);
+    expect(relaxed.spentTotal()).toBe(strict.spentTotal());
+  });
+});
+
+describe("a world in observe mode cannot be sealed", () => {
+  it("refuses to seal, because §15 and §28 require working spend limits", () => {
+    expect(() => assertSealedWorldPolicy(observing())).toThrow(/refusing to seal/i);
+  });
+
+  it("names the setting that fixes it, so the error is actionable", () => {
+    expect(() => assertSealedWorldPolicy(observing())).toThrow(/AG_SPEND_ENFORCEMENT=freeze/);
+  });
+
+  it("allows sealing a world that enforces its ceilings", () => {
+    expect(() => assertSealedWorldPolicy(ledger())).not.toThrow();
+  });
+});

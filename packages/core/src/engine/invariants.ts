@@ -19,8 +19,10 @@
  */
 import { CONSERVED_RESOURCES, RESOURCE_KINDS, chebyshevDistance } from "../schema/primitives.js";
 import type { ResourceBundle } from "../schema/primitives.js";
+import { TERMINAL_SEVERITY, stageForSeverity } from "./health.js";
 import {
   CONFINEMENT_GROUNDS_CODES,
+  NEED_CEILING,
   computeRulesChecksum,
   sortedIds,
   sortedValues,
@@ -480,6 +482,187 @@ export const deadInhabitantsCannotAct: Check = (state) => {
           spec,
           i.id,
           `is scheduled to act at ${i.nextEligibleTime}, after dying at ${i.deathTime}`,
+        ),
+      );
+    }
+  }
+  return out;
+};
+
+/**
+ * §16: every canonical event has a "sequence number" and a "simulated time".
+ * §8: "Death is irreversible in the initial ruleset."
+ *
+ * A death is one event, so it has exactly one time and one sequence number. A
+ * `deathTime` with no `deathSequence` would be a death nobody can locate in the
+ * log; a `deathSequence` with no `deathTime` would be a death with no moment.
+ * Either half alone is an inhabitant the audit trail cannot account for, which
+ * is why this is checked separately from `deadInhabitantsCannotAct` — that rule
+ * asks whether the *status* agrees with the record, this one asks whether the
+ * record is a record at all.
+ */
+export const deathRecordsArePaired: Check = (state) => {
+  const out: InvariantViolation[] = [];
+  const spec = "§8 Death is irreversible in the initial ruleset.";
+  for (const i of sortedValues(state.inhabitants)) {
+    const hasTime = i.deathTime !== null;
+    const hasSequence = i.deathSequence !== null;
+    if (hasTime !== hasSequence) {
+      out.push(
+        violation(
+          "death_records_are_paired",
+          spec,
+          i.id,
+          `deathTime is ${hasTime ? String(i.deathTime) : "null"} but deathSequence is ` +
+            `${hasSequence ? String(i.deathSequence) : "null"}; a death has both or neither`,
+        ),
+      );
+    }
+    if (hasTime && i.deathTime !== null && i.deathTime < i.birthTime) {
+      out.push(
+        violation(
+          "death_records_are_paired",
+          spec,
+          i.id,
+          `died at ${i.deathTime}, before being born at ${i.birthTime}`,
+        ),
+      );
+    }
+    if (hasSequence && i.deathSequence !== null && i.deathSequence < i.creationSequence) {
+      out.push(
+        violation(
+          "death_records_are_paired",
+          spec,
+          i.id,
+          `death sequence ${i.deathSequence} precedes creation sequence ${i.creationSequence}`,
+        ),
+      );
+    }
+  }
+  return out;
+};
+
+/**
+ * §8: "Death must never delete history. Mark the inhabitant inactive and
+ * preserve memories, relationships, property, contracts, artifacts, messages,
+ * reputation, lineage, complete event history."
+ *
+ * The cheapest way for an engine to "handle" death is to drop the record, and
+ * every reference in the world would then dangle silently. This rule makes that
+ * impossible to do quietly: anyone the world still mentions — as a parent, as
+ * the other end of a relationship, as a memory's owner or participant, as an
+ * artifact's creator, as an activity's participant, as a condition's subject —
+ * must still be in `state.inhabitants`.
+ *
+ * It deliberately does not care whether they are alive. That is the point: a
+ * corpse is as referenceable as a neighbour.
+ */
+export const deathNeverDeletesInhabitants: Check = (state) => {
+  const out: InvariantViolation[] = [];
+  const spec = "§8 Death must never delete history.";
+  const seen = new Set<string>();
+  const require = (subject: string, label: string, id: string): void => {
+    if (state.inhabitants[id] !== undefined) return;
+    const key = `${subject}|${label}|${id}`;
+    if (seen.has(key)) return;
+    seen.add(key);
+    out.push(
+      violation(
+        "death_never_deletes_inhabitants",
+        spec,
+        subject,
+        `${label} ${id}, who is no longer in the world record`,
+      ),
+    );
+  };
+
+  for (const i of sortedValues(state.inhabitants)) {
+    for (const parent of [...i.parents].sort()) require(i.id, "descends from", parent);
+    for (const other of sortedIds(i.relationships)) require(i.id, "has a relationship with", other);
+  }
+  for (const m of sortedValues(state.memories)) {
+    require(m.id, "is owned by", m.owner);
+    for (const participant of [...m.participants].sort()) {
+      require(m.id, "records", participant);
+    }
+  }
+  for (const a of sortedValues(state.artifacts)) {
+    for (const creator of [...a.creators].sort()) require(a.id, "was created by", creator);
+  }
+  for (const activity of sortedValues(state.activities)) {
+    for (const participant of [...activity.participants].sort()) {
+      require(activity.id, "was performed by", participant);
+    }
+  }
+  for (const c of sortedValues(state.confinements)) {
+    require(c.id, "confined", c.subject);
+    for (const imposer of [...c.imposedBy].sort()) require(c.id, "was imposed by", imposer);
+  }
+  return out;
+};
+
+/**
+ * §8: "If a serious condition remains unresolved beyond its defined
+ * progression, the inhabitant may die."
+ *
+ * A progression that can end a life has to be legible. Severity stays inside its
+ * declared range, the stage agrees with the severity that derives it, and the
+ * condition's clocks run forwards and never past now — an `onsetAt` in the
+ * future or a `progressedAt` before onset would mean the timer the death rule
+ * reads is not measuring anything.
+ */
+export const conditionsAreWellFormed: Check = (state) => {
+  const out: InvariantViolation[] = [];
+  const spec = "§8 If a serious condition remains unresolved beyond its defined progression, the inhabitant may die.";
+  for (const c of sortedValues(state.conditions)) {
+    if (!Number.isSafeInteger(c.severity) || c.severity < 0 || c.severity > TERMINAL_SEVERITY) {
+      out.push(
+        violation(
+          "conditions_are_well_formed",
+          spec,
+          c.id,
+          `severity is ${String(c.severity)}, outside 0..${TERMINAL_SEVERITY}`,
+        ),
+      );
+    } else if (c.stage !== stageForSeverity(c.severity)) {
+      out.push(
+        violation(
+          "conditions_are_well_formed",
+          spec,
+          c.id,
+          `stage ${c.stage} does not match severity ${c.severity} (expected ` +
+            `${stageForSeverity(c.severity)})`,
+        ),
+      );
+    }
+    if (c.progressedAt < c.onsetAt) {
+      out.push(
+        violation(
+          "conditions_are_well_formed",
+          spec,
+          c.id,
+          `progressed at ${c.progressedAt}, before onset at ${c.onsetAt}`,
+        ),
+      );
+    }
+    if (c.onsetAt > state.simTime || c.progressedAt > state.simTime) {
+      out.push(
+        violation(
+          "conditions_are_well_formed",
+          spec,
+          c.id,
+          `runs to ${Math.max(c.onsetAt, c.progressedAt)}, after world time ${state.simTime}`,
+        ),
+      );
+    }
+    const subject = state.inhabitants[c.subject];
+    if (subject !== undefined && !subject.conditions.includes(c.id)) {
+      out.push(
+        violation(
+          "conditions_are_well_formed",
+          spec,
+          c.id,
+          `is not listed in its subject ${c.subject}'s own record`,
         ),
       );
     }
@@ -1190,6 +1373,13 @@ export const confinedInhabitantsAreAtTheirStructure: Check = (state) => {
  * Energy and needs must stay inside their declared bounds. An inhabitant with
  * energy above its cap has been given capacity from nowhere; one with a need
  * above the ceiling has an unbounded pressure that no action can ever relieve.
+ *
+ * Since health.ts made needs lethal this rule also guards mortality itself. The
+ * decline model compares a need against `Ailment.onsetThreshold`, so a need that
+ * escaped 0..`NEED_CEILING` would put an inhabitant permanently inside or
+ * permanently outside a terminal progression with no action able to change it.
+ * The bound is taken from the constant rather than written as a literal, so the
+ * check and the clamp in `advanceNeeds` cannot drift apart.
  */
 export const needsAndCapsWithinBounds: Check = (state) => {
   const out: InvariantViolation[] = [];
@@ -1207,10 +1397,10 @@ export const needsAndCapsWithinBounds: Check = (state) => {
     }
   };
   for (const i of sortedValues(state.inhabitants)) {
-    bound(i, "needs.hunger", i.needs.hunger, 100);
-    bound(i, "needs.thirst", i.needs.thirst, 100);
-    bound(i, "needs.fatigue", i.needs.fatigue, 100);
-    bound(i, "needs.social", i.needs.social, 100);
+    bound(i, "needs.hunger", i.needs.hunger, NEED_CEILING);
+    bound(i, "needs.thirst", i.needs.thirst, NEED_CEILING);
+    bound(i, "needs.fatigue", i.needs.fatigue, NEED_CEILING);
+    bound(i, "needs.social", i.needs.social, NEED_CEILING);
     bound(i, "energy", i.inventory.energy ?? 0, i.maxEnergy);
     bound(i, "compute", i.inventory.compute ?? 0, i.maxCompute);
   }
@@ -1231,6 +1421,9 @@ export const INVARIANT_CHECKS: readonly (readonly [string, Check])[] = Object.fr
   ["sequence_monotonic", sequenceMonotonic],
   ["sim_time_non_decreasing", simTimeNonDecreasing],
   ["dead_inhabitants_cannot_act", deadInhabitantsCannotAct],
+  ["death_records_are_paired", deathRecordsArePaired],
+  ["death_never_deletes_inhabitants", deathNeverDeletesInhabitants],
+  ["conditions_are_well_formed", conditionsAreWellFormed],
   ["population_ceiling", populationCeiling],
   ["descendants_require_creation_events", descendantsRequireCreationEvents],
   ["exposed_is_backed_by_inventory", exposedIsBackedByInventory],
