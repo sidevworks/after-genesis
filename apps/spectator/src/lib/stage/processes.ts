@@ -114,6 +114,7 @@ export class ProcessStage {
     // visited their construction interval first.
     for (const segment of this.constructionSegments) {
       if (tick < segment.startTick) continue;
+      if (tick > segment.endTick) continue;
       const duration = Math.max(segment.endTick - segment.startTick, 1);
       const progress = clamp01((tick - segment.startTick) / duration);
       const key = segment.activityId ?? segment.id;
@@ -153,12 +154,12 @@ export class ProcessStage {
   private create(kind: ProcessKind, key: string): Effect {
     const group = new Group();
     group.rotation.y = hashString(`process:${key}`) * Math.PI * 2;
-    const count = kind === "construction" ? 18 : kind === "gathering" ? 8 : 10;
+    const count = kind === "construction" ? 33 : kind === "gathering" ? 8 : 10;
     const meshes: Mesh[] = [];
     for (let index = 0; index < count; index += 1) {
       const material =
         kind === "construction"
-          ? index < 6 ? this.stone : this.wood
+          ? index < 9 ? this.stone : this.wood
           : kind === "gathering" ? this.food : this.craft;
       const mesh = new Mesh(this.geometry, material);
       mesh.castShadow = true;
@@ -173,17 +174,37 @@ export class ProcessStage {
   private apply(effect: Effect, visual: ProcessVisual): void {
     if (visual.kind === "construction") {
       const visible = constructionBlockCount(visual.progress, effect.meshes.length);
+      const parts: Array<readonly [number, number, number, number, number, number]> = [];
+      // Stone foundation: a complete 3×3 footprint.
+      for (let z = -1; z <= 1; z += 1) {
+        for (let x = -1; x <= 1; x += 1) {
+          parts.push([x * 0.62, 0.12, z * 0.62, 0.58, 0.22, 0.58]);
+        }
+      }
+      // Two wall courses. The front-centre opening remains a real doorway.
+      for (const y of [0.48, 0.86]) {
+        for (let x = -1; x <= 1; x += 1) {
+          parts.push([x * 0.62, y, -0.68, 0.58, 0.34, 0.22]);
+          if (x !== 0 || y > 0.6) {
+            parts.push([x * 0.62, y, 0.68, 0.58, 0.34, 0.22]);
+          }
+        }
+        parts.push([-0.68, y, 0, 0.22, 0.34, 0.58]);
+        parts.push([0.68, y, 0, 0.22, 0.34, 0.58]);
+      }
+      // Stepped roof: a readable finished silhouette rather than freestanding walls.
+      for (let x = -1; x <= 1; x += 1) {
+        const roofY = 1.22 + (1 - Math.abs(x)) * 0.22;
+        for (let z = -1; z <= 1; z += 1) {
+          parts.push([x * 0.48, roofY, z * 0.62, 0.56, 0.18, 0.66]);
+        }
+      }
+
       for (let index = 0; index < effect.meshes.length; index += 1) {
         const mesh = effect.meshes[index]!;
-        const layer = Math.floor(index / 6);
-        const slot = index % 6;
-        const positions = [
-          [-0.72, -0.72], [0, -0.72], [0.72, -0.72],
-          [-0.72, 0.72], [0, 0.72], [0.72, 0.72],
-        ] as const;
-        const [x, z] = positions[slot]!;
-        mesh.position.set(x, 0.14 + layer * 0.42, z);
-        mesh.scale.set(0.62, layer === 0 ? 0.26 : 0.38, 0.28);
+        const [x, y, z, sx, sy, sz] = parts[index] ?? [0, 0, 0, 0, 0, 0];
+        mesh.position.set(x, y, z);
+        mesh.scale.set(sx, sy, sz);
         mesh.visible = index < visible;
       }
       return;

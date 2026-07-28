@@ -425,6 +425,81 @@ add({
   inputs: { structureId: "STR-004", stone: 61, wood: 28, energy: 37, coordinationMinutes: 190 },
 });
 
+/* --- Thirty-day village logistics -------------------------------------- */
+
+// A repeated Timber Store ↔ Stone Hall route gives the physical spectator
+// enough canonical journeys to reveal an emergent road without inventing one.
+for (let trip = 0; trip < 4; trip += 1) {
+  const day = 18 + trip * 2;
+  add({
+    simTime: at(day, 7, 30),
+    type: "move",
+    actor: "INH-002",
+    description: `Berrun carried a material load from Timber Store at tile (13,17) to the Stone Hall site at tile (15,16) over 55 minutes (delivery ${trip + 1} of 4).`,
+    subjects: ["INH-002", "STR-003", "STR-004"],
+    location: { x: 15, y: 16 },
+    inputs: { fromX: 13, fromY: 17, toX: 15, toY: 16, minutes: 55, routeTrip: trip + 1 },
+  });
+  add({
+    simTime: at(day, 9, 0),
+    type: "resource.delivered",
+    actor: "INH-002",
+    description: `Berrun delivered 8 units of construction material to the Stone Hall stockpile at tile (15,16) (delivery ${trip + 1} of 4).`,
+    subjects: ["INH-002", "STR-004"],
+    location: { x: 15, y: 16 },
+    inputs: { structureId: "STR-004", resource: trip % 2 === 0 ? "stone" : "wood", quantity: 8, delivery: trip + 1 },
+  });
+  add({
+    simTime: at(day, 10, 0),
+    type: "move",
+    actor: "INH-002",
+    description: `Berrun returned from tile (15,16) to Timber Store at tile (13,17) over 55 minutes.`,
+    subjects: ["INH-002", "STR-003"],
+    location: { x: 13, y: 17 },
+    inputs: { fromX: 15, fromY: 16, toX: 13, toY: 17, minutes: 55, routeTrip: trip + 1 },
+  });
+}
+
+add({
+  simTime: at(25, 8, 0),
+  type: "resource.stockpiled",
+  actor: "INH-005",
+  description: "Erish recorded 18 units of stone and 14 units of wood in the Kiln site stockpile at tile (12,18), reserved for construction and firing.",
+  subjects: ["INH-005", "STR-005"],
+  location: { x: 12, y: 18 },
+  inputs: { structureId: "STR-005", stone: 18, wood: 14, reserved: true },
+});
+
+add({
+  simTime: at(26, 13, 0),
+  type: "artifact.created",
+  actor: "INH-005",
+  description: "Erish crafted four fired storage jars (ART-007) at the Kiln site, consuming 8 units of stone and 4 units of wood over 210 minutes.",
+  subjects: ["INH-005", "ART-007", "STR-005"],
+  location: { x: 12, y: 18 },
+  inputs: { artifactId: "ART-007", kind: "storage_jars", quantity: 4, stone: 8, wood: 4, minutes: 210 },
+});
+
+add({
+  simTime: at(27, 10, 10),
+  type: "structure.built",
+  actor: "INH-005",
+  description: "Erish and Dovie completed construction of Erish's Kiln (STR-005) at tile (12,18), consuming the reserved 10 units of stone and 10 units of wood over 540 minutes of combined labour.",
+  subjects: ["INH-005", "INH-004", "STR-005"],
+  location: { x: 12, y: 18 },
+  inputs: { structureId: "STR-005", stone: 10, wood: 10, minutes: 540, participants: 2 },
+});
+
+add({
+  simTime: at(28, 12, 0),
+  type: "transfer.executed",
+  actor: "INH-005",
+  description: "Erish transferred two fired storage jars to Berrun in exchange for 10 units of wood, with consent recorded for both parties.",
+  subjects: ["INH-005", "INH-002", "ART-007"],
+  location: { x: 15, y: 16 },
+  inputs: { artifactId: "ART-007", artifactQuantity: 2, resource: "wood", resourceQuantity: 10, consent: true },
+});
+
 add({
   simTime: at(24, 18, 30),
   type: "organisation.founded",

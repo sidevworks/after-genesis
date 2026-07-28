@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { buildChronicle } from "@/lib/cinema/chronicle";
-import { physicalDemoRun } from "@/lib/cinema/physical-demo";
+import { physicalDemoRun, physicalSettlementSource } from "@/lib/cinema/physical-demo";
 import { CinemaChannel, type ChannelActivity, type ChannelSubject } from "./cinema-channel";
 
 export function WatchExperience({
@@ -30,7 +30,7 @@ export function WatchExperience({
       <div className="reel-picker" role="group" aria-label="Watch recording">
         <button type="button" aria-pressed={reel === "physical"} onClick={() => setReel("physical")}>
           <strong>Physical civilisation</strong>
-          <small>7-day validation reel · building, crafting, routes and depletion</small>
+          <small>30-day village · buildings, roads, logistics and visible production</small>
         </button>
         <button type="button" aria-pressed={reel === "month"} onClick={() => setReel("month")}>
           <strong>Recorded month</strong>
@@ -46,6 +46,7 @@ export function WatchExperience({
           endTick={physicalDemoRun.world.simTime}
           chronicle={physicalChronicle}
           map={physicalDemoRun.map}
+          settlementSource={physicalSettlementSource}
         />
       ) : (
         <CinemaChannel

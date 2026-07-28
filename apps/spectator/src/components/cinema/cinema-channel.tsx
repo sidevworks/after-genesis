@@ -18,6 +18,7 @@ import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 import { ActivityBrowser } from "./activity-browser";
 import type { Chronicle } from "@/lib/cinema/types";
 import type { TerrainMap } from "@/lib/stage/terrain";
+import type { SettlementProjectionSource } from "@/lib/city/project-settlement";
 
 export interface ChannelSubject {
   readonly id: string;
@@ -43,6 +44,7 @@ export function CinemaChannel({
   endTick,
   chronicle,
   map,
+  settlementSource,
   initialSubjectId = null,
 }: {
   readonly subjects: readonly ChannelSubject[];
@@ -50,6 +52,7 @@ export function CinemaChannel({
   readonly endTick: number;
   readonly chronicle?: Chronicle;
   readonly map?: TerrainMap;
+  readonly settlementSource?: SettlementProjectionSource;
   readonly initialSubjectId?: string | null;
 }) {
   const [subjectId, setSubjectId] = useState<string | null>(initialSubjectId);
@@ -139,6 +142,7 @@ export function CinemaChannel({
         initialRate={60}
         {...(chronicle === undefined ? {} : { chronicleOverride: chronicle })}
         {...(map === undefined ? {} : { mapOverride: map })}
+        {...(settlementSource === undefined ? {} : { settlementSource })}
       />
     </div>
   );

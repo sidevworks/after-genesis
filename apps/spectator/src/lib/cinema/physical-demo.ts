@@ -1,10 +1,11 @@
 import worldFixture from "../../fixtures/world.json";
 import type { ObservatoryRun } from "../observatory-types";
+import type { SettlementProjectionSource } from "../city/project-settlement";
 
-const WEEK_END = 7 * 24 * 60;
+const VILLAGE_END = 30 * 24 * 60;
 const world = worldFixture as any;
 const inhabitants = world.inhabitants
-  .filter((inhabitant: any) => inhabitant.birthSimTime < WEEK_END)
+  .filter((inhabitant: any) => inhabitant.birthSimTime < VILLAGE_END)
   .map((inhabitant: any) => ({
     id: inhabitant.id,
     displayName: inhabitant.name,
@@ -63,7 +64,7 @@ function detailOf(event: any): Record<string, unknown> {
 }
 
 const sourceEvents = world.events.filter(
-  (event: any) => event.simTime < WEEK_END && mapping[event.type] !== undefined,
+  (event: any) => event.simTime < VILLAGE_END && mapping[event.type] !== undefined,
 );
 
 export const physicalDemoRun: ObservatoryRun = {
@@ -99,7 +100,7 @@ export const physicalDemoRun: ObservatoryRun = {
     id: "AG-1-PHYSICAL-WEEK",
     seed: world.summary.genesisSeed,
     schemaVersion: 3,
-    simTime: WEEK_END - 1,
+    simTime: VILLAGE_END - 1,
     sequence: sourceEvents.at(-1)?.sequence ?? 0,
     checksum: world.summary.stateChecksum,
     chainHead: world.summary.chainHead,
@@ -112,8 +113,8 @@ export const physicalDemoRun: ObservatoryRun = {
       .map((tile: any) => tile.terrain),
   },
   inhabitants,
-  structures: world.map.structures.filter((structure: any) => structure.builtAt < WEEK_END),
-  artifacts: world.artifacts.filter((artifact: any) => artifact.createdAt < WEEK_END),
+  structures: world.map.structures.filter((structure: any) => structure.builtAt < VILLAGE_END),
+  artifacts: world.artifacts.filter((artifact: any) => artifact.createdAt < VILLAGE_END),
   events: sourceEvents.map((event: any) => ({
     sequence: event.sequence,
     simTime: event.simTime,
@@ -127,4 +128,12 @@ export const physicalDemoRun: ObservatoryRun = {
     hash: event.hash,
     prevHash: event.prevHash,
   })),
+};
+
+export const physicalSettlementSource: SettlementProjectionSource = {
+  map: {
+    tiles: world.map.tiles,
+    structures: world.map.structures,
+  },
+  events: world.events,
 };

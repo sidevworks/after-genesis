@@ -54,15 +54,19 @@ import type {
   PerformanceSpec,
   WorldFrame,
 } from "../cinema/types";
+import { frameSettlement, settlementBoundsAt } from "../cinema/settlement-framing";
 import { ActorRig } from "./actor";
 import { hashString, VOID_COLOUR } from "./palette";
 import { applySky, skyAt, type SkyTargets } from "./sky";
 import { Terrain, type TerrainMap } from "./terrain";
 import { ProcessStage } from "./processes";
+import { SettlementStage } from "./settlement";
+import type { SettlementProjectionSource } from "../city/project-settlement";
 
 export interface StageOptions {
   readonly map: TerrainMap;
   readonly chronicle: Chronicle;
+  readonly settlementSource?: SettlementProjectionSource;
   /** Caps device pixel ratio. Lower it on machines that struggle. */
   readonly quality?: "low" | "high";
 }
@@ -100,6 +104,8 @@ export class Stage {
 
   private readonly terrain: Terrain;
   private readonly processes: ProcessStage;
+  private readonly settlement: SettlementStage | null;
+  private readonly chronicle: Chronicle;
   private readonly mapWidth: number;
   private readonly mapHeight: number;
   private readonly rigs = new Map<string, ActorRig>();
@@ -128,6 +134,7 @@ export class Stage {
     this.mount = mount;
     this.mapWidth = options.map.width;
     this.mapHeight = options.map.height;
+    this.chronicle = options.chronicle;
 
     this.renderer = new WebGLRenderer({ antialias: options.quality !== "low", alpha: false });
     this.renderer.setPixelRatio(
@@ -160,6 +167,10 @@ export class Stage {
 
     this.terrain = new Terrain(this.scene, options.map);
     this.processes = new ProcessStage(this.scene, options.chronicle);
+    this.settlement =
+      options.settlementSource === undefined
+        ? null
+        : new SettlementStage(this.scene, options.settlementSource);
 
     this.skyTargets = {
       key: this.key,
@@ -237,6 +248,7 @@ export class Stage {
 
     this.terrain.update(frame.tick);
     this.processes.update(frame.tick, frame.actors);
+    this.settlement?.update(frame.tick);
     applySky(skyAt(frame.dayFraction), this.skyTargets);
 
     const occupied = new Map<string, ActorSample[]>();
@@ -269,11 +281,16 @@ export class Stage {
       });
     }
 
-    this.applyCamera(pose);
+    this.applyCamera(pose, frame);
     this.renderer.render(this.scene, this.camera);
   }
 
-  private applyCamera(pose: CameraPose): void {
+  private applyCamera(inputPose: CameraPose, frame: WorldFrame): void {
+    const bounds =
+      inputPose.kind === "ESTABLISH" || inputPose.kind === "FALLBACK_REFERENCE"
+        ? settlementBoundsAt(this.chronicle, frame)
+        : null;
+    const pose = bounds === null ? inputPose : frameSettlement(inputPose, bounds);
     // A cut releases any manual orbit: the viewer looked around during a shot,
     // and the next shot is the film resuming.
     if (pose.shotId !== this.lastShotId) {
@@ -428,6 +445,7 @@ export class Stage {
     this.rigs.clear();
     this.terrain.dispose();
     this.processes.dispose();
+    this.settlement?.dispose();
 
     this.scene.remove(this.stars);
     this.starGeometry.dispose();

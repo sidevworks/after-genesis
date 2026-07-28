@@ -38,6 +38,7 @@ import { getChronicle, getMap, openingTick } from "@/lib/cinema/source";
 import type { ActorSample, PerformanceSpec, ShotPlan, WorldFrame } from "@/lib/cinema/types";
 import type { Chronicle } from "@/lib/cinema/types";
 import type { TerrainMap } from "@/lib/stage/terrain";
+import type { SettlementProjectionSource } from "@/lib/city/project-settlement";
 import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 import { buildVitals, type VitalsSeries } from "@/lib/cinema/vitals";
 import { observatorySource } from "@/lib/observatory-source";
@@ -65,6 +66,7 @@ export interface CinemaViewportProps {
   readonly initialRate?: number;
   readonly chronicleOverride?: Chronicle;
   readonly mapOverride?: TerrainMap;
+  readonly settlementSource?: SettlementProjectionSource;
 }
 
 interface Interval {
@@ -166,6 +168,7 @@ export function CinemaViewport({
   initialRate = 240,
   chronicleOverride,
   mapOverride,
+  settlementSource,
 }: CinemaViewportProps) {
   const chronicle = chronicleOverride ?? getChronicle();
   const mountRef = useRef<HTMLDivElement>(null);
@@ -228,7 +231,11 @@ export function CinemaViewport({
     const mount = mountRef.current;
     if (mount === null) return;
 
-    const stage = new Stage(mount, { map: mapOverride ?? getMap(), chronicle });
+    const stage = new Stage(mount, {
+      map: mapOverride ?? getMap(),
+      chronicle,
+      ...(settlementSource === undefined ? {} : { settlementSource }),
+    });
     stageRef.current = stage;
 
     const observer = new ResizeObserver(() => stage.resize());
@@ -240,7 +247,7 @@ export function CinemaViewport({
       stage.dispose();
       stageRef.current = null;
     };
-  }, [chronicle, mapOverride]);
+  }, [chronicle, mapOverride, settlementSource]);
 
   useEffect(() => {
     stageRef.current?.setHighlight(subjectId);
