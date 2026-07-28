@@ -47,7 +47,13 @@ import {
   Vector3,
   WebGLRenderer,
 } from "three";
-import type { ActorSample, CameraPose, PerformanceSpec, WorldFrame } from "../cinema/types";
+import type {
+  ActorSample,
+  CameraPose,
+  Chronicle,
+  PerformanceSpec,
+  WorldFrame,
+} from "../cinema/types";
 import { ActorRig } from "./actor";
 import { hashString, VOID_COLOUR } from "./palette";
 import { applySky, skyAt, type SkyTargets } from "./sky";
@@ -56,6 +62,7 @@ import { ProcessStage } from "./processes";
 
 export interface StageOptions {
   readonly map: TerrainMap;
+  readonly chronicle: Chronicle;
   /** Caps device pixel ratio. Lower it on machines that struggle. */
   readonly quality?: "low" | "high";
 }
@@ -152,7 +159,7 @@ export class Stage {
     this.scene.add(this.stars);
 
     this.terrain = new Terrain(this.scene, options.map);
-    this.processes = new ProcessStage(this.scene);
+    this.processes = new ProcessStage(this.scene, options.chronicle);
 
     this.skyTargets = {
       key: this.key,
@@ -229,7 +236,7 @@ export class Stage {
     if (this.disposed) return;
 
     this.terrain.update(frame.tick);
-    this.processes.update(frame.actors);
+    this.processes.update(frame.tick, frame.actors);
     applySky(skyAt(frame.dayFraction), this.skyTargets);
 
     const occupied = new Map<string, ActorSample[]>();

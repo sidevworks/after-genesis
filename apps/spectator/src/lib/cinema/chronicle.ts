@@ -317,6 +317,7 @@ interface SegmentDraft {
   readonly endTick: Tick;
   readonly from: Vec2;
   readonly to: Vec2;
+  readonly route: readonly Vec2[] | undefined;
   readonly focus: Vec2 | null;
   readonly disclosure: Disclosure;
   readonly detail: Readonly<Record<string, unknown>> | null;
@@ -353,19 +354,28 @@ interface SegmentDraft {
 function endpointsOf(
   envelope: ActivityEnvelope,
   detail: Readonly<Record<string, unknown>> | null,
-): { from: Vec2; to: Vec2; focus: Vec2 | null } {
+): { from: Vec2; to: Vec2; route: readonly Vec2[] | undefined; focus: Vec2 | null } {
   const here: Vec2 = { x: envelope.location.x, y: envelope.location.y };
 
   if (envelope.actionType === "move") {
     const origin = readCoord(detail, "from");
     const destination = readCoord(detail, "to") ?? here;
+    const entered = Array.isArray(detail?.path)
+      ? detail.path
+          .map((point) => readCoord({ point }, "point"))
+          .filter((point): point is Vec2 => point !== null)
+      : [];
+    const route =
+      origin !== null && entered.length > 0
+        ? [origin, ...entered]
+        : undefined;
     // A move with no disclosed origin is held at its destination rather than
     // travelling from an assumed tile.
-    return { from: origin ?? destination, to: destination, focus: null };
+    return { from: origin ?? destination, to: destination, route, focus: null };
   }
 
   const target = readCoord(detail, "target") ?? readCoord(detail, "from");
-  return { from: here, to: here, focus: target };
+  return { from: here, to: here, route: undefined, focus: target };
 }
 
 /**
@@ -412,7 +422,7 @@ function draftSegments(
     // The privacy invariant, enforced at its single source: resolution detail
     // exists on the segment only when the canonical event disclosed it.
     const detail = disclosure === "disclosed" ? (event?.detail ?? null) : null;
-    const { from, to, focus } = endpointsOf(envelope, detail);
+    const { from, to, route, focus } = endpointsOf(envelope, detail);
 
     drafts.push({
       envelope,
@@ -420,6 +430,7 @@ function draftSegments(
       endTick: segmentEnd,
       from,
       to,
+      route,
       focus,
       disclosure,
       detail,
@@ -565,6 +576,7 @@ function canonicalSegment(
     endTick: draft.endTick,
     from: draft.from,
     to: draft.to,
+    ...(draft.route === undefined ? {} : { route: draft.route }),
     focus: draft.focus,
     participants,
     disclosure: draft.disclosure,

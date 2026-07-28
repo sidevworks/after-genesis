@@ -105,6 +105,11 @@ export interface ChronicleSegment {
   /** Canonical position at `endTick`. Equal to `from` for stationary activities. */
   readonly to: Vec2;
   /**
+   * Canonical movement polyline, including origin and destination. Present
+   * only for disclosed moves whose event recorded its resolved route.
+   */
+  readonly route?: readonly Vec2[];
+  /**
    * A second canonical point the activity is directed at — the tile a gather
    * drew from, the tile a conversation partner stood on. Drives where the actor
    * turns to face. Null when the record names none.

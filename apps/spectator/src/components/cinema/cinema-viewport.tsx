@@ -36,6 +36,8 @@ import { effectivePlaybackRate } from "@/lib/cinema/playback";
 import { sampleFrame } from "@/lib/cinema/sample";
 import { getChronicle, getMap, openingTick } from "@/lib/cinema/source";
 import type { ActorSample, PerformanceSpec, ShotPlan, WorldFrame } from "@/lib/cinema/types";
+import type { Chronicle } from "@/lib/cinema/types";
+import type { TerrainMap } from "@/lib/stage/terrain";
 import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 import { buildVitals, type VitalsSeries } from "@/lib/cinema/vitals";
 import { observatorySource } from "@/lib/observatory-source";
@@ -61,6 +63,8 @@ export interface CinemaViewportProps {
   readonly subjectId: string | null;
   readonly initialTick?: number;
   readonly initialRate?: number;
+  readonly chronicleOverride?: Chronicle;
+  readonly mapOverride?: TerrainMap;
 }
 
 interface Interval {
@@ -160,8 +164,10 @@ export function CinemaViewport({
   subjectId,
   initialTick,
   initialRate = 240,
+  chronicleOverride,
+  mapOverride,
 }: CinemaViewportProps) {
-  const chronicle = getChronicle();
+  const chronicle = chronicleOverride ?? getChronicle();
   const mountRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<Stage | null>(null);
   const planRef = useRef<ShotPlan | null>(null);
@@ -181,7 +187,13 @@ export function CinemaViewport({
   const vitals = useMemo(() => buildVitals(observatorySource.getRun()), []);
   const [vitalsSeries, setVitalsSeries] = useState<VitalsSeries | null>(null);
 
-  const tickRef = useRef(initialTick ?? openingTick(subjectId));
+  const overrideOpening =
+    chronicle.cutTicks[0] === undefined
+      ? chronicle.startTick
+      : Math.max(chronicle.startTick, chronicle.cutTicks[0] - 10);
+  const tickRef = useRef(
+    initialTick ?? (chronicleOverride === undefined ? openingTick(subjectId) : overrideOpening),
+  );
   const playingRef = useRef(false);
   const rateRef = useRef(initialRate);
   const skipIdleRef = useRef(true);
@@ -216,7 +228,7 @@ export function CinemaViewport({
     const mount = mountRef.current;
     if (mount === null) return;
 
-    const stage = new Stage(mount, { map: getMap() });
+    const stage = new Stage(mount, { map: mapOverride ?? getMap(), chronicle });
     stageRef.current = stage;
 
     const observer = new ResizeObserver(() => stage.resize());
@@ -228,7 +240,7 @@ export function CinemaViewport({
       stage.dispose();
       stageRef.current = null;
     };
-  }, []);
+  }, [chronicle, mapOverride]);
 
   useEffect(() => {
     stageRef.current?.setHighlight(subjectId);

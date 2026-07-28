@@ -158,19 +158,53 @@ export function sampleActor(track: ChronicleTrack, tick: Tick): ActorSample | nu
   const dx = to.x - from.x;
   const dy = to.y - from.y;
   const interpolated = dx !== 0 || dy !== 0;
+  const route = segment.route;
+  let routeDistance = 0;
+  if (route !== undefined) {
+    for (let cursor = 1; cursor < route.length; cursor += 1) {
+      const previous = route[cursor - 1];
+      const next = route[cursor];
+      if (previous !== undefined && next !== undefined) {
+        routeDistance += Math.hypot(next.x - previous.x, next.y - previous.y);
+      }
+    }
+  }
+  let localFacing: number | null = null;
   // Stationary actors reuse the segment's own coordinate. Vec2 is readonly, so
   // sharing it is safe, and it removes an allocation from the hot path.
-  const position: Vec2 = interpolated
-    ? { x: from.x + dx * progress, y: from.y + dy * progress }
-    : from;
+  let position: Vec2 = from;
+  if (interpolated && route !== undefined && route.length > 1 && routeDistance > 0) {
+    let remaining = progress * routeDistance;
+    for (let cursor = 1; cursor < route.length; cursor += 1) {
+      const previous = route[cursor - 1];
+      const next = route[cursor];
+      if (previous === undefined || next === undefined) continue;
+      const length = Math.hypot(next.x - previous.x, next.y - previous.y);
+      if (remaining <= length || cursor === route.length - 1) {
+        const along = length > 0 ? Math.min(Math.max(remaining / length, 0), 1) : 0;
+        position = {
+          x: previous.x + (next.x - previous.x) * along,
+          y: previous.y + (next.y - previous.y) * along,
+        };
+        localFacing = Math.atan2(next.y - previous.y, next.x - previous.x);
+        break;
+      }
+      remaining -= length;
+    }
+  } else if (interpolated) {
+    position = { x: from.x + dx * progress, y: from.y + dy * progress };
+  }
 
   return {
     inhabitantId: track.inhabitantId,
     displayName: track.displayName,
     refId: track.refId,
     position,
-    facing: facingAt(track, index),
-    speed: interpolated && duration > 0 ? Math.hypot(dx, dy) / duration : 0,
+    facing: localFacing ?? facingAt(track, index),
+    speed:
+      interpolated && duration > 0
+        ? (routeDistance > 0 ? routeDistance : Math.hypot(dx, dy)) / duration
+        : 0,
     activityState: segment.activityState,
     actionType: segment.actionType,
     progress,

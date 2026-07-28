@@ -60,6 +60,34 @@ a {
 }
 
 @layer components {
+  .reel-picker {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+
+  .reel-picker button {
+    display: grid;
+    gap: 0.2rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.375rem;
+    background: var(--color-panel);
+    padding: 0.85rem 1rem;
+    color: var(--color-ink);
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .reel-picker button[aria-pressed="true"] {
+    border-color: var(--color-amber);
+    box-shadow: inset 3px 0 var(--color-amber);
+    background: var(--color-panel-2);
+  }
+
+  .reel-picker small {
+    color: var(--color-muted);
+  }
+
   .panel {
     background-color: color-mix(in srgb, var(--color-panel) 88%, transparent);
     border: 1px solid var(--color-line);

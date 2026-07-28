@@ -252,6 +252,44 @@ add({
   inputs: { radius: 1, featuresRecorded: 4 },
 });
 
+/*
+ * Seven-day physical-civilisation reel.
+ *
+ * These are ordinary canonical fixture inputs, not spectator-only inventions.
+ * Together with the two construction completions below they guarantee that a
+ * short Watch replay contains a routed journey, finite-resource collection,
+ * crafting, exchange, and a genuinely shared conversation.
+ */
+add({
+  simTime: at(1, 8, 0),
+  type: "move",
+  actor: "INH-001",
+  description: "Aleth moved from tile (14,17) to tile (13,17) over 35 minutes.",
+  subjects: ["INH-001"],
+  location: { x: 13, y: 17 },
+  inputs: { fromX: 14, fromY: 17, toX: 13, toY: 17, minutes: 35 },
+});
+
+add({
+  simTime: at(1, 9, 0),
+  type: "gather",
+  actor: "INH-001",
+  description: "Aleth gathered 6 units of wood from the finite deposit at tile (13,17) over 75 minutes, consuming 2 units of energy.",
+  subjects: ["INH-001"],
+  location: { x: 13, y: 17 },
+  inputs: { resource: "wood", quantity: 6, depositDepletion: 6, minutes: 75 },
+});
+
+add({
+  simTime: at(2, 9, 0),
+  type: "artifact.created",
+  actor: "INH-001",
+  description: "Aleth crafted a stone axe (ART-000) at tile (14,17), consuming 3 units of wood and 2 units of stone over 120 minutes.",
+  subjects: ["INH-001", "ART-000"],
+  location: { x: 14, y: 17 },
+  inputs: { artifactId: "ART-000", itemName: "stone axe", wood: 3, stone: 2, minutes: 120 },
+});
+
 add({
   simTime: at(2, 14, 0),
   type: "structure.built",
@@ -288,6 +326,26 @@ add({
   subjects: ["INH-001"],
   location: { x: 15, y: 18 },
   inputs: { structureId: "STR-002", wood: 16, stone: 22, energy: 11, minutes: 415 },
+});
+
+add({
+  simTime: at(5, 15, 0),
+  type: "transfer.executed",
+  actor: "INH-001",
+  description: "Aleth transferred 4 units of wood to Berrun with recorded consent at tile (14,17).",
+  subjects: ["INH-001", "INH-002"],
+  location: { x: 14, y: 17 },
+  inputs: { from: "INH-001", to: "INH-002", resource: "wood", quantity: 4, consent: true },
+});
+
+add({
+  simTime: at(5, 16, 0),
+  type: "conversation.public",
+  actor: "INH-001",
+  description: "Aleth and Berrun conversed at tile (14,17) for 45 minutes. The exchange was recorded with public visibility and consumed time for both participants.",
+  subjects: ["INH-001", "INH-002"],
+  location: { x: 14, y: 17 },
+  inputs: { minutes: 45, participants: 2, visibility: "public" },
 });
 
 const creations: Array<[string, string, number, { x: number; y: number }, Record<string, number>]> = [

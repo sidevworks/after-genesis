@@ -170,6 +170,36 @@ describe("sampleActor", () => {
     expect(middle.progress).toBeCloseTo(0.5, 10);
   });
 
+  it("follows a disclosed canonical route piece by piece", () => {
+    const routed: ChronicleTrack = {
+      ...lumen,
+      segments: [
+        {
+          ...move,
+          startTick: 100,
+          endTick: 140,
+          from: { x: 0, y: 0 },
+          to: { x: 2, y: 2 },
+          route: [
+            { x: 0, y: 0 },
+            { x: 2, y: 0 },
+            { x: 2, y: 2 },
+          ],
+        },
+      ],
+    };
+
+    const firstLeg = sampleActor(routed, 110)!;
+    const corner = sampleActor(routed, 120)!;
+    const secondLeg = sampleActor(routed, 130)!;
+    expect(firstLeg.position).toEqual({ x: 1, y: 0 });
+    expect(corner.position).toEqual({ x: 2, y: 0 });
+    expect(secondLeg.position).toEqual({ x: 2, y: 1 });
+    expect(firstLeg.facing).toBeCloseTo(0, 10);
+    expect(secondLeg.facing).toBeCloseTo(Math.PI / 2, 10);
+    expect(firstLeg.speed).toBeCloseTo(0.1, 10);
+  });
+
   it("marks a sample interpolated only when the endpoints differ", () => {
     expect(sampleActor(lumen, move.startTick + 1)!.interpolated).toBe(true);
     for (const track of chronicle.tracks) {

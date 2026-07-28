@@ -16,6 +16,8 @@ import { useState } from "react";
 import { CinemaViewport } from "./cinema-viewport";
 import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 import { ActivityBrowser } from "./activity-browser";
+import type { Chronicle } from "@/lib/cinema/types";
+import type { TerrainMap } from "@/lib/stage/terrain";
 
 export interface ChannelSubject {
   readonly id: string;
@@ -39,11 +41,15 @@ export function CinemaChannel({
   subjects,
   activities,
   endTick,
+  chronicle,
+  map,
   initialSubjectId = null,
 }: {
   readonly subjects: readonly ChannelSubject[];
   readonly activities: readonly ChannelActivity[];
   readonly endTick: number;
+  readonly chronicle?: Chronicle;
+  readonly map?: TerrainMap;
   readonly initialSubjectId?: string | null;
 }) {
   const [subjectId, setSubjectId] = useState<string | null>(initialSubjectId);
@@ -131,6 +137,8 @@ export function CinemaChannel({
         subjectId={subjectId}
         {...(jumpTick === undefined ? {} : { initialTick: jumpTick })}
         initialRate={60}
+        {...(chronicle === undefined ? {} : { chronicleOverride: chronicle })}
+        {...(map === undefined ? {} : { mapOverride: map })}
       />
     </div>
   );

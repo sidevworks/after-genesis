@@ -4,6 +4,7 @@ import { BuildPayloadSchema } from "../../schema/actions/construction.js";
 import { GuardLocationPayloadSchema } from "../../schema/actions/security.js";
 import { getActionSpec } from "../../schema/actions/index.js";
 import { bundleTotal, chebyshevDistance } from "../../schema/primitives.js";
+import { derivePhysicalProcess } from "../../schema/physical-process.js";
 import {
   putStructure,
   recordDestroyed,
@@ -89,7 +90,25 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     interruption: BUILD.interruption,
     resourceCost: BUILD.baseCost,
   }).state;
-  const detail = { structureId: id, kind: input.structureKind, location: input.coord };
+  const detail = {
+    structureId: id,
+    kind: input.structureKind,
+    location: input.coord,
+    process: derivePhysicalProcess({
+      actionType: "build",
+      actorIds: [ctx.actor.id],
+      origin: ctx.actor.location,
+      target: {
+        kind: "structure",
+        id,
+        coord: input.coord,
+        label: input.structureKind,
+      },
+      durationMinutes: BUILD.baseDuration,
+      materials: input.materials,
+      resultEntityIds: [id],
+    }),
+  };
   return {
     outcome: { status: "resolved", detail },
     state: next,

@@ -19,6 +19,7 @@
 import { getActionSpec } from "../../schema/actions/index.js";
 import { RESOURCE_KINDS, chebyshevDistance, coordKey } from "../../schema/primitives.js";
 import type { Coord, ResourceBundle, ResourceKind } from "../../schema/primitives.js";
+import { derivePhysicalProcess } from "../../schema/physical-process.js";
 import {
   MAX_SKILL,
   depositAt,
@@ -251,6 +252,19 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
     depositRemaining: remaining[source.resource] ?? 0,
     energySpent: rules.gatherEnergyCost,
     minutes: rules.gatherDurationMinutes,
+    process: derivePhysicalProcess({
+      actionType: "gather",
+      actorIds: [actor.id],
+      origin: actor.location,
+      target: {
+        kind: "resource_source",
+        id: null,
+        coord: source.coord,
+        label: `${source.resource} deposit`,
+      },
+      durationMinutes: rules.gatherDurationMinutes,
+      output: gained,
+    }),
   };
 
   return {

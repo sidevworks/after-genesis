@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { CinemaChannel, type ChannelSubject } from "@/components/cinema/cinema-channel";
+import type { ChannelSubject } from "@/components/cinema/cinema-channel";
+import { WatchExperience } from "@/components/cinema/watch-experience";
 import { Badge, Panel } from "@/components/ui";
 import { observatorySource } from "@/lib/observatory-source";
 
@@ -50,7 +51,7 @@ export default function WatchPage() {
         </p>
       </header>
 
-      <CinemaChannel
+      <WatchExperience
         subjects={subjects}
         activities={activities}
         endTick={run.world.simTime}

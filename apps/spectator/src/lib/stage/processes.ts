@@ -13,7 +13,7 @@ import {
   MeshStandardMaterial,
   type Scene,
 } from "three";
-import type { ActorSample } from "../cinema/types";
+import type { ActorSample, Chronicle, ChronicleSegment } from "../cinema/types";
 import { hashString } from "./palette";
 
 export type ProcessKind = "construction" | "gathering" | "crafting";
@@ -76,20 +76,57 @@ const CRAFT = 0xb9894f;
 
 export class ProcessStage {
   private readonly effects = new Map<string, Effect>();
+  private readonly constructionSegments: readonly ChronicleSegment[];
   private readonly geometry = new BoxGeometry(1, 1, 1);
   private readonly wood = new MeshStandardMaterial({ color: WOOD, roughness: 0.9 });
   private readonly stone = new MeshStandardMaterial({ color: STONE, roughness: 0.96 });
   private readonly food = new MeshStandardMaterial({ color: FOOD, roughness: 1 });
   private readonly craft = new MeshStandardMaterial({ color: CRAFT, roughness: 0.82 });
 
-  constructor(private readonly scene: Scene) {}
+  constructor(private readonly scene: Scene, chronicle: Chronicle) {
+    const byActivity = new Map<string, ChronicleSegment>();
+    for (const track of chronicle.tracks) {
+      for (const segment of track.segments) {
+        if (
+          segment.disclosure !== "disclosed" ||
+          (segment.actionType !== "build" && segment.activityState !== "building")
+        ) {
+          continue;
+        }
+        const key = segment.activityId ?? segment.id;
+        if (!byActivity.has(key)) byActivity.set(key, segment);
+      }
+    }
+    this.constructionSegments = [...byActivity.values()].sort(
+      (left, right) => left.startTick - right.startTick,
+    );
+  }
 
-  update(actors: readonly ActorSample[]): void {
+  update(tick: number, actors: readonly ActorSample[]): void {
     for (const effect of this.effects.values()) effect.seen = false;
 
     // Shared activities can appear on several participant tracks. The canonical
     // activity id ensures they drive one work site, not duplicate buildings.
     const visuals = new Map<string, ProcessVisual>();
+
+    // Completed structures remain in the replay after their action finishes,
+    // and direct seeking reconstructs them without requiring playback to have
+    // visited their construction interval first.
+    for (const segment of this.constructionSegments) {
+      if (tick < segment.startTick) continue;
+      const duration = Math.max(segment.endTick - segment.startTick, 1);
+      const progress = clamp01((tick - segment.startTick) / duration);
+      const key = segment.activityId ?? segment.id;
+      visuals.set(key, {
+        key,
+        kind: "construction",
+        progress,
+        x: segment.focus?.x ?? segment.to.x,
+        z: segment.focus?.y ?? segment.to.y,
+        derived: true,
+      });
+    }
+
     for (const actor of actors) {
       const visual = processVisualFor(actor);
       if (visual !== null && !visuals.has(visual.key)) visuals.set(visual.key, visual);

@@ -248,6 +248,10 @@ export const moveResolver: Resolver = (ctx, payload): ResolutionResult => {
   const detail = {
     from: { x: actor.location.x, y: actor.location.y },
     to: { x: to.x, y: to.y },
+    // Canonical tiles entered, in order. Spectators can now replay the actual
+    // terrain-respecting journey instead of inventing a straight line through
+    // water, trees, or structures.
+    path: route.path.map((point) => ({ x: point.x, y: point.y })),
     steps: route.path.length,
     minutes,
     night,

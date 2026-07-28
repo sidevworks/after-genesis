@@ -13,6 +13,7 @@ import {
 import { CopyArtifactPayloadSchema } from "../../schema/actions/neutral.js";
 import { TransferPropertyPayloadSchema } from "../../schema/actions/resources.js";
 import { chebyshevDistance } from "../../schema/primitives.js";
+import { derivePhysicalProcess } from "../../schema/physical-process.js";
 import { getActionSpec } from "../../schema/actions/index.js";
 import {
   putArtifact,
@@ -87,7 +88,26 @@ export const createArtifactResolver: Resolver = (ctx, payload): ResolutionResult
     resourceCost: { ...CREATE.baseCost, ...input.materials },
   }).state;
 
-  const detail = { artifactId: id, title: input.title, kind: input.kind, published: false };
+  const detail = {
+    artifactId: id,
+    title: input.title,
+    kind: input.kind,
+    published: false,
+    process: derivePhysicalProcess({
+      actionType: "create_artifact",
+      actorIds: [ctx.actor.id],
+      origin: ctx.actor.location,
+      target: {
+        kind: "artifact",
+        id,
+        coord: ctx.actor.location,
+        label: input.title,
+      },
+      durationMinutes: CREATE.baseDuration,
+      materials: input.materials,
+      resultEntityIds: [id],
+    }),
+  };
   return {
     outcome: { status: "resolved", detail },
     state: next,
