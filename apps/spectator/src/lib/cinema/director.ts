@@ -112,7 +112,7 @@ export const MIN_SHOT_MINUTES = 20;
 const LONG_SEGMENT_MINUTES = 90;
 
 /** The opening `ESTABLISH`, when the first segment is long enough to spare it. */
-const ESTABLISH_MINUTES = 30;
+const ESTABLISH_MINUTES = 20;
 
 /** Target length of one world-feed shot before looking for the next beat. */
 const WORLD_SHOT_MINUTES = 60;
@@ -270,9 +270,9 @@ const KIND_DEFAULTS: Readonly<Record<ShotKind, KindDefaults>> = Object.freeze({
     motion: { orbitRate: 0.0008, dollyRate: 0, craneRate: 0.01 },
   },
   THIRD_PERSON_FOLLOW: {
-    distance: 7,
-    height: 3.2,
-    fov: 50,
+    distance: 6.2,
+    height: 3.8,
+    fov: 46,
     azimuth: Math.PI,
     relativeToSubject: true,
     jitter: 0.35,
@@ -297,9 +297,9 @@ const KIND_DEFAULTS: Readonly<Record<ShotKind, KindDefaults>> = Object.freeze({
     motion: STILL,
   },
   ORBIT: {
-    distance: 6.5,
-    height: 2.8,
-    fov: 45,
+    distance: 5.8,
+    height: 5.2,
+    fov: 42,
     azimuth: 0,
     relativeToSubject: false,
     jitter: Math.PI,
@@ -307,9 +307,9 @@ const KIND_DEFAULTS: Readonly<Record<ShotKind, KindDefaults>> = Object.freeze({
     motion: { orbitRate: 0.012, dollyRate: 0, craneRate: 0 },
   },
   CLOSE: {
-    distance: 3.2,
-    height: 1.9,
-    fov: 34,
+    distance: 3.8,
+    height: 3.6,
+    fov: 38,
     azimuth: Math.PI * 0.3,
     relativeToSubject: true,
     jitter: 0.6,
@@ -328,9 +328,9 @@ const KIND_DEFAULTS: Readonly<Record<ShotKind, KindDefaults>> = Object.freeze({
     motion: { orbitRate: 0.002, dollyRate: 0, craneRate: 0 },
   },
   TRACKING_DOLLY: {
-    distance: 9,
-    height: 2.4,
-    fov: 48,
+    distance: 7.5,
+    height: 3.8,
+    fov: 46,
     azimuth: Math.PI * 0.8,
     relativeToSubject: true,
     jitter: 0.3,
@@ -804,7 +804,11 @@ function fallbackDraft(
   endTick: Tick,
   sourceId: string,
 ): Draft {
-  const kind: ShotKind = anchor === null ? "FALLBACK_REFERENCE" : "ESTABLISH";
+  // Quiet canonical time still contains visible inhabitants. Cover it at a
+  // readable medium distance rather than abandoning the broadcast to a long,
+  // empty aerial. True absence of any spatial anchor retains the reference
+  // view.
+  const kind: ShotKind = anchor === null ? "FALLBACK_REFERENCE" : "STATIC_SITE";
   const seed = `${sourceId}|${kind}|${subjectId}`;
   return {
     kind,

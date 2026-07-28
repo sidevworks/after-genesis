@@ -24,6 +24,7 @@ export interface ProcessVisual {
   readonly progress: number;
   readonly x: number;
   readonly z: number;
+  readonly resource: string | null;
   /** Always true: block order and prop motion are not canonical facts. */
   readonly derived: true;
 }
@@ -52,6 +53,10 @@ export function processVisualFor(actor: ActorSample): ProcessVisual | null {
     progress: clamp01(actor.progress),
     x: actor.segment.focus?.x ?? actor.position.x,
     z: actor.segment.focus?.y ?? actor.position.y,
+    resource:
+      typeof actor.segment.detail?.resource === "string"
+        ? actor.segment.detail.resource
+        : null,
     derived: true,
   };
 }
@@ -66,6 +71,7 @@ interface Effect {
   readonly group: Group;
   readonly meshes: readonly Mesh[];
   kind: ProcessKind;
+  resource: string | null;
   seen: boolean;
 }
 
@@ -73,6 +79,7 @@ const WOOD = 0x8a6240;
 const STONE = 0x8c9597;
 const FOOD = 0x788d45;
 const CRAFT = 0xb9894f;
+const WATER = 0x4d9fbd;
 
 export class ProcessStage {
   private readonly effects = new Map<string, Effect>();
@@ -82,6 +89,9 @@ export class ProcessStage {
   private readonly stone = new MeshStandardMaterial({ color: STONE, roughness: 0.96 });
   private readonly food = new MeshStandardMaterial({ color: FOOD, roughness: 1 });
   private readonly craft = new MeshStandardMaterial({ color: CRAFT, roughness: 0.82 });
+  private readonly water = new MeshStandardMaterial({
+    color: WATER, roughness: 0.28, metalness: 0.08, transparent: true, opacity: 0.86,
+  });
 
   constructor(private readonly scene: Scene, chronicle: Chronicle) {
     const byActivity = new Map<string, ChronicleSegment>();
@@ -124,6 +134,7 @@ export class ProcessStage {
         progress,
         x: segment.focus?.x ?? segment.to.x,
         z: segment.focus?.y ?? segment.to.y,
+        resource: null,
         derived: true,
       });
     }
@@ -135,9 +146,13 @@ export class ProcessStage {
 
     for (const visual of visuals.values()) {
       let effect = this.effects.get(visual.key);
-      if (effect === undefined || effect.kind !== visual.kind) {
+      if (
+        effect === undefined ||
+        effect.kind !== visual.kind ||
+        effect.resource !== visual.resource
+      ) {
         if (effect !== undefined) this.destroy(effect);
-        effect = this.create(visual.kind, visual.key);
+        effect = this.create(visual.kind, visual.key, visual.resource);
         this.effects.set(visual.key, effect);
       }
       effect.seen = true;
@@ -151,7 +166,7 @@ export class ProcessStage {
     }
   }
 
-  private create(kind: ProcessKind, key: string): Effect {
+  private create(kind: ProcessKind, key: string, resource: string | null): Effect {
     const group = new Group();
     group.rotation.y = hashString(`process:${key}`) * Math.PI * 2;
     const count = kind === "construction" ? 33 : kind === "gathering" ? 8 : 10;
@@ -160,7 +175,11 @@ export class ProcessStage {
       const material =
         kind === "construction"
           ? index < 9 ? this.stone : this.wood
-          : kind === "gathering" ? this.food : this.craft;
+          : kind === "gathering"
+            ? resource === "water" ? this.water
+              : resource === "stone" ? this.stone
+                : resource === "wood" ? this.wood : this.food
+            : this.craft;
       const mesh = new Mesh(this.geometry, material);
       mesh.castShadow = true;
       mesh.receiveShadow = true;
@@ -168,7 +187,7 @@ export class ProcessStage {
       meshes.push(mesh);
     }
     this.scene.add(group);
-    return { group, meshes, kind, seen: true };
+    return { group, meshes, kind, resource, seen: true };
   }
 
   private apply(effect: Effect, visual: ProcessVisual): void {
@@ -222,7 +241,14 @@ export class ProcessStage {
           0.07 + (gathered ? Math.floor(index / 2) * 0.11 : 0),
           gathered ? 0.42 : Math.sin(angle) * (0.34 + index * 0.035),
         );
-        mesh.scale.set(0.14, 0.12, 0.14);
+        if (effect.resource === "wood") {
+          mesh.scale.set(0.12, 0.12, 0.32);
+          mesh.rotation.x = Math.PI / 2;
+        } else if (effect.resource === "water") {
+          mesh.scale.set(0.17, 0.08, 0.17);
+        } else {
+          mesh.scale.set(0.14, 0.12, 0.14);
+        }
         mesh.visible = gathered ? visual.progress > 0.08 : collected < effect.meshes.length;
       }
       return;
@@ -235,6 +261,10 @@ export class ProcessStage {
       if (index < 4) {
         mesh.position.set(index < 2 ? -0.55 : 0.55, 0.42, index % 2 ? 0.38 : -0.38);
         mesh.scale.set(0.13, 0.72, 0.13);
+        mesh.visible = true;
+      } else if (index === 4) {
+        mesh.position.set(0, 0.74, 0);
+        mesh.scale.set(1.25, 0.12, 0.72);
         mesh.visible = true;
       } else if (index < 9) {
         const assembly = clamp01(visual.progress * 1.5 - index * 0.035);
@@ -261,5 +291,6 @@ export class ProcessStage {
     this.stone.dispose();
     this.food.dispose();
     this.craft.dispose();
+    this.water.dispose();
   }
 }

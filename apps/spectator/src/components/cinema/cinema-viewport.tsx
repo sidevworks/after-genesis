@@ -44,6 +44,8 @@ import { buildVitals, type VitalsSeries } from "@/lib/cinema/vitals";
 import { observatorySource } from "@/lib/observatory-source";
 import { Stage } from "@/lib/stage/stage";
 import { CinemaCaption } from "./caption";
+import { BroadcastOverlay } from "./broadcast-overlay";
+import { BroadcastTransport } from "./broadcast-transport";
 import { CinemaTransport } from "./transport";
 import { VitalsPanel } from "./vitals-panel";
 
@@ -67,6 +69,7 @@ export interface CinemaViewportProps {
   readonly chronicleOverride?: Chronicle;
   readonly mapOverride?: TerrainMap;
   readonly settlementSource?: SettlementProjectionSource;
+  readonly broadcast?: boolean;
 }
 
 interface Interval {
@@ -169,6 +172,7 @@ export function CinemaViewport({
   chronicleOverride,
   mapOverride,
   settlementSource,
+  broadcast = false,
 }: CinemaViewportProps) {
   const chronicle = chronicleOverride ?? getChronicle();
   const mountRef = useRef<HTMLDivElement>(null);
@@ -252,6 +256,13 @@ export function CinemaViewport({
   useEffect(() => {
     stageRef.current?.setHighlight(subjectId);
   }, [subjectId]);
+
+  useEffect(() => {
+    if (!broadcast) return;
+    skipIdleRef.current = true;
+    playingRef.current = true;
+    setHud((current) => ({ ...current, skipIdle: true, playing: true }));
+  }, [broadcast]);
 
   /* --------------------------------------------------------------------- */
   /* The picture: one rAF loop, no React state.                             */
@@ -412,7 +423,7 @@ export function CinemaViewport({
     subjectId === null ? "World record" : hud.subject?.displayName ?? subjectId;
 
   return (
-    <section className="cinema" aria-labelledby="cinema-title">
+    <section className={`cinema${broadcast ? " cinema--broadcast" : ""}`} aria-labelledby="cinema-title">
       <div className="cinema__frame">
         <div
           ref={mountRef}
@@ -425,7 +436,18 @@ export function CinemaViewport({
           }
         />
 
-        <div className="cinema__overlay cinema__overlay--top">
+        {broadcast ? (
+          <BroadcastOverlay
+            day={hud.day}
+            clock={hud.clock}
+            subject={hud.subject}
+            skipped={
+              hud.skipped === null
+                ? null
+                : `Jumped ${durationLabel(hud.skipped)} to the next recorded story beat`
+            }
+          />
+        ) : <div className="cinema__overlay cinema__overlay--top">
           <div>
             <p className="eyebrow">
               Day {hud.day} · {hud.clock} · world tick {Math.floor(hud.tick).toLocaleString()}
@@ -438,28 +460,35 @@ export function CinemaViewport({
             <span className="cinema__shot-kind">{hud.shotKind.replaceAll("_", " ")}</span>
             <small>{hud.shotReason}</small>
           </div>
-        </div>
+        </div>}
 
-        <div className="cinema__side">
+        {!broadcast ? <div className="cinema__side">
           <VitalsPanel series={vitalsSeries} tick={hud.tick} />
-        </div>
+        </div> : null}
 
-        {hud.playing && hud.effectiveRate < hud.rate ? (
+        {!broadcast && hud.playing && hud.effectiveRate < hud.rate ? (
           <p className="cinema__process-speed" role="status">
             process view · {hud.effectiveRate.toFixed(1)} sim min/s
           </p>
         ) : null}
 
-        {hud.skipped !== null ? (
+        {!broadcast && hud.skipped !== null ? (
           <p className="cinema__skip" role="status">
             skipped {durationLabel(hud.skipped)} in which no activity was recorded
           </p>
         ) : null}
 
-        <CinemaCaption subject={hud.subject} />
+        {!broadcast ? <CinemaCaption subject={hud.subject} /> : null}
       </div>
 
-      <CinemaTransport
+      {broadcast ? (
+        <BroadcastTransport
+          playing={hud.playing}
+          progress={(hud.tick - startTick) / Math.max(endTick - startTick, 1)}
+          onPlayingChange={setPlaying}
+          onStep={stepCut}
+        />
+      ) : <CinemaTransport
         tick={hud.tick}
         startTick={startTick}
         endTick={endTick}
@@ -472,9 +501,9 @@ export function CinemaViewport({
         onRateChange={setRate}
         onSkipIdleChange={setSkipIdle}
         onStepCut={stepCut}
-      />
+      />}
 
-      <p className="cinema__provenance">
+      <p className={broadcast ? "cinema__provenance cinema__provenance--broadcast" : "cinema__provenance"}>
         <strong>Canonical</strong> — position, activity, participants, duration, world clock,
         physiological readings, and whether contents were disclosed.{" "}
         <strong>Derived presentation</strong> — camera movement, shot selection, lighting, gait,

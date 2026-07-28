@@ -22,7 +22,7 @@ describe("physical process projection", () => {
   it("turns disclosed construction progress into a derived site", () => {
     expect(processVisualFor(actor())).toEqual({
       key: "act-1", kind: "construction", progress: 0.5,
-      x: 2, z: 3, derived: true,
+      x: 2, z: 3, resource: null, derived: true,
     });
   });
 

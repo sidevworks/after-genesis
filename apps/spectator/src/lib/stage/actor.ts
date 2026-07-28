@@ -45,6 +45,7 @@ import {
   DISCLOSURE_TREATMENT,
   HIGHLIGHT_COLOUR,
   inhabitantHsl,
+  hashString,
 } from "./palette";
 
 /** Body proportions in metres. A figure stands about 1.75 m on a 1 m tile grid. */
@@ -67,6 +68,27 @@ const PROP_SHAPE: Readonly<Record<PropName, { w: number; h: number; d: number } 
   instrument: { w: 0.22, h: 0.3, d: 0.1 },
 };
 
+export interface VisualIdentity {
+  readonly height: number;
+  readonly breadth: number;
+  readonly headwear: 0 | 1 | 2;
+  readonly mantle: boolean;
+  readonly accentHue: number;
+}
+
+/** Stable presentation-only silhouette variation; never interpreted as biology or status. */
+export function visualIdentityFor(id: string): VisualIdentity {
+  const a = hashString(`shape:${id}`);
+  const b = hashString(`clothes:${id}`);
+  return {
+    height: 0.94 + a * 0.12,
+    breadth: 0.92 + b * 0.16,
+    headwear: (Math.floor(hashString(`headwear:${id}`) * 1_000_003) % 3) as 0 | 1 | 2,
+    mantle: Math.floor(hashString(`mantle:${id}`) * 1_000_003) % 2 === 0,
+    accentHue: hashString(`accent:${id}`),
+  };
+}
+
 function applyJoint(target: { rotation: { set(x: number, y: number, z: number): void } }, joint: Joint): void {
   target.rotation.set(joint.x, joint.y, joint.z);
 }
@@ -86,13 +108,18 @@ export class ActorRig {
   private readonly legLMesh: Mesh;
   private readonly legRMesh: Mesh;
   private readonly propMesh: Mesh;
+  private readonly headwearMesh: Mesh;
+  private readonly beltMesh: Mesh;
+  private readonly mantleMesh: Mesh;
 
   private readonly skin: MeshStandardMaterial;
   private readonly cloth: MeshStandardMaterial;
   private readonly propMaterial: MeshStandardMaterial;
+  private readonly accentMaterial: MeshStandardMaterial;
   private readonly geometries: BoxGeometry[] = [];
 
   private readonly variation: ActorVariation;
+  private readonly identity: VisualIdentity;
   private readonly baseHsl: { h: number; s: number; l: number };
   private readonly scratchColour = new Color();
 
@@ -117,6 +144,8 @@ export class ActorRig {
     this.inhabitantId = sample.inhabitantId;
     this.variation = variationFor(sample.inhabitantId);
     this.baseHsl = inhabitantHsl(sample.refId ?? sample.inhabitantId);
+    const identity = visualIdentityFor(sample.inhabitantId);
+    this.identity = identity;
 
     this.skin = new MeshStandardMaterial({ roughness: 0.72, metalness: 0.02 });
     this.cloth = new MeshStandardMaterial({ roughness: 0.86, metalness: 0 });
@@ -124,6 +153,7 @@ export class ActorRig {
       color: 0x8a7a5f,
       roughness: 0.9,
     });
+    this.accentMaterial = new MeshStandardMaterial({ roughness: 0.92, metalness: 0 });
 
     const box = (w: number, h: number, d: number): BoxGeometry => {
       const geometry = new BoxGeometry(w, h, d);
@@ -142,6 +172,9 @@ export class ActorRig {
       box(PART.prop.w, PART.prop.h, PART.prop.d),
       this.propMaterial,
     );
+    this.headwearMesh = new Mesh(box(0.46, 0.12, 0.46), this.accentMaterial);
+    this.beltMesh = new Mesh(box(0.53, 0.09, 0.32), this.accentMaterial);
+    this.mantleMesh = new Mesh(box(0.62, 0.18, 0.38), this.accentMaterial);
 
     // Limbs rotate about their top end, not their centre, or an arm swing would
     // pivot around the elbow and look broken. Offsetting the geometry inside a
@@ -166,6 +199,20 @@ export class ActorRig {
     this.headMesh.castShadow = true;
     this.torsoMesh.castShadow = true;
     this.hipsMesh.castShadow = true;
+    this.headwearMesh.position.set(0, 1.76, 0);
+    this.headwearMesh.visible = identity.headwear !== 0;
+    if (identity.headwear === 1) {
+      this.headwearMesh.scale.set(1.2, 0.5, 1.2);
+    } else if (identity.headwear === 2) {
+      this.headwearMesh.position.y = 1.82;
+      this.headwearMesh.scale.set(0.62, 1.5, 0.62);
+    }
+    this.headwearMesh.castShadow = true;
+    this.beltMesh.position.set(0, 0.75, 0);
+    this.beltMesh.castShadow = true;
+    this.mantleMesh.position.set(0, 1.25, 0.04);
+    this.mantleMesh.visible = identity.mantle;
+    this.mantleMesh.castShadow = true;
 
     this.propMesh.position.set(PART.arm.x + 0.06, PART.arm.y - PART.arm.h * 0.72, 0.14);
     this.propMesh.castShadow = true;
@@ -180,7 +227,11 @@ export class ActorRig {
       legL,
       legR,
       this.propMesh,
+      this.headwearMesh,
+      this.beltMesh,
+      this.mantleMesh,
     );
+    this.body.scale.set(identity.breadth, identity.height, identity.breadth);
     this.group.add(this.body);
     this.group.visible = false;
     scene.add(this.group);
@@ -288,12 +339,20 @@ export class ActorRig {
     );
     this.cloth.color.copy(this.scratchColour);
 
+    this.scratchColour.setHSL(
+      this.identity.accentHue,
+      0.34 * treatment.saturation,
+      Math.min(0.38 * treatment.lightness, 0.72),
+    );
+    this.accentMaterial.color.copy(this.scratchColour);
+
     // The highlight is a rim on the followed subject only. It marks who the
     // camera is watching — a property of the viewer's choice, not of the
     // inhabitant — so it is deliberately faint and never changes their colour.
     const emissive = this.highlighted ? 0.16 : 0;
     this.skin.emissive.setHex(HIGHLIGHT_COLOUR).multiplyScalar(emissive);
     this.cloth.emissive.setHex(HIGHLIGHT_COLOUR).multiplyScalar(emissive * 0.6);
+    this.accentMaterial.emissive.setHex(HIGHLIGHT_COLOUR).multiplyScalar(emissive * 0.45);
   }
 
   private applyProp(spec: PerformanceSpec, pose: ActorPose): void {
@@ -319,5 +378,6 @@ export class ActorRig {
     this.skin.dispose();
     this.cloth.dispose();
     this.propMaterial.dispose();
+    this.accentMaterial.dispose();
   }
 }

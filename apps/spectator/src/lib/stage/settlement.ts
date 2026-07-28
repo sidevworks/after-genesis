@@ -62,14 +62,56 @@ export class SettlementStage {
 
       if (structure.kind === "well") {
         body.scale.set(0.9, 0.45, 0.9);
-        roof.position.y = 0.95;
+        roof.position.y = 1.42;
+        roof.scale.set(0.78, 0.45, 0.78);
+        door.visible = false;
+        for (const x of [-0.52, 0.52]) {
+          const post = new Mesh(this.geometries[0]!, this.materials[3]!);
+          post.position.set(x, 0.76, 0);
+          post.scale.set(0.12, 1.15, 0.12);
+          post.castShadow = true;
+          group.add(post);
+        }
       } else if (structure.kind === "store") {
         body.scale.set(1.5, 0.85, 1.25);
+        // External stacked goods make storage readable even in a wide shot.
+        for (let index = 0; index < 3; index += 1) {
+          const crate = new Mesh(this.geometries[0]!, this.materials[0]!);
+          crate.position.set(-0.9 + index * 0.28, 0.16, 0.45);
+          crate.scale.set(0.24, 0.28, 0.24);
+          crate.castShadow = true;
+          group.add(crate);
+        }
       } else if (structure.kind === "workshop") {
         const chimney = new Mesh(this.geometries[0]!, this.materials[2]!);
         chimney.position.set(0.42, 1.42, -0.28);
         chimney.scale.set(0.22, 0.9, 0.22);
+        chimney.castShadow = true;
         group.add(chimney);
+        const awning = new Mesh(this.geometries[0]!, this.materials[0]!);
+        awning.position.set(-0.66, 0.78, 0.48);
+        awning.rotation.x = -0.22;
+        awning.scale.set(0.72, 0.08, 0.54);
+        awning.castShadow = true;
+        group.add(awning);
+      } else if (structure.kind === "bridge") {
+        body.position.y = 0.18;
+        body.scale.set(2.2, 0.24, 0.86);
+        roof.visible = false;
+        door.visible = false;
+        for (const z of [-0.46, 0.46]) {
+          const rail = new Mesh(this.geometries[0]!, this.materials[3]!);
+          rail.position.set(0, 0.52, z);
+          rail.scale.set(2.15, 0.1, 0.1);
+          rail.castShadow = true;
+          group.add(rail);
+        }
+      } else if (structure.kind === "monument") {
+        body.position.y = 0.72;
+        body.scale.set(0.72, 1.35, 0.72);
+        roof.position.y = 1.72;
+        roof.scale.set(0.58, 0.85, 0.58);
+        door.visible = false;
       }
       group.visible = false;
       scene.add(group);

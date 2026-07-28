@@ -970,6 +970,169 @@ a {
     font-weight: 500;
   }
 
+  /* Broadcast is an editorial view of the same read-only playhead, framed for
+     vertical capture and phone viewing. No controls or facts are hidden from
+     the underlying Watch mode; the mode switch returns to the full transport. */
+  .cinema--broadcast {
+    width: min(100%, 30rem);
+    margin-inline: auto;
+  }
+
+  .cinema--broadcast .cinema__frame {
+    aspect-ratio: 9 / 16;
+    min-height: min(78vh, 53rem);
+    border-color: color-mix(in srgb, var(--color-amber) 30%, var(--color-line));
+    border-radius: 0.75rem;
+  }
+
+  .broadcast-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: clamp(1rem, 4vw, 1.5rem);
+    color: white;
+    pointer-events: none;
+    background:
+      linear-gradient(to bottom, rgba(3, 6, 9, 0.82), transparent 27%),
+      linear-gradient(to top, rgba(3, 6, 9, 0.96), transparent 54%);
+  }
+
+  .broadcast-overlay__top {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 0.25rem 1rem;
+    text-shadow: 0 1px 8px #000;
+  }
+
+  .broadcast-overlay__brand {
+    grid-column: 1 / -1;
+    color: var(--color-amber);
+    font: 0.62rem var(--font-mono);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  .broadcast-overlay__top strong {
+    font-size: clamp(1.7rem, 8vw, 2.4rem);
+    line-height: 1;
+  }
+
+  .broadcast-overlay__top > :last-child {
+    font: 0.85rem var(--font-mono);
+  }
+
+  .broadcast-overlay__story {
+    display: grid;
+    gap: 0.55rem;
+    text-shadow: 0 2px 12px #000;
+  }
+
+  .broadcast-overlay__actor {
+    color: var(--color-amber);
+    font: 0.75rem var(--font-mono);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+
+  .broadcast-overlay__story h2 {
+    max-width: 11ch;
+    font-size: clamp(2.25rem, 11vw, 3.5rem);
+    font-weight: 650;
+    line-height: 0.96;
+    letter-spacing: -0.045em;
+    text-wrap: balance;
+  }
+
+  .broadcast-overlay__caption {
+    max-width: 34ch;
+    font-size: clamp(0.95rem, 4vw, 1.15rem);
+    line-height: 1.45;
+  }
+
+  .broadcast-overlay__process {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+    font: 0.72rem var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .broadcast-overlay__process > div {
+    grid-column: 1 / -1;
+    overflow: hidden;
+    height: 0.35rem;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.22);
+  }
+
+  .broadcast-overlay__process i,
+  .broadcast-transport__progress i {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--color-amber);
+  }
+
+  .broadcast-overlay__skip {
+    justify-self: start;
+    border-radius: 999px;
+    background: rgba(3, 6, 9, 0.72);
+    padding: 0.35rem 0.65rem;
+    color: var(--color-muted);
+    font: 0.62rem var(--font-mono);
+  }
+
+  .broadcast-transport {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .broadcast-transport button {
+    min-height: 2.6rem;
+    border: 1px solid var(--color-line);
+    border-radius: 999px;
+    background: var(--color-panel-2);
+    padding: 0.5rem 0.8rem;
+    color: var(--color-ink);
+    font: 0.7rem var(--font-mono);
+  }
+
+  .broadcast-transport__play {
+    color: var(--color-amber) !important;
+  }
+
+  .broadcast-transport__progress {
+    grid-column: 1 / -1;
+    overflow: hidden;
+    height: 2px;
+    background: var(--color-line);
+  }
+
+  .broadcast-transport > span {
+    grid-column: 1 / -1;
+    color: var(--color-dim);
+    font: 0.6rem var(--font-mono);
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .cinema__provenance--broadcast {
+    text-align: center;
+  }
+
+  .channel-picker__broadcast {
+    border-color: var(--color-amber-dim);
+  }
+
   .cinema__process-speed {
     position: absolute;
     right: 1rem;

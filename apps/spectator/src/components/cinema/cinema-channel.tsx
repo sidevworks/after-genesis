@@ -59,6 +59,7 @@ export function CinemaChannel({
   const [jumpTick, setJumpTick] = useState<number | undefined>(undefined);
   const [jumpKey, setJumpKey] = useState(0);
   const [dayDraft, setDayDraft] = useState("");
+  const [broadcast, setBroadcast] = useState(false);
   const maxDay = Math.floor(endTick / MINUTES_PER_DAY) + 1;
   const jump = (tick: number) => {
     setJumpTick(Math.max(0, Math.min(tick, endTick)));
@@ -70,15 +71,24 @@ export function CinemaChannel({
       <div className="channel-picker" role="group" aria-label="Camera subject">
         <button
           type="button"
+          aria-pressed={broadcast}
+          onClick={() => setBroadcast((value) => !value)}
+          className="channel-picker__option channel-picker__broadcast"
+        >
+          <span className="channel-picker__name">{broadcast ? "Exit broadcast" : "Broadcast / TikTok"}</span>
+          <small>9:16 story view · automatically skips idle gaps</small>
+        </button>
+        {!broadcast ? <button
+          type="button"
           aria-pressed={subjectId === null}
           onClick={() => setSubjectId(null)}
           className="channel-picker__option"
         >
           <span className="channel-picker__name">World record</span>
           <small>Cuts between inhabitants by canonical significance</small>
-        </button>
+        </button> : null}
 
-        {subjects.map((subject) => (
+        {!broadcast ? subjects.map((subject) => (
           <button
             key={subject.id}
             type="button"
@@ -91,10 +101,10 @@ export function CinemaChannel({
               Generation {subject.generation} · {subject.status}
             </small>
           </button>
-        ))}
+        )) : null}
       </div>
 
-      <div className="panel p-4" aria-label="Replay navigator">
+      {!broadcast ? <div className="panel p-4" aria-label="Replay navigator">
         <label className="text-sm text-muted">
           <span className="eyebrow mb-1 block">Go to world day</span>
           <span className="flex gap-2">
@@ -129,9 +139,11 @@ export function CinemaChannel({
           </span>
           <small>Jump to any available day from 1 to {maxDay}.</small>
         </label>
-      </div>
+      </div> : null}
 
-      <ActivityBrowser activities={activities} subjects={subjects} onSelect={(activity) => jump(activity.startedAt)} />
+      {!broadcast ? (
+        <ActivityBrowser activities={activities} subjects={subjects} onSelect={(activity) => jump(activity.startedAt)} />
+      ) : null}
 
       {/* Remounting on subject change resets the shot plan and the rig pool
           cleanly, and a channel change is exactly when a hard reset is correct. */}
@@ -143,6 +155,7 @@ export function CinemaChannel({
         {...(chronicle === undefined ? {} : { chronicleOverride: chronicle })}
         {...(map === undefined ? {} : { mapOverride: map })}
         {...(settlementSource === undefined ? {} : { settlementSource })}
+        broadcast={broadcast}
       />
     </div>
   );

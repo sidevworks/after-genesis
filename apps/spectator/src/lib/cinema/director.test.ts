@@ -156,6 +156,40 @@ describe("a subject plan over the real run", () => {
   });
 });
 
+describe("broadcast action coverage", () => {
+  it("covers world-feed gaps with a readable site shot, not an empty aerial", () => {
+    const quiet = chronicleOf(
+      [track("a", [
+        segment({ startTick: 0, endTick: 60 }),
+        segment({
+          startTick: 60,
+          endTick: 600,
+          actionType: "idle",
+          activityState: "idle",
+          activityId: null,
+          sequence: null,
+        }),
+      ])],
+      600,
+    );
+    const plan = planShots({ chronicle: quiet, subjectId: null, startTick: 0, endTick: 600 });
+    const quietCoverage = plan.shots.find((shot) => shot.startTick >= 60);
+    expect(quietCoverage?.kind).toBe("STATIC_SITE");
+    expect(quietCoverage?.framing.distance).toBeLessThan(20);
+  });
+
+  it("keeps work cameras elevated above common roof lines", () => {
+    const work = chronicleOf(
+      [track("a", [segment({ startTick: 0, endTick: 180 })])],
+      180,
+    );
+    const plan = planShots({ chronicle: work, subjectId: "a", startTick: 0, endTick: 180 });
+    const actionShots = plan.shots.filter((shot) => shot.kind === "ORBIT" || shot.kind === "CLOSE");
+    expect(actionShots.length).toBeGreaterThan(0);
+    for (const shot of actionShots) expect(shot.framing.height).toBeGreaterThanOrEqual(3.6);
+  });
+});
+
 describe("a world-feed plan over the real run", () => {
   const plan = planShots({
     chronicle,
