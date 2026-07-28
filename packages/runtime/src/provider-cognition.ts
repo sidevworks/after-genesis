@@ -5,6 +5,7 @@ import {
   type ModelAuditStore,
   type ModelProvider,
   type ResourceKind,
+  type SpendReservationStore,
 } from "@after-genesis/core";
 import {
   ModelProviderError,
@@ -31,6 +32,7 @@ export interface ProviderCognitionOptions {
   readonly limits: SpendLimits;
   /** Explicit calendar partition supplied by the scheduler, e.g. 2026-07-28. */
   readonly dayKey: string;
+  readonly durableSpend?: SpendReservationStore;
 }
 
 /**
@@ -43,6 +45,7 @@ export class ProviderCognitionService implements CognitionService {
   readonly #modelId: string;
   readonly #ledger: SpendLedger;
   readonly #dayKey: string;
+  readonly #durableSpend: SpendReservationStore | undefined;
 
   constructor(options: ProviderCognitionOptions) {
     if (options.modelId.trim() === "") throw new Error("modelId must not be empty");
@@ -54,6 +57,7 @@ export class ProviderCognitionService implements CognitionService {
     this.#modelId = options.modelId;
     this.#ledger = new SpendLedger({ prices: options.prices, limits: options.limits });
     this.#dayKey = options.dayKey;
+    this.#durableSpend = options.durableSpend;
   }
 
   get spend(): SpendLedger {
@@ -67,7 +71,14 @@ export class ProviderCognitionService implements CognitionService {
 
     try {
       const result = await proposeAction(
-        { provider: this.#provider, ledger: this.#ledger, audit: this.#audit },
+        {
+          provider: this.#provider,
+          ledger: this.#ledger,
+          audit: this.#audit,
+          ...(this.#durableSpend === undefined
+            ? {}
+            : { durableSpend: this.#durableSpend }),
+        },
         {
           observation,
           memoryCandidates: memories,

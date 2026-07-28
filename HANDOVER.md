@@ -11,7 +11,16 @@
   in Vercel or any browser-facing environment.
 - The previously exposed key for
   `firebase-adminsdk-fbsvc@after-genesis.iam.gserviceaccount.com` in the
-  separate `after-genesis` project still needs to be deleted and rotated.
+  separate `after-genesis` project has been rotated and removed.
+
+Key rotation verification on 2026-07-28:
+
+- The exposed key `888f9fb3b11ba1741ee413f509ee1f6c528d430a` is absent from
+  the service account.
+- The only listed user-managed key is replacement key
+  `91e03b4260f8568bc9f8b638594ace794100e361`.
+- The local credential file references that replacement, remains outside the
+  repository, and matches the intended project and service account.
 
 ## Source
 
@@ -24,7 +33,7 @@
   - `5f2a58c` — use the Cloud Run origin as the task OIDC audience
   - `f589ff2` — install only worker production dependencies in the image
 - Earlier CI-verified staging-worker commit: `ce9d706`
-- Current repository head at handover: `e17b9ef`
+- Current pushed repository head at handover: `10de338`
 
 ## Staging project
 
@@ -102,8 +111,9 @@ The tested `firestore.rules` and `firestore.indexes.json` are deployed.
 - `AG_SPEND_LIMIT_TOTAL_USD=5`
 - Cloud Run maximum instances is one for staging.
 
-These application limits are process-local and reset when the instance
-restarts. Durable spend accounting is therefore still required before Genesis.
+The currently deployed revision still uses process-local limits. Durable
+Firestore reservation/settlement code is implemented locally and must pass the
+CI emulator contention gate and be deployed before paid staging inference.
 
 ## IAM boundary
 
@@ -159,22 +169,20 @@ Live staging smoke test:
 
 ## Remaining work, in order
 
-1. Delete the exposed private key in the separate `after-genesis` project.
-2. Add durable cross-instance/day/total spend accounting. Current spend
-   ceilings are process-local.
-3. Add a staging-only, reversible fixture/bootstrap path. Do not reuse the
+1. Push, pass CI, and deploy the durable Firestore spend-reservation change.
+2. Add a staging-only, reversible fixture/bootstrap path. Do not reuse the
    irreversible production Genesis command for integration testing.
-4. Run a real staging world fixture through:
+3. Run a real staging world fixture through:
    Cloud Tasks → OIDC → worker → Gemini → audit store → atomic Firestore commit.
-5. Test duplicate delivery, worker crash after commit, provider outage,
+4. Test duplicate delivery, worker crash after commit, provider outage,
    Firestore contention, queue outage, and replay from recorded responses.
-6. Connect and deploy the read-only spectator against public projections only.
-7. Resolve or formally accept the remaining production dependency advisories.
+5. Connect and deploy the read-only spectator against public projections only.
+6. Resolve or formally accept the remaining production dependency advisories.
    The slim worker image currently reports five high advisories in the Google
    client dependency chain.
-8. Complete accelerated civilization testing and the required continuous
+7. Complete accelerated civilization testing and the required continuous
    fourteen-day dress rehearsal.
-9. Produce a written launch-readiness report before considering Genesis.
+8. Produce a written launch-readiness report before considering Genesis.
 
 ## Useful inspection commands
 

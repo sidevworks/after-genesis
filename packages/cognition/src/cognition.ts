@@ -30,7 +30,13 @@
  *    world pauses (§15). Nothing is emitted, because the check happens before
  *    the request.
  */
-import type { ModelAuditStore, ModelProvider, ModelRequest, ModelResponse } from "@after-genesis/core";
+import type {
+  ModelAuditStore,
+  ModelProvider,
+  ModelRequest,
+  ModelResponse,
+  SpendReservationStore,
+} from "@after-genesis/core";
 import type { Sha256Hex } from "@after-genesis/core";
 import type { ProposedAction } from "@after-genesis/core/schema/action-spec";
 import type { SpendLedger } from "./budget.js";
@@ -86,6 +92,8 @@ export type CognitionResult =
 export interface CognitionDeps {
   readonly provider: ModelProvider;
   readonly ledger: SpendLedger;
+  /** Required in production so process restarts cannot reset spend ceilings. */
+  readonly durableSpend?: SpendReservationStore;
   /** Optional: when absent, nothing is persisted and replay of this turn is impossible. */
   readonly audit?: ModelAuditStore;
 }
@@ -185,32 +193,89 @@ async function callOnce(
   // all (§15). The estimate charges the full maxOutputTokens: a limit that can
   // be overshot by the last request of the day is not a limit.
   const estimatedInputTokens = estimateTokens(request.systemPrompt) + estimateTokens(request.userPrompt);
-  deps.ledger.assertCanSpend({
+  const estimatedMicros = deps.ledger.assertCanSpend({
     modelId: request.modelId,
     dayKey: input.dayKey,
     estimatedInputTokens,
     maxOutputTokens: request.maxOutputTokens,
   });
-
-  // §14.6: persist the exact request before any network call. A provider
-  // timeout must still leave evidence of what was attempted.
-  if (deps.audit !== undefined) {
-    await deps.audit.record({
+  const reservationId =
+    `${input.observation.worldId}:${input.observation.sequence}:${attempt}:${requestHash}`;
+  if (deps.durableSpend !== undefined) {
+    const limits = deps.ledger.snapshot().limits;
+    const status = await deps.durableSpend.reserve({
+      reservationId,
       worldId: input.observation.worldId,
       sequence: input.observation.sequence,
       attempt,
-      request,
-      requestHash,
-      response: null,
-      responseHash: null,
-      costMicros: 0,
+      dayKey: input.dayKey,
+      estimatedMicros,
+      dailyLimitMicros: limits.dailyMicros,
+      totalLimitMicros: limits.totalMicros,
     });
+    if (status.status === "settled") {
+      const replay = await deps.audit?.get(
+        input.observation.worldId,
+        input.observation.sequence,
+        attempt,
+      );
+      if (replay === null || replay === undefined) {
+        throw new Error(
+          `settled spend reservation ${reservationId} has no recorded response`,
+        );
+      }
+      const responseHash = hashRawResponse(replay.rawText);
+      attempts.push({
+        attempt,
+        requestHash,
+        responseHash,
+        modelId: replay.modelId,
+        inputTokens: 0,
+        outputTokens: 0,
+        costMicros: status.actualMicros,
+        finishReason: "recorded-replay",
+        failureCode: null,
+      });
+      return {
+        response: {
+          rawText: replay.rawText,
+          modelId: replay.modelId,
+          inputTokens: 0,
+          outputTokens: 0,
+          finishReason: "recorded-replay",
+        },
+      };
+    }
   }
 
-  // A provider failure propagates: §14 requires the turn to be rescheduled, not
-  // resolved differently. Recording an audit row for a call that never returned
-  // would also be a lie about what happened.
-  const response = await deps.provider.generate(request);
+  let response: ModelResponse;
+  try {
+    // §14.6: persist the exact request before any network call. A provider
+    // timeout must still leave evidence of what was attempted.
+    if (deps.audit !== undefined) {
+      await deps.audit.record({
+        worldId: input.observation.worldId,
+        sequence: input.observation.sequence,
+        attempt,
+        request,
+        requestHash,
+        response: null,
+        responseHash: null,
+        costMicros: 0,
+      });
+    }
+
+    // A provider failure propagates: §14 requires the turn to be rescheduled,
+    // not resolved differently.
+    response = await deps.provider.generate(request);
+  } catch (error) {
+    // No provider response means no known billable usage. Release the
+    // pre-authorisation so the immutable task may retry.
+    if (deps.durableSpend !== undefined) {
+      await deps.durableSpend.release(reservationId);
+    }
+    throw error;
+  }
 
   // §14.8: hash the untouched raw response before anything parses it.
   const responseHash = hashRawResponse(response.rawText);
@@ -225,6 +290,12 @@ async function callOnce(
     outputTokens: response.outputTokens,
     sequence: input.observation.sequence,
   });
+  if (deps.durableSpend !== undefined) {
+    // Once a response exists, never release on later failure: the provider has
+    // performed billable work. A stranded reservation is conservative and can
+    // be reconciled from the append-only model audit.
+    await deps.durableSpend.settle(reservationId, entry.micros);
+  }
 
   attempts.push({
     attempt,

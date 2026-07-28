@@ -11,6 +11,7 @@ import {
   FirestoreCanonicalStore,
   FirestoreIdempotencyStore,
   FirestoreModelAuditStore,
+  FirestoreSpendReservationStore,
   SystemClock,
 } from "@after-genesis/persistence";
 import {
@@ -43,6 +44,7 @@ const prices: readonly PriceTable[] = [
 const cognition = new ProviderCognitionService({
   provider: geminiFromEnv(process.env),
   audit: new FirestoreModelAuditStore(database),
+  durableSpend: new FirestoreSpendReservationStore(database),
   modelId: environment.modelId,
   prices,
   limits: {

@@ -2,13 +2,14 @@ import {
   SpendLimitExceededError,
   buildGenesis,
   type ModelAuditStore,
+  type SpendReservationStore,
 } from "@after-genesis/core";
 import {
   ModelProviderError,
   ScriptedProvider,
   type PriceTable,
 } from "@after-genesis/cognition";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { ModelUnavailableError } from "./turn.js";
 import { ProviderCognitionService } from "./provider-cognition.js";
 
@@ -65,7 +66,12 @@ function audit() {
   return { store, records };
 }
 
-function service(provider: ScriptedProvider, store: ModelAuditStore, totalMicros = 1_000_000) {
+function service(
+  provider: ScriptedProvider,
+  store: ModelAuditStore,
+  totalMicros = 1_000_000,
+  durableSpend?: SpendReservationStore,
+) {
   return new ProviderCognitionService({
     provider,
     audit: store,
@@ -73,7 +79,17 @@ function service(provider: ScriptedProvider, store: ModelAuditStore, totalMicros
     prices: [PRICE],
     limits: { dailyMicros: totalMicros, totalMicros },
     dayKey: "2026-07-28",
+    ...(durableSpend === undefined ? {} : { durableSpend }),
   });
+}
+
+function durableSpend() {
+  const reserve = vi.fn<SpendReservationStore["reserve"]>(async () => ({
+    status: "reserved",
+  }));
+  const settle = vi.fn<SpendReservationStore["settle"]>(async () => undefined);
+  const release = vi.fn<SpendReservationStore["release"]>(async () => undefined);
+  return { store: { reserve, settle, release }, reserve, settle, release };
 }
 
 describe("ProviderCognitionService", () => {
@@ -164,5 +180,116 @@ describe("ProviderCognitionService", () => {
     ).rejects.toBeInstanceOf(SpendLimitExceededError);
     expect(provider.callCount).toBe(0);
     expect(captured.records).toHaveLength(0);
+  });
+
+  it("durably reserves before inference and settles the actual charge", async () => {
+    const captured = audit();
+    const durable = durableSpend();
+    const cognition = service(
+      new ScriptedProvider([
+        {
+          rawText: '{"type":"wait","payload":{}}',
+          modelId: "test-model",
+          inputTokens: 100,
+          outputTokens: 10,
+        },
+      ]),
+      captured.store,
+      1_000_000,
+      durable.store,
+    );
+
+    await cognition.propose({
+      state: state(),
+      actorId: "inh_founder",
+      simTime: 0 as never,
+      sequence: 1,
+    });
+
+    expect(durable.reserve).toHaveBeenCalledTimes(1);
+    expect(durable.settle).toHaveBeenCalledTimes(1);
+    expect(durable.release).not.toHaveBeenCalled();
+    expect(durable.reserve.mock.invocationCallOrder[0]).toBeLessThan(
+      durable.settle.mock.invocationCallOrder[0]!,
+    );
+  });
+
+  it("releases durable pre-authorisation when the provider gives no response", async () => {
+    const captured = audit();
+    const durable = durableSpend();
+    const cognition = service(
+      new ScriptedProvider([
+        {
+          rawText: "",
+          throws: new ModelProviderError("server_error", "outage", {
+            provider: "test",
+            modelId: "test-model",
+            attempts: 1,
+          }),
+        },
+      ]),
+      captured.store,
+      1_000_000,
+      durable.store,
+    );
+
+    await expect(
+      cognition.propose({
+        state: state(),
+        actorId: "inh_founder",
+        simTime: 0 as never,
+        sequence: 1,
+      }),
+    ).rejects.toBeInstanceOf(ModelUnavailableError);
+    expect(durable.reserve).toHaveBeenCalledTimes(1);
+    expect(durable.release).toHaveBeenCalledTimes(1);
+    expect(durable.settle).not.toHaveBeenCalled();
+  });
+
+  it("replays the recorded response after a crash that already settled spend", async () => {
+    const captured = audit();
+    captured.records.push({
+      worldId: "world_provider_test",
+      sequence: 1,
+      attempt: 1,
+      request: {
+        modelId: "test-model",
+        systemPrompt: "recorded",
+        userPrompt: "recorded",
+        maxOutputTokens: 1,
+        temperature: 0,
+      },
+      requestHash: "a".repeat(64) as never,
+      response: {
+        rawText: '{"type":"wait","payload":{}}',
+        modelId: "test-model-recorded",
+        inputTokens: 100,
+        outputTokens: 10,
+        finishReason: "stop",
+      },
+      responseHash: "b".repeat(64) as never,
+      costMicros: 42,
+    });
+    const durable = durableSpend();
+    durable.reserve.mockResolvedValueOnce({ status: "settled", actualMicros: 42 });
+    const provider = new ScriptedProvider([]);
+    const cognition = service(
+      provider,
+      captured.store,
+      1_000_000,
+      durable.store,
+    );
+
+    const result = await cognition.propose({
+      state: state(),
+      actorId: "inh_founder",
+      simTime: 0 as never,
+      sequence: 1,
+    });
+
+    expect(result.action?.type).toBe("wait");
+    expect(result.costMicros).toBe(42);
+    expect(provider.callCount).toBe(0);
+    expect(durable.settle).not.toHaveBeenCalled();
   });
 });

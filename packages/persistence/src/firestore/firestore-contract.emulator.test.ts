@@ -2,6 +2,7 @@ import { Firestore } from "@google-cloud/firestore";
 import {
   buildGenesis,
   sealEvent,
+  SpendLimitExceededError,
   type CanonicalEvent,
 } from "@after-genesis/core";
 import {
@@ -9,7 +10,10 @@ import {
   type RulesTestEnvironment,
 } from "@firebase/rules-unit-testing";
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
-import { FirestoreCanonicalStore } from "./firestore-store.js";
+import {
+  FirestoreCanonicalStore,
+  FirestoreSpendReservationStore,
+} from "./firestore-store.js";
 
 const PROJECT_ID = "demo-after-genesis";
 const describeEmulator = process.env["FIRESTORE_EMULATOR_HOST"] ? describe : describe.skip;
@@ -72,6 +76,33 @@ describeEmulator("FirestoreCanonicalStore emulator contract", () => {
     expect(attempts.filter((result) => result.status === "fulfilled")).toHaveLength(1);
     expect(attempts.filter((result) => result.status === "rejected")).toHaveLength(9);
     expect(await store.headSequence(fixture.event.worldId)).toBe(0);
+  });
+
+  it("allows only one concurrent inference reservation under the final allowance", async () => {
+    const spend = new FirestoreSpendReservationStore(database);
+    const attempts = await Promise.allSettled(
+      Array.from({ length: 10 }, (_, index) =>
+        spend.reserve({
+          reservationId: `world:1:${index + 1}:request`,
+          worldId: "world",
+          sequence: 1,
+          attempt: index + 1,
+          dayKey: "2026-07-28",
+          estimatedMicros: 600,
+          dailyLimitMicros: 1_000,
+          totalLimitMicros: 1_000,
+        }),
+      ),
+    );
+
+    expect(attempts.filter((result) => result.status === "fulfilled")).toHaveLength(1);
+    const rejected = attempts.filter(
+      (result): result is PromiseRejectedResult => result.status === "rejected",
+    );
+    expect(rejected).toHaveLength(9);
+    expect(
+      rejected.every((result) => result.reason instanceof SpendLimitExceededError),
+    ).toBe(true);
   });
 });
 

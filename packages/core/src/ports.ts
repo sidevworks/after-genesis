@@ -138,6 +138,34 @@ export interface IdempotencyStore {
   release(key: string): Promise<void>;
 }
 
+export interface SpendReservation {
+  readonly reservationId: string;
+  readonly worldId: string;
+  readonly sequence: number;
+  readonly attempt: number;
+  readonly dayKey: string;
+  readonly estimatedMicros: number;
+  readonly dailyLimitMicros: number;
+  readonly totalLimitMicros: number;
+}
+
+/**
+ * Durable pre-authorisation for paid inference.
+ *
+ * Implementations must reserve against both ceilings atomically. A process
+ * restart must never reset or forget outstanding/settled spend.
+ */
+export interface SpendReservationStore {
+  reserve(
+    reservation: SpendReservation,
+  ): Promise<
+    | { readonly status: "reserved" | "already-reserved" }
+    | { readonly status: "settled"; readonly actualMicros: number }
+  >;
+  settle(reservationId: string, actualMicros: number): Promise<void>;
+  release(reservationId: string): Promise<void>;
+}
+
 /** Audit storage for raw prompts and responses (§16). Write-once. */
 export interface ModelAuditStore {
   record(entry: {

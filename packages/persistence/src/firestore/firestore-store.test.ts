@@ -3,6 +3,7 @@ import {
   GENESIS_PREV_HASH,
   buildGenesis,
   sealEvent,
+  SpendLimitExceededError,
   type ModelRequest,
   type ModelResponse,
   type Sha256Hex,
@@ -12,6 +13,7 @@ import { AuditIntegrityError, SequenceConflictError } from "../errors.js";
 import {
   FirestoreCanonicalStore,
   FirestoreModelAuditStore,
+  FirestoreSpendReservationStore,
   firestoreSequenceId,
 } from "./firestore-store.js";
 
@@ -137,6 +139,66 @@ describe("FirestoreCanonicalStore", () => {
     await expect(
       store.commit(event, built.state, 0, built.stateChecksum),
     ).rejects.toBeInstanceOf(SequenceConflictError);
+  });
+});
+
+describe("FirestoreSpendReservationStore", () => {
+  const reservation = {
+    reservationId: "world:1:1:hash",
+    worldId: "world",
+    sequence: 1,
+    attempt: 1,
+    dayKey: "2026-07-28",
+    estimatedMicros: 600,
+    dailyLimitMicros: 1_000,
+    totalLimitMicros: 2_000,
+  };
+
+  it("reserves, settles actual spend, and makes settlement idempotent", async () => {
+    const fake = new FakeFirestore();
+    const store = new FirestoreSpendReservationStore(fake as unknown as Firestore);
+
+    await expect(store.reserve(reservation)).resolves.toEqual({ status: "reserved" });
+    await expect(store.reserve(reservation)).resolves.toEqual({
+      status: "already-reserved",
+    });
+    await store.settle(reservation.reservationId, 250);
+    await store.settle(reservation.reservationId, 250);
+
+    expect(fake.documents.get("spend/control")).toMatchObject({
+      actualMicros: 250,
+      reservedMicros: 0,
+    });
+    expect(await store.reserve(reservation)).toEqual({
+      status: "settled",
+      actualMicros: 250,
+    });
+  });
+
+  it("atomically refuses a reservation beyond either durable ceiling", async () => {
+    const fake = new FakeFirestore();
+    const store = new FirestoreSpendReservationStore(fake as unknown as Firestore);
+    await store.reserve(reservation);
+
+    await expect(
+      store.reserve({
+        ...reservation,
+        reservationId: "world:1:2:hash",
+        attempt: 2,
+      }),
+    ).rejects.toBeInstanceOf(SpendLimitExceededError);
+  });
+
+  it("releases an unanswered reservation so the same work may retry", async () => {
+    const fake = new FakeFirestore();
+    const store = new FirestoreSpendReservationStore(fake as unknown as Firestore);
+    await store.reserve(reservation);
+    await store.release(reservation.reservationId);
+    expect(fake.documents.get("spend/control")).toMatchObject({
+      actualMicros: 0,
+      reservedMicros: 0,
+    });
+    await expect(store.reserve(reservation)).resolves.toEqual({ status: "reserved" });
   });
 });
 

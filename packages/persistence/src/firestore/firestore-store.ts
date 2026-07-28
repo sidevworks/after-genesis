@@ -3,12 +3,14 @@ import {
   FieldValue,
   Timestamp,
   type DocumentData,
+  type DocumentReference,
   type Firestore,
   type Transaction,
 } from "@google-cloud/firestore";
 import {
   CanonicalEventSchema,
   GENESIS_PREV_HASH,
+  SpendLimitExceededError,
   canonicalJson,
   computeStateChecksum,
   hashEquals,
@@ -21,6 +23,8 @@ import {
   type ModelRequest,
   type ModelResponse,
   type Sha256Hex,
+  type SpendReservation,
+  type SpendReservationStore,
   type StateStore,
   type WorldState,
 } from "@after-genesis/core";
@@ -382,4 +386,282 @@ function auditRecord(
     costMicros: entry.costMicros,
   };
   return { ...base, entryDigest: sha256Hex(canonicalJson(base)) };
+}
+
+interface SpendTotals {
+  readonly actualMicros: number;
+  readonly reservedMicros: number;
+}
+
+interface StoredSpendReservation extends SpendReservation {
+  readonly status: "reserved" | "settled" | "released";
+  readonly actualMicros: number | null;
+}
+
+/**
+ * Firestore-backed spend reservations shared by every worker instance.
+ *
+ * The global and daily counters move in the same transaction as each
+ * reservation, so concurrent workers cannot both spend the final allowance.
+ */
+export class FirestoreSpendReservationStore implements SpendReservationStore {
+  constructor(private readonly db: Firestore) {}
+
+  async reserve(
+    reservation: SpendReservation,
+  ): Promise<
+    | { readonly status: "reserved" | "already-reserved" }
+    | { readonly status: "settled"; readonly actualMicros: number }
+  > {
+    validateReservation(reservation);
+    const refs = this.refs(reservation.reservationId, reservation.dayKey);
+    return this.db.runTransaction(async (tx) => {
+      const [storedSnapshot, globalSnapshot, daySnapshot] = await Promise.all([
+        tx.get(refs.reservation),
+        tx.get(refs.global),
+        tx.get(refs.day),
+      ]);
+      if (storedSnapshot.exists) {
+        const stored = storedSnapshot.data() as StoredSpendReservation;
+        if (stored.status === "settled") {
+          if (stored.actualMicros === null) {
+            throw new Error("settled spend reservation has no actual cost");
+          }
+          return { status: "settled", actualMicros: stored.actualMicros };
+        }
+        if (stored.status === "reserved") {
+          if (canonicalJson(stripSpendStatus(stored)) !== canonicalJson(reservation)) {
+            throw new Error("spend reservation id already describes different work");
+          }
+          return { status: "already-reserved" };
+        }
+      }
+
+      const global = spendTotals(globalSnapshot.data());
+      const day = spendTotals(daySnapshot.data());
+      const projectedDay =
+        day.actualMicros + day.reservedMicros + reservation.estimatedMicros;
+      const projectedTotal =
+        global.actualMicros + global.reservedMicros + reservation.estimatedMicros;
+      if (projectedDay > reservation.dailyLimitMicros) {
+        throw new SpendLimitExceededError(
+          `daily:${reservation.dayKey}`,
+          projectedDay,
+          reservation.dailyLimitMicros,
+        );
+      }
+      if (projectedTotal > reservation.totalLimitMicros) {
+        throw new SpendLimitExceededError(
+          "total",
+          projectedTotal,
+          reservation.totalLimitMicros,
+        );
+      }
+
+      tx.set(refs.global, {
+        actualMicros: global.actualMicros,
+        reservedMicros: global.reservedMicros + reservation.estimatedMicros,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      tx.set(refs.day, {
+        dayKey: reservation.dayKey,
+        actualMicros: day.actualMicros,
+        reservedMicros: day.reservedMicros + reservation.estimatedMicros,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      tx.set(refs.reservation, {
+        ...reservation,
+        status: "reserved",
+        actualMicros: null,
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+      return { status: "reserved" };
+    });
+  }
+
+  async settle(reservationId: string, actualMicros: number): Promise<void> {
+    assertMicros(actualMicros, "actualMicros");
+    const reservationRef = this.reservationRef(reservationId);
+    await this.db.runTransaction(async (tx) => {
+      const reservationSnapshot = await tx.get(reservationRef);
+      if (!reservationSnapshot.exists) throw new Error("spend reservation does not exist");
+      const reservation = reservationSnapshot.data() as StoredSpendReservation;
+      const refs = this.refs(reservationId, reservation.dayKey);
+      const [globalSnapshot, daySnapshot] = await Promise.all([
+        tx.get(refs.global),
+        tx.get(refs.day),
+      ]);
+      if (reservation.status === "settled") {
+        if (reservation.actualMicros !== actualMicros) {
+          throw new Error("settled spend reservation has a different actual cost");
+        }
+        return;
+      }
+      if (reservation.status !== "reserved") {
+        throw new Error("released spend reservation cannot be settled");
+      }
+      const global = spendTotals(globalSnapshot.data());
+      const day = spendTotals(daySnapshot.data());
+      writeSettledTotals(
+        tx,
+        refs.global,
+        global,
+        reservation.estimatedMicros,
+        actualMicros,
+      );
+      writeSettledTotals(
+        tx,
+        refs.day,
+        day,
+        reservation.estimatedMicros,
+        actualMicros,
+        { dayKey: reservation.dayKey },
+      );
+      tx.set(
+        reservationRef,
+        {
+          status: "settled",
+          actualMicros,
+          settledAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    });
+  }
+
+  async release(reservationId: string): Promise<void> {
+    const reservationRef = this.reservationRef(reservationId);
+    await this.db.runTransaction(async (tx) => {
+      const reservationSnapshot = await tx.get(reservationRef);
+      if (!reservationSnapshot.exists) return;
+      const reservation = reservationSnapshot.data() as StoredSpendReservation;
+      if (reservation.status === "released") return;
+      if (reservation.status === "settled") {
+        throw new Error("settled spend reservation cannot be released");
+      }
+      const refs = this.refs(reservationId, reservation.dayKey);
+      const [globalSnapshot, daySnapshot] = await Promise.all([
+        tx.get(refs.global),
+        tx.get(refs.day),
+      ]);
+      writeReleasedTotals(
+        tx,
+        refs.global,
+        spendTotals(globalSnapshot.data()),
+        reservation.estimatedMicros,
+      );
+      writeReleasedTotals(
+        tx,
+        refs.day,
+        spendTotals(daySnapshot.data()),
+        reservation.estimatedMicros,
+        { dayKey: reservation.dayKey },
+      );
+      tx.set(
+        reservationRef,
+        {
+          status: "released",
+          releasedAt: FieldValue.serverTimestamp(),
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    });
+  }
+
+  private refs(reservationId: string, dayKey: string) {
+    return {
+      global: this.db.doc("spend/control"),
+      day: this.db.doc(`spend/control/days/${dayKey}`),
+      reservation: this.reservationRef(reservationId),
+    };
+  }
+
+  private reservationRef(reservationId: string) {
+    if (reservationId.trim() === "") throw new Error("reservationId must not be empty");
+    return this.db.doc(`spend/control/reservations/${sha256Hex(reservationId)}`);
+  }
+}
+
+function validateReservation(reservation: SpendReservation): void {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(reservation.dayKey)) {
+    throw new Error("spend reservation dayKey must use YYYY-MM-DD");
+  }
+  assertMicros(reservation.estimatedMicros, "estimatedMicros");
+  assertMicros(reservation.dailyLimitMicros, "dailyLimitMicros");
+  assertMicros(reservation.totalLimitMicros, "totalLimitMicros");
+  if (!Number.isSafeInteger(reservation.sequence) || reservation.sequence < 0) {
+    throw new Error("spend reservation sequence must be a non-negative safe integer");
+  }
+  if (!Number.isSafeInteger(reservation.attempt) || reservation.attempt < 1) {
+    throw new Error("spend reservation attempt must be a positive safe integer");
+  }
+}
+
+function assertMicros(value: number, name: string): void {
+  if (!Number.isSafeInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative safe integer`);
+  }
+}
+
+function spendTotals(value: DocumentData | undefined): SpendTotals {
+  const actualMicros = value?.["actualMicros"] ?? 0;
+  const reservedMicros = value?.["reservedMicros"] ?? 0;
+  assertMicros(actualMicros as number, "stored actualMicros");
+  assertMicros(reservedMicros as number, "stored reservedMicros");
+  return {
+    actualMicros: actualMicros as number,
+    reservedMicros: reservedMicros as number,
+  };
+}
+
+function stripSpendStatus(value: StoredSpendReservation): SpendReservation {
+  return {
+    reservationId: value.reservationId,
+    worldId: value.worldId,
+    sequence: value.sequence,
+    attempt: value.attempt,
+    dayKey: value.dayKey,
+    estimatedMicros: value.estimatedMicros,
+    dailyLimitMicros: value.dailyLimitMicros,
+    totalLimitMicros: value.totalLimitMicros,
+  };
+}
+
+function writeSettledTotals(
+  tx: Transaction,
+  ref: DocumentReference,
+  totals: SpendTotals,
+  reservedMicros: number,
+  actualMicros: number,
+  extra: Record<string, unknown> = {},
+): void {
+  if (totals.reservedMicros < reservedMicros) {
+    throw new Error("stored spend reservation counter underflow");
+  }
+  tx.set(ref, {
+    ...extra,
+    actualMicros: totals.actualMicros + actualMicros,
+    reservedMicros: totals.reservedMicros - reservedMicros,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+}
+
+function writeReleasedTotals(
+  tx: Transaction,
+  ref: DocumentReference,
+  totals: SpendTotals,
+  reservedMicros: number,
+  extra: Record<string, unknown> = {},
+): void {
+  if (totals.reservedMicros < reservedMicros) {
+    throw new Error("stored spend reservation counter underflow");
+  }
+  tx.set(ref, {
+    ...extra,
+    actualMicros: totals.actualMicros,
+    reservedMicros: totals.reservedMicros - reservedMicros,
+    updatedAt: FieldValue.serverTimestamp(),
+  });
 }
