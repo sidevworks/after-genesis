@@ -5,36 +5,16 @@ import { useEffect, useState } from "react";
 import { openCamera } from "@/lib/camera-director";
 import { observatorySource } from "@/lib/observatory-source";
 import type { CameraMode } from "@/lib/observatory-types";
+import { resolveReferenceAddress } from "@/lib/reference-address";
 import { ReferencePanel } from "./reference-panel";
 import { Badge, KeyValue, Panel } from "./ui";
 
-interface ResolvedAddress {
-  refId: string;
-  view: "ref" | "event" | "watch";
-  worldId: string;
-}
-
-function readAddress(): ResolvedAddress | null {
-  const match = window.location.pathname.match(
-    /^\/world\/([^/]+)\/(ref|event|watch)\/([^/]+)\/?$/,
-  );
-  if (match?.[1] && match[2] && match[3]) {
-    return {
-      worldId: decodeURIComponent(match[1]),
-      view: match[2] as ResolvedAddress["view"],
-      refId: decodeURIComponent(match[3]),
-    };
-  }
-  const queryRef = new URLSearchParams(window.location.search).get("ref");
-  return queryRef ? { worldId: "W001", view: "ref", refId: queryRef } : null;
-}
-
 export function ReferenceResolver() {
-  const [address, setAddress] = useState<ResolvedAddress | null>(null);
+  const [address, setAddress] = useState<ReturnType<typeof resolveReferenceAddress>>(null);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    setAddress(readAddress());
+    setAddress(resolveReferenceAddress(window.location.pathname, window.location.search));
     setReady(true);
   }, []);
 
