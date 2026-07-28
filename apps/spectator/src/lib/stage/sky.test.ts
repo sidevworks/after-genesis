@@ -138,6 +138,16 @@ describe("the sky reads as light at noon and dark at midnight", () => {
     expect(skyAt(MIDNIGHT).exposure).toBeGreaterThan(skyAt(NOON).exposure);
   });
 
+  it("keeps canonical night visibly legible without making it daylight", () => {
+    const midnight = skyAt(MIDNIGHT);
+    const noon = skyAt(NOON);
+    expect(midnight.keyIntensity).toBeGreaterThanOrEqual(0.5);
+    expect(midnight.ambientIntensity).toBeGreaterThanOrEqual(0.7);
+    expect(midnight.exposure).toBeGreaterThanOrEqual(1.35);
+    expect(midnight.keyIntensity).toBeLessThan(noon.keyIntensity / 5);
+    expect(midnight.phase).toBe("night");
+  });
+
   it("warms the key light near the horizon and cools it at midday", () => {
     const warmth = (hex: number): number => ((hex >> 16) & 0xff) - (hex & 0xff);
     expect(warmth(skyAt(SUNRISE + 0.01).keyColour)).toBeGreaterThan(

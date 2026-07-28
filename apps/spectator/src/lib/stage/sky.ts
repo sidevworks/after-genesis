@@ -132,9 +132,11 @@ export function skyAt(dayFraction: number): SkyState {
   const night = 1 - smoothstep(-0.2, -0.02, sunElevation);
   const warm = mixHex(SKY_COLOURS.sunNoon, SKY_COLOURS.sunLow, golden);
   const keyColour = mixHex(warm, SKY_COLOURS.moon, night);
-  // Moonlight is a real key at 0.26 — enough to model the voxel faces, far too
-  // little to be mistaken for daylight.
-  const keyIntensity = 0.26 + 2.45 * day;
+  // Watch mode must remain readable through a whole canonical night. This is
+  // deliberately still much dimmer and cooler than daylight, but strong enough
+  // to preserve silhouettes, terrain edges and actor gestures on ordinary
+  // laptop displays.
+  const keyIntensity = 0.5 + 2.21 * day;
 
   const domeDay = mixHex(SKY_COLOURS.domeNoon, SKY_COLOURS.domeLow, golden);
   const horizonDay = mixHex(SKY_COLOURS.horizonNoon, SKY_COLOURS.horizonLow, golden);
@@ -151,15 +153,15 @@ export function skyAt(dayFraction: number): SkyState {
     keyIntensity,
     skyColour: mixHex(SKY_COLOURS.domeNight, domeDay, day),
     groundColour: mixHex(SKY_COLOURS.bounceNight, SKY_COLOURS.bounceDay, day),
-    ambientIntensity: 0.42 + 1.18 * day,
+    ambientIntensity: 0.72 + 0.88 * day,
     background,
     fogColour: background,
     // Night air is drawn thicker. Practical as much as atmospheric: it is what
     // dissolves the edge of a 32×32 map into the dark instead of ending it at a
     // visible cliff.
-    fogDensity: 0.013 + 0.012 * (1 - day),
+    fogDensity: 0.013 + 0.006 * (1 - day),
     starOpacity,
-    exposure: 1.02 + 0.14 * (1 - day),
+    exposure: 1.04 + 0.34 * (1 - day),
     derived: true,
   };
 }

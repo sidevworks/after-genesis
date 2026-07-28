@@ -32,6 +32,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { planShots, resolvePose } from "@/lib/cinema/director";
 import { performanceFor } from "@/lib/cinema/performances";
+import { effectivePlaybackRate } from "@/lib/cinema/playback";
 import { sampleFrame } from "@/lib/cinema/sample";
 import { getChronicle, getMap, openingTick } from "@/lib/cinema/source";
 import type { ActorSample, PerformanceSpec, ShotPlan, WorldFrame } from "@/lib/cinema/types";
@@ -76,6 +77,7 @@ export interface CinemaHud {
   readonly shotReason: string;
   readonly playing: boolean;
   readonly rate: number;
+  readonly effectiveRate: number;
   readonly skipIdle: boolean;
   /** Sim-minutes of idle time the last skip jumped, for the on-screen notice. */
   readonly skipped: number | null;
@@ -193,6 +195,7 @@ export function CinemaViewport({
     shotReason: "Opening the sequence.",
     playing: false,
     rate: initialRate,
+    effectiveRate: initialRate,
     skipIdle: true,
     skipped: null,
   }));
@@ -247,7 +250,12 @@ export function CinemaViewport({
      * of it in order. Without it, 91% of the running time is a motionless figure.
      */
     const advance = (from: number, elapsed: number): number => {
-      const next = from + elapsed * rateRef.current;
+      const effectiveRate = effectivePlaybackRate(
+        from,
+        rateRef.current,
+        intervalsRef.current,
+      );
+      const next = from + elapsed * effectiveRate;
       if (!skipIdleRef.current) return next;
 
       const list = intervalsRef.current;
@@ -317,6 +325,7 @@ export function CinemaViewport({
         shotReason: shot?.reason ?? "No shot planned for this interval.",
         playing: playingRef.current,
         rate: rateRef.current,
+        effectiveRate: effectivePlaybackRate(tick, rateRef.current, intervalsRef.current),
         skipIdle: skipIdleRef.current,
         skipped: skipped ?? (current.skipped !== null && playingRef.current ? null : current.skipped),
       }));
@@ -416,6 +425,12 @@ export function CinemaViewport({
           <VitalsPanel series={vitalsSeries} tick={hud.tick} />
         </div>
 
+        {hud.playing && hud.effectiveRate < hud.rate ? (
+          <p className="cinema__process-speed" role="status">
+            process view · {hud.effectiveRate.toFixed(1)} sim min/s
+          </p>
+        ) : null}
+
         {hud.skipped !== null ? (
           <p className="cinema__skip" role="status">
             skipped {durationLabel(hud.skipped)} in which no activity was recorded
@@ -447,6 +462,8 @@ export function CinemaViewport({
         gesture, terrain detail, and personal-space offsets when canonical positions overlap.{" "}
         <strong>Edited</strong> — idle intervals are skipped while
         &ldquo;skipping idle&rdquo; is on; switch it off to play every recorded minute in order.
+        Recorded actions are time-dilated to at least three seconds so their physical process
+        remains visible.
         Nothing on screen adds a fact to the record, and nothing here can reach the world.
       </p>
     </section>

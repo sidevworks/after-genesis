@@ -237,7 +237,7 @@ describe("resolvePose keeps the camera physically sane", () => {
   });
 
   it("raises the cut flag only at the very start of a cut shot", () => {
-    const cutShot = plan.shots.find((shot) => shot.transition === "CUT" && shot.startTick > 0);
+    const cutShot = plan.shots.find((shot) => shot.transition === "CUT");
     expect(cutShot).toBeDefined();
     const start = cutShot!.startTick;
     const atStart = resolvePose(plan, sampleFrame(chronicle, start), start);

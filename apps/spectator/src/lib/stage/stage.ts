@@ -52,6 +52,7 @@ import { ActorRig } from "./actor";
 import { hashString, VOID_COLOUR } from "./palette";
 import { applySky, skyAt, type SkyTargets } from "./sky";
 import { Terrain, type TerrainMap } from "./terrain";
+import { ProcessStage } from "./processes";
 
 export interface StageOptions {
   readonly map: TerrainMap;
@@ -65,6 +66,9 @@ const STAR_RADIUS = 150;
 
 /** Camera smoothing. Higher follows the director more tightly. */
 const POSE_LERP = 0.16;
+
+/** Keep the lens over the playable surface rather than below a map edge. */
+const CAMERA_GROUND_CLEARANCE = 2.4;
 
 /** Shadow frustum half-width in metres, around the camera target. */
 const SHADOW_EXTENT = 26;
@@ -88,6 +92,9 @@ export class Stage {
   private readonly starGeometry: BufferGeometry;
 
   private readonly terrain: Terrain;
+  private readonly processes: ProcessStage;
+  private readonly mapWidth: number;
+  private readonly mapHeight: number;
   private readonly rigs = new Map<string, ActorRig>();
   private readonly skyTargets: SkyTargets;
 
@@ -112,6 +119,8 @@ export class Stage {
 
   constructor(mount: HTMLElement, options: StageOptions) {
     this.mount = mount;
+    this.mapWidth = options.map.width;
+    this.mapHeight = options.map.height;
 
     this.renderer = new WebGLRenderer({ antialias: options.quality !== "low", alpha: false });
     this.renderer.setPixelRatio(
@@ -143,6 +152,7 @@ export class Stage {
     this.scene.add(this.stars);
 
     this.terrain = new Terrain(this.scene, options.map);
+    this.processes = new ProcessStage(this.scene);
 
     this.skyTargets = {
       key: this.key,
@@ -219,6 +229,7 @@ export class Stage {
     if (this.disposed) return;
 
     this.terrain.update(frame.tick);
+    this.processes.update(frame.actors);
     applySky(skyAt(frame.dayFraction), this.skyTargets);
 
     const occupied = new Map<string, ActorSample[]>();
@@ -289,6 +300,16 @@ export class Stage {
         POSE_LERP,
       );
     }
+
+    // Canonical positions sit on the map, but wide cinematic offsets can put
+    // the lens beyond its edge. From there the camera sees the vertical sides
+    // and underside of the voxel slab. Constrain only the presentation camera:
+    // this never changes the subject, target, or world state.
+    position.x = Math.min(Math.max(position.x, -0.45), this.mapWidth - 0.55);
+    position.z = Math.min(Math.max(position.z, -0.45), this.mapHeight - 0.55);
+    position.y = Math.max(position.y, CAMERA_GROUND_CLEARANCE);
+    target.x = Math.min(Math.max(target.x, 0), Math.max(this.mapWidth - 1, 0));
+    target.z = Math.min(Math.max(target.z, 0), Math.max(this.mapHeight - 1, 0));
 
     this.camera.position.copy(position);
     this.camera.lookAt(target);
@@ -399,6 +420,7 @@ export class Stage {
     for (const rig of this.rigs.values()) rig.dispose();
     this.rigs.clear();
     this.terrain.dispose();
+    this.processes.dispose();
 
     this.scene.remove(this.stars);
     this.starGeometry.dispose();

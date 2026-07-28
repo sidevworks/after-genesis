@@ -128,7 +128,7 @@ const NIGHT_END_FRACTION = 0.25;
 const NIGHT_START_FRACTION = 0.83;
 
 /** The camera never descends into the ground plane. Metres. */
-export const MIN_CAMERA_HEIGHT = 1.5;
+export const MIN_CAMERA_HEIGHT = 2.4;
 
 /** Nor does it end up inside the subject. Metres. */
 const MIN_CAMERA_DISTANCE = 1.5;
@@ -934,8 +934,19 @@ function enforceMinimum(drafts: readonly Draft[], startTick: Tick, endTick: Tick
  */
 function transitionFor(item: Draft, previous: Draft | undefined): Transition {
   if (previous === undefined) return "CUT";
-  if (previous.subjectId !== item.subjectId) return "CUT";
-  return previous.sourceId === item.sourceId ? "EASE" : "CUT";
+  if (previous.sourceId === item.sourceId) return "EASE";
+
+  // Nearby beats belong to the same piece of observed space. Gliding between
+  // them preserves geography and avoids turning a busy settlement into a
+  // slideshow merely because editorial focus passed to another inhabitant.
+  // Distant beats still cut: flying the camera across the map would falsely
+  // read as travel and is more disorienting than an honest edit.
+  const from = previous.anchorHint;
+  const to = item.anchorHint;
+  if (from !== null && to !== null && Math.hypot(to.x - from.x, to.y - from.y) <= 6) {
+    return "EASE";
+  }
+  return "CUT";
 }
 
 function toShot(item: Draft, index: number, previous: Draft | undefined): Shot {
