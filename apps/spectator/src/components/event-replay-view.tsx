@@ -3,20 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { ObservatoryRun, ReferenceRecord } from "@/lib/observatory-types";
 import { Badge } from "./ui";
+import { VoxelWorldViewport } from "./voxel-world-viewport";
 
 const PHASES = ["BEFORE", "DURING", "AFTER"] as const;
 type ReplayPhase = (typeof PHASES)[number];
-
-const TERRAIN_COLOURS: Record<string, string> = {
-  water: "#173b4c",
-  plains: "#40533c",
-  fertile: "#58724c",
-  forest: "#1f4537",
-  stone: "#555b5d",
-  stone_deposit: "#555b5d",
-  barren: "#594c39",
-  unknown: "#252e34",
-};
 
 function eventRef(sequence: number): string {
   return `AG:W001:EVT:${String(sequence + 1).padStart(12, "0")}`;
@@ -89,10 +79,6 @@ export function EventReplayView({
         ? { x: to.x, y: to.y }
         : event.location;
   const actor = run.inhabitants.find((inhabitant) => inhabitant.id === event.actorId) ?? null;
-  const terrain =
-    location && location.x >= 0 && location.y >= 0
-      ? run.map.terrain[location.y * run.map.width + location.x] ?? "unknown"
-      : "unknown";
   const withheld = event.canonicalType === "withheld_event";
   const label = actionLabel(event.canonicalType, event.visibility);
   const isCreation = /build|construct|create|shape|join|modify/.test(event.canonicalType);
@@ -117,22 +103,24 @@ export function EventReplayView({
       </header>
 
       <div className="event-player__stage">
-        <div
-          className="event-player__terrain"
-          style={{ backgroundColor: TERRAIN_COLOURS[terrain] ?? TERRAIN_COLOURS.unknown }}
-          aria-hidden
-        >
-          <span />
-        </div>
-        <div className={`event-player__pulse event-player__pulse--${phase.toLowerCase()}`} aria-hidden />
         {location ? (
-          <div className="event-player__subject">
-            <span aria-hidden>{actor ? actor.displayName.slice(0, 1) : "•"}</span>
-            <strong>{actor?.displayName ?? "Canonical event"}</strong>
-            <small className="mono">
-              ({location.x}, {location.y})
-            </small>
-          </div>
+          <VoxelWorldViewport
+            run={run}
+            focus={location}
+            targetId={event.actorId}
+            targetName={actor?.displayName ?? "Canonical event"}
+            visualSeed={record.observatoryMetadata.visualSeed}
+            mode="event"
+            phase={phase}
+            movement={
+              typeof from?.x === "number" &&
+              typeof from.y === "number" &&
+              typeof to?.x === "number" &&
+              typeof to.y === "number"
+                ? { from: { x: from.x, y: from.y }, to: { x: to.x, y: to.y } }
+                : null
+            }
+          />
         ) : (
           <div className="event-player__unlocated">
             <span aria-hidden>◇</span>

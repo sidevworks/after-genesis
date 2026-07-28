@@ -18,7 +18,22 @@ export function openCamera(
   target: ReferenceRecord,
   anchors: CameraAnchor[],
 ): CameraView {
-  const anchor = anchors.find((candidate) => candidate.targetRef === target.refId) ?? null;
+  const anchor =
+    anchors.find((candidate) => candidate.targetRef === target.refId) ??
+    (target.spatial.position
+      ? {
+          anchorId: "derived-spatial",
+          targetRef: target.refId,
+          anchorType: "point" as const,
+          position: target.spatial.position,
+          orientation: target.spatial.orientation ?? { x: 0, y: 0, z: 0, w: 1 },
+          bounds: target.spatial.bounds,
+          preferredDistance: 6,
+          preferredHeight: 3,
+          occlusionPolicy: "avoid" as const,
+          generated: true,
+        }
+      : null);
   if (!anchor) {
     return {
       request,
