@@ -17,13 +17,32 @@
  */
 import { ACTION_TYPES, type ActionType, type ProposedAction } from "../../schema/action-spec.js";
 import { actionsAllowedWhileConfined } from "../../schema/actions/index.js";
+import { chebyshevDistance } from "../../schema/primitives.js";
 import type { SimTime } from "../../time.js";
+import { deriveMemoryId } from "../../ids.js";
+import { canonicalJson } from "../../util/canonical.js";
 import { Rng } from "../../util/rng.js";
-import { withSequence, withSimTime, type WorldState } from "../state.js";
+import {
+  putMemory,
+  updateInhabitant,
+  withSequence,
+  withSimTime,
+  type Relationship,
+  type WorldState,
+} from "../state.js";
 import { settleExpiredActivities } from "./effects.js";
 import { consumeResolver, observeResolver, restResolver, waitResolver } from "./basic.js";
 import { gatherResolver } from "./gather.js";
 import { moveResolver } from "./move.js";
+import { announceResolver, communicateResolver } from "./speech.js";
+import {
+  createArtifactResolver,
+  copyArtifactResolver,
+  publishArtifactResolver,
+  transferResolver,
+} from "./artifacts.js";
+import { buildResolver, guardLocationResolver } from "./physical.js";
+import { releaseResolver, restrainResolver } from "./restraint.js";
 import {
   RejectionCode,
   type ResolutionContext,
@@ -60,6 +79,16 @@ export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "consume",
   "rest",
   "wait",
+  "announce",
+  "communicate",
+  "build",
+  "guard_location",
+  "create_artifact",
+  "copy_artifact",
+  "publish",
+  "transfer",
+  "restrain",
+  "release",
 ];
 
 const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
@@ -69,6 +98,16 @@ const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
   consume: consumeResolver,
   rest: restResolver,
   wait: waitResolver,
+  announce: announceResolver,
+  communicate: communicateResolver,
+  build: buildResolver,
+  guard_location: guardLocationResolver,
+  create_artifact: createArtifactResolver,
+  copy_artifact: copyArtifactResolver,
+  publish: publishArtifactResolver,
+  transfer: transferResolver,
+  restrain: restrainResolver,
+  release: releaseResolver,
 };
 
 /** Every action type, mapped to its resolver. Complete by construction. */
@@ -147,11 +186,10 @@ export function runAction(input: RunActionInput): ResolutionResult {
     input.simTime,
   );
 
-  const finish = (result: ResolutionResult): ResolutionResult => ({
-    outcome: result.outcome,
-    state: withSequence(result.state, sequence),
-    events: result.events,
-  });
+  const finish = (result: ResolutionResult): ResolutionResult => {
+    const sequenced = { ...result, state: withSequence(result.state, sequence) };
+    return rememberTurn(sequenced, actorId, action, input.simTime, sequence);
+  };
 
   const rejectHere = (code: string, reason: string): ResolutionResult =>
     finish({ outcome: { status: "rejected", code, reason }, state: base, events: [] });
@@ -212,4 +250,103 @@ export function runAction(input: RunActionInput): ResolutionResult {
       }`,
     );
   }
+}
+
+function rememberTurn(
+  result: ResolutionResult,
+  actorId: string,
+  action: ProposedAction,
+  now: SimTime,
+  sequence: number,
+): ResolutionResult {
+  if (result.state.inhabitants[actorId] === undefined) return result;
+  const primary = result.events[0];
+  const witnesses = new Set<string>([actorId]);
+  const visibility = primary?.visibility;
+  if (result.outcome.status === "rejected") {
+    // A failed physical action changes no physical state, but the inhabitant
+    // directly experiences the failure and can learn from it next turn.
+  } else if (visibility?.kind === "participants") {
+    for (const id of visibility.participants) witnesses.add(id);
+  } else if (visibility?.kind === "local") {
+    for (const inhabitant of Object.values(result.state.inhabitants)) {
+      if (
+        inhabitant.status === "alive" &&
+        chebyshevDistance(inhabitant.location, { x: visibility.x, y: visibility.y }) <=
+          result.state.rules.sightRadius
+      ) {
+        witnesses.add(inhabitant.id);
+      }
+    }
+  } else if (visibility?.kind === "public" && result.state.inhabitants[actorId] !== undefined) {
+    const actor = result.state.inhabitants[actorId]!;
+    for (const inhabitant of Object.values(result.state.inhabitants)) {
+      if (
+        inhabitant.status === "alive" &&
+        chebyshevDistance(inhabitant.location, actor.location) <= result.state.rules.sightRadius
+      ) {
+        witnesses.add(inhabitant.id);
+      }
+    }
+  }
+
+  const participants = [...witnesses].sort();
+  let payloadText = "[non-canonical payload]";
+  try {
+    payloadText = canonicalJson(action.payload);
+  } catch {
+    // Rejected hostile payloads can contain floats or other non-canonical data.
+  }
+  const outcome =
+    result.outcome.status === "resolved" || result.outcome.status === "partial"
+      ? result.outcome.status
+      : `${result.outcome.status}: ${result.outcome.reason}`;
+  let state = result.state;
+  let discriminator = 0;
+  for (const owner of participants) {
+    const perspective = owner === actorId ? "You performed" : `You witnessed ${actorId} perform`;
+    state = putMemory(state, {
+      id: deriveMemoryId(state.worldId, sequence, discriminator++),
+      owner,
+      simTime: now,
+      kind: "episodic",
+      summary:
+        `${perspective} ${action.type} with payload ${payloadText}. ` +
+        `Outcome: ${outcome}.`,
+      participants,
+      sequence,
+      revisionOf: null,
+    });
+  }
+
+  if (
+    primary !== undefined &&
+    ["action.announce", "action.communicate", "action.transfer"].includes(primary.type)
+  ) {
+    for (const owner of participants) {
+      for (const other of participants) {
+        if (owner === other) continue;
+        state = updateInhabitant(state, owner, (inhabitant) => {
+          const current: Relationship = inhabitant.relationships[other] ?? {
+            other,
+            familiarity: 0,
+            trust: 0,
+            lastInteraction: null,
+          };
+          return {
+            ...inhabitant,
+            relationships: {
+              ...inhabitant.relationships,
+              [other]: {
+                ...current,
+                familiarity: Math.min(100, current.familiarity + 1),
+                lastInteraction: now,
+              },
+            },
+          };
+        });
+      }
+    }
+  }
+  return { ...result, state };
 }

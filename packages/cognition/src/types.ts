@@ -107,6 +107,11 @@ export interface SelfView {
   readonly location: Point;
   readonly terrain: string;
   readonly activity: string;
+  readonly lastAction?: {
+    readonly type: string;
+    readonly startedAt: number;
+    readonly endedAt: number;
+  } | null;
   /** Integer 0–100. */
   readonly energy: number;
   /** Remaining compute allowance for the current day, in integer units (§11B). */
@@ -121,6 +126,12 @@ export interface SelfView {
   readonly conditions: readonly HealthCondition[];
   readonly skills: readonly Skill[];
   readonly inventory: Partial<Record<ResourceKind, number>>;
+  readonly artifacts?: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly kind: string;
+    readonly published: boolean;
+  }[];
 }
 
 /**

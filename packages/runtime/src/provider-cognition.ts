@@ -33,6 +33,8 @@ export interface ProviderCognitionOptions {
   /** Explicit calendar partition supplied by the scheduler, e.g. 2026-07-28. */
   readonly dayKey: string;
   readonly durableSpend?: SpendReservationStore;
+  /** Constitutional sampling setting, recorded in every request hash. */
+  readonly temperature?: number;
 }
 
 /**
@@ -46,6 +48,7 @@ export class ProviderCognitionService implements CognitionService {
   readonly #ledger: SpendLedger;
   readonly #dayKey: string;
   readonly #durableSpend: SpendReservationStore | undefined;
+  readonly #temperature: number | undefined;
 
   constructor(options: ProviderCognitionOptions) {
     if (options.modelId.trim() === "") throw new Error("modelId must not be empty");
@@ -58,6 +61,7 @@ export class ProviderCognitionService implements CognitionService {
     this.#ledger = new SpendLedger({ prices: options.prices, limits: options.limits });
     this.#dayKey = options.dayKey;
     this.#durableSpend = options.durableSpend;
+    this.#temperature = options.temperature;
   }
 
   get spend(): SpendLedger {
@@ -94,6 +98,9 @@ export class ProviderCognitionService implements CognitionService {
           },
           modelId: this.#modelId,
           dayKey: this.#dayKey,
+          ...(this.#temperature === undefined
+            ? {}
+            : { promptOptions: { temperature: this.#temperature } }),
         },
       );
       const last = result.attempts.at(-1);
@@ -146,6 +153,7 @@ function projectObservation(
       location: source.self.location,
       terrain: tileAtSelf?.terrain ?? "unknown",
       activity: source.self.activity,
+      lastAction: source.self.lastAction,
       energy: source.self.energy,
       computeAllowance: source.self.compute,
       integrity: source.self.integrity,
@@ -177,6 +185,12 @@ function projectObservation(
         .sort(([a], [b]) => a.localeCompare(b))
         .map(([name, level]) => ({ name, level: level ?? 0 })),
       inventory: source.self.inventory,
+      artifacts: source.self.artifacts.map((artifact) => ({
+        id: artifact.id,
+        title: artifact.title,
+        kind: artifact.kind,
+        published: artifact.published,
+      })),
     },
     nearbyInhabitants: source.inhabitants.map((inhabitant) => {
       const relationship = relationships[inhabitant.id];
@@ -201,21 +215,87 @@ function projectObservation(
       terrain: tile.terrain,
       visibleResources: tile.deposit as Partial<Record<ResourceKind, number>>,
     })),
-    authoredTexts: source.publicRecords.announcements.map((announcement) => ({
-      id: `announcement_${announcement.sequence}`,
-      kind: "announcement",
-      authorId: announcement.speaker,
-      authorName: announcement.speaker,
-      simTime: announcement.simTime,
-      body: announcement.text,
-    })),
+    authoredTexts: [
+      ...source.publicRecords.announcements.map((announcement) => ({
+        id: `announcement_${announcement.sequence}`,
+        kind: "announcement",
+        authorId: announcement.speaker,
+        authorName: announcement.speaker,
+        simTime: announcement.simTime,
+        body: announcement.text,
+      })),
+      ...source.publicRecords.artifacts.map((artifact) => ({
+        id: artifact.id,
+        kind: `artifact:${artifact.kind}`,
+        authorId: artifact.creators[0] ?? "unknown",
+        authorName: artifact.creators[0] ?? "unknown",
+        simTime: artifact.createdAt,
+        body:
+          `Title: ${artifact.title}\nCurrent recorded possessor: ${artifact.possessor ?? "none"}\n` +
+          artifact.content,
+      })),
+    ],
     worldNotices:
       source.self.confinement === null
         ? []
         : [`You are confined in structure ${source.self.confinement.structureId}.`],
-    availableActions: IMPLEMENTED_ACTIONS.map((type) => {
+    availableActions: IMPLEMENTED_ACTIONS.filter((type) => {
       const spec = getActionSpec(type);
-      return { type, description: spec.description };
+      return (
+        source.self.maturity >= spec.minimumMaturity &&
+        (!source.self.confinement || spec.allowedWhileConfined)
+      );
+    }).map((type) => {
+      const spec = getActionSpec(type);
+      return {
+        type,
+        description: spec.description,
+        ...(type === "announce"
+          ? {
+              payloadHint:
+                '{ "message": <what you choose to say>, "scope": "local" or "world" }',
+            }
+          : type === "communicate"
+            ? {
+                payloadHint:
+                  '{ "recipients": [<nearby id>], "message": <what you choose to say>, "intendedMinutes": 5 }',
+              }
+          : type === "create_artifact"
+            ? {
+                payloadHint:
+                  '{ "kind": "written_work"|"design"|"research_note"|"other", "title": <text>, "content": <text>, "materials": {} }',
+              }
+            : type === "copy_artifact"
+              ? { payloadHint: '{ "sourceArtifactId": <readable artifact id>, "title": <optional text> }' }
+            : type === "publish"
+              ? { payloadHint: '{ "artifactId": <artifact you possess> }' }
+              : type === "transfer"
+                ? {
+                    payloadHint:
+                      '{ "toInhabitantId": <nearby id>, "resources": {}, "artifactIds": [] }',
+                  }
+                : type === "build"
+                  ? {
+                      payloadHint:
+                        '{ "structureKind": "shelter"|"storehouse"|"workshop"|"hall"|"wall"|"enclosure"|"monument"|"road", "coord": {"x": <integer>, "y": <integer>}, "name": <text>, "materials": {"wood": <held amount>} }',
+                    }
+                  : type === "guard_location"
+                    ? {
+                        payloadHint:
+                          '{ "coord": {"x": <current x>, "y": <current y>}, "durationMinutes": 30, "protectSubjectIds": [], "protectArtifactIds": [] }',
+                      }
+                    : type === "restrain"
+                      ? {
+                          payloadHint:
+                            '{ "targetId": <nearby id>, "structureId": <nearby enclosure id>, "durationMinutes": <positive integer>, "message": <optional words> }',
+                        }
+                      : type === "release"
+                        ? {
+                            payloadHint:
+                              '{ "targetId": <nearby restrained inhabitant id>, "message": <optional words> }',
+                          }
+          : {}),
+      };
     }),
   };
 }

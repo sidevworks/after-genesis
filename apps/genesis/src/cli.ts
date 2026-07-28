@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   CanonicalEventSchema,
@@ -19,6 +19,7 @@ import {
   FileStateStore,
   FixedClock,
   MemoryIdempotencyStore,
+  SystemClock,
 } from "@after-genesis/persistence";
 import {
   geminiFromEnv,
@@ -43,6 +44,8 @@ interface ParsedArgs {
   readonly output: string;
   readonly turns: number;
   readonly provider: "offline" | "gemini";
+  readonly resume: boolean;
+  readonly maxSpendUsd: string | null;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
@@ -50,12 +53,14 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   if (command !== "demo" && command !== "replay") {
     throw new Error(
       "usage: npm run world -- <demo|replay> [--output <directory>] " +
-        "[--turns <n>] [--provider <offline|gemini>]",
+        "[--turns <n>] [--provider <offline|gemini>] [--resume] [--max-spend-usd <amount>]",
     );
   }
   let output = DEFAULT_OUTPUT;
   let turns = 6;
   let provider: "offline" | "gemini" = "offline";
+  let resume = false;
+  let maxSpendUsd: string | null = null;
   for (let i = 1; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--output") {
@@ -74,11 +79,19 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
         throw new Error("--provider must be offline or gemini");
       }
       provider = value;
+    } else if (arg === "--resume") {
+      resume = true;
+    } else if (arg === "--max-spend-usd") {
+      const value = argv[++i];
+      if (value === undefined || usdToMicros(value) <= 0) {
+        throw new Error("--max-spend-usd requires a positive decimal amount");
+      }
+      maxSpendUsd = value;
     } else {
       throw new Error(`unknown argument: ${arg}`);
     }
   }
-  return { command, output: resolve(output), turns, provider };
+  return { command, output: resolve(output), turns, provider, resume, maxSpendUsd };
 }
 
 function demoConfig(modelId: string = "offline-mechanical-cognition-v1"): GenesisConfig {
@@ -94,8 +107,28 @@ function demoConfig(modelId: string = "offline-mechanical-cognition-v1"): Genesi
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
       traits: { curiosity: 75, patience: 60 },
       values: ["curiosity", "continuity"],
-      privateGoals: ["understand the world through direct observation"],
+      privateGoals: ["remain alive and decide through experience what matters"],
     },
+    inhabitants: [
+      {
+        id: "inh_ember",
+        displayName: "Ember",
+        modelId,
+        inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+        traits: { curiosity: 55, patience: 80 },
+        values: ["continuity", "patience"],
+        privateGoals: ["understand nearby beings through their voluntary actions"],
+      },
+      {
+        id: "inh_lumen",
+        displayName: "Lumen",
+        modelId,
+        inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+        traits: { curiosity: 85, patience: 45 },
+        values: ["experimentation", "independence"],
+        privateGoals: ["test ideas against observable consequences"],
+      },
+    ],
   };
 }
 
@@ -167,14 +200,16 @@ function publicSnapshot(state: WorldState, events: readonly CanonicalEvent[]): u
         generation: inhabitant.generation,
       })),
     },
+    structures: Object.values(state.structures),
+    artifacts: Object.values(state.artifacts).filter((artifact) => artifact.published),
     events: events
-      .filter((event) => event.visibility.kind === "public" || event.type === "genesis")
       .map((event) => ({
         sequence: event.sequence,
         simTime: event.simTime,
         type: event.type,
         actor: event.actor,
         resolution: event.resolution,
+        visibility: event.visibility.kind,
         hash: event.hash,
       })),
   };
@@ -188,25 +223,35 @@ async function runDemo(args: ParsedArgs): Promise<void> {
   const stateStore = await FileStateStore.open<WorldState>(statesDirectory, {
     checksum: computeStateChecksum,
   });
-  const clock = new FixedClock("2026-01-01T00:00:00.000Z");
-  const auditStore = await FileModelAuditStore.open(resolve(args.output, "model-audit"), {
+  const clock = args.resume
+    ? new SystemClock()
+    : new FixedClock("2026-01-01T00:00:00.000Z");
+  const auditDirectory = resolve(args.output, "model-audit");
+  const auditStore = await FileModelAuditStore.open(auditDirectory, {
     clock,
   });
+  const priorModelCostMicros = await sumModelAuditCostMicros(auditDirectory, DEFAULT_WORLD_ID);
 
   try {
     const cognition =
       args.provider === "offline"
         ? mechanicalCognition()
-        : productionCognition(auditStore);
+        : productionCognition(auditStore, priorModelCostMicros, args.maxSpendUsd);
     const modelId =
       args.provider === "offline"
         ? "offline-mechanical-cognition-v1"
         : resolveModelRouting(process.env).routine;
     const config = demoConfig(modelId);
-    await commitGenesis(
-      { eventStore, stateStore, clock, provenance: PROVENANCE },
-      config,
-    );
+    if (!args.resume) {
+      await commitGenesis(
+        { eventStore, stateStore, clock, provenance: PROVENANCE },
+        config,
+      );
+    }
+    const startingSnapshot = await stateStore.load(DEFAULT_WORLD_ID);
+    if (startingSnapshot === null) {
+      throw new Error("--resume requires an existing world state");
+    }
     const deps = {
       eventStore,
       stateStore,
@@ -216,17 +261,22 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       provenance: PROVENANCE,
     };
 
-    for (let turn = 1; turn <= args.turns; turn++) {
-      clock.advanceSeconds(1);
+    const actorIds = Object.keys(startingSnapshot.state.inhabitants).sort();
+    const startingSequence = startingSnapshot.sequence;
+    const startingSimTime = startingSnapshot.state.simTime;
+    for (let offset = 1; offset <= args.turns; offset++) {
+      if (clock instanceof FixedClock) clock.advanceSeconds(1);
+      const sequence = startingSequence + offset;
+      const actorId = actorIds[(sequence - 1) % actorIds.length]!;
       const result = await executeTurn(deps, {
         worldId: config.worldId,
-        actorId: config.founder.id,
-        expectedSequence: turn,
-        simTime: simTime(turn * 120),
-        taskId: `demo-turn-${turn}`,
+        actorId,
+        expectedSequence: sequence,
+        simTime: simTime(startingSimTime + offset * 120),
+        taskId: `demo-turn-${sequence}-${actorId}`,
       });
       if (result.status !== "committed") {
-        throw new Error(`turn ${turn} did not commit: ${result.status} ${result.reason}`);
+        throw new Error(`turn ${sequence} did not commit: ${result.status} ${result.reason}`);
       }
     }
   } finally {
@@ -235,6 +285,10 @@ async function runDemo(args: ParsedArgs): Promise<void> {
 
   const eventsPath = resolve(eventsDirectory, `${DEFAULT_WORLD_ID}.jsonl`);
   const events = await readEvents(eventsPath);
+  const cumulativeModelCostMicros = await sumModelAuditCostMicros(
+    auditDirectory,
+    DEFAULT_WORLD_ID,
+  );
   const replay = replayHistory(events);
   const verification = verifyExport(events, {
     expectedWorldId: DEFAULT_WORLD_ID,
@@ -262,6 +316,7 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       `World: ${DEFAULT_WORLD_ID}`,
       `Events: ${events.length}`,
       `Cognition: ${args.provider}`,
+      `Cumulative model cost: $${(cumulativeModelCostMicros / 1_000_000).toFixed(6)}`,
       `Head: ${events.at(-1)?.hash}`,
       `State: ${replay.finalChecksum}`,
       `Output: ${args.output}`,
@@ -269,7 +324,11 @@ async function runDemo(args: ParsedArgs): Promise<void> {
   );
 }
 
-function productionCognition(audit: FileModelAuditStore): ProviderCognitionService {
+function productionCognition(
+  audit: FileModelAuditStore,
+  priorModelCostMicros: number,
+  maxSpendUsd: string | null,
+): ProviderCognitionService {
   const modelId = resolveModelRouting(process.env).routine;
   if (modelId !== "gemini-3.5-flash-lite") {
     throw new Error(
@@ -285,17 +344,55 @@ function productionCognition(audit: FileModelAuditStore): ProviderCognitionServi
       verifiedOn: "2026-07-28",
     },
   ];
+  const configuredDaily = requiredUsdMicros("AG_SPEND_LIMIT_DAILY_USD");
+  const configuredTotal = requiredUsdMicros("AG_SPEND_LIMIT_TOTAL_USD");
+  const hardLifetimeCeiling =
+    maxSpendUsd === null ? configuredTotal : Math.min(configuredTotal, usdToMicros(maxSpendUsd));
+  const remainingTotal = hardLifetimeCeiling - priorModelCostMicros;
+  const remainingDaily = configuredDaily - priorModelCostMicros;
+  if (remainingTotal <= 0 || remainingDaily <= 0) {
+    throw new Error(
+      `Paid inference is frozen: prior audited cost $${(priorModelCostMicros / 1_000_000).toFixed(6)} ` +
+        "has reached the configured cumulative ceiling.",
+    );
+  }
   return new ProviderCognitionService({
     provider: geminiFromEnv(process.env),
     audit,
     modelId,
     prices,
     limits: {
-      dailyMicros: requiredUsdMicros("AG_SPEND_LIMIT_DAILY_USD"),
-      totalMicros: requiredUsdMicros("AG_SPEND_LIMIT_TOTAL_USD"),
+      dailyMicros: remainingDaily,
+      totalMicros: remainingTotal,
     },
     dayKey: new Date().toISOString().slice(0, 10),
+    // Audited constitutional setting for emergence trials. Diversity is useful;
+    // social concepts are still absent from the prompt.
+    temperature: 1,
   });
+}
+
+async function sumModelAuditCostMicros(directory: string, worldId: string): Promise<number> {
+  let total = 0;
+  for (const worldDirectory of await readdir(directory, { withFileTypes: true })) {
+    if (!worldDirectory.isDirectory()) continue;
+    const entries = await readdir(resolve(directory, worldDirectory.name), { withFileTypes: true });
+    for (const entry of entries) {
+      if (!entry.isFile() || !entry.name.endsWith(".json")) continue;
+      const path = resolve(directory, worldDirectory.name, entry.name);
+      const parsed = JSON.parse(await readFile(path, "utf8")) as {
+        readonly worldId?: unknown;
+        readonly costMicros?: unknown;
+      };
+      if (parsed.worldId !== worldId) continue;
+      if (!Number.isSafeInteger(parsed.costMicros) || (parsed.costMicros as number) < 0) {
+        throw new Error(`model audit contains an invalid cost: ${path}`);
+      }
+      total += parsed.costMicros as number;
+      if (!Number.isSafeInteger(total)) throw new Error("model audit cost exceeds safe integer range");
+    }
+  }
+  return total;
 }
 
 function requiredUsdMicros(name: string): number {

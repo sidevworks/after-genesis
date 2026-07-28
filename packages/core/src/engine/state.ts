@@ -31,7 +31,7 @@ import { GENESIS_TIME } from "../time.js";
 import { HashDomain, hashValue, type Sha256Hex } from "../util/hash.js";
 
 /** Bumped when the shape of `WorldState` changes. A change is constitutional (§23). */
-export const STATE_SCHEMA_VERSION = 1;
+export const STATE_SCHEMA_VERSION = 2;
 
 /* ------------------------------------------------------------------------- */
 /* Map                                                                        */
@@ -284,6 +284,8 @@ export interface Artifact {
   readonly ownerOrganisation: string | null;
   /** Storage reference, not content. Media never lives in canonical state. */
   readonly contentRef: string;
+  /** Authored symbolic content. It has no mechanical meaning by itself. */
+  readonly content: string;
   readonly published: boolean;
   /** Ordered chain of prior owner ids. Append-only. */
   readonly provenance: readonly string[];

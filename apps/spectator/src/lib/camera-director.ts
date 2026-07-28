@@ -1,0 +1,59 @@
+import type {
+  CameraAnchor,
+  CameraMode,
+  OpenCameraRequest,
+  ReferenceRecord,
+} from "./observatory-types";
+
+export interface CameraView {
+  request: OpenCameraRequest;
+  resolvedMode: CameraMode;
+  anchor: CameraAnchor | null;
+  fallbackReason: string | null;
+  readOnly: true;
+}
+
+export function openCamera(
+  request: OpenCameraRequest,
+  target: ReferenceRecord,
+  anchors: CameraAnchor[],
+): CameraView {
+  const anchor = anchors.find((candidate) => candidate.targetRef === target.refId) ?? null;
+  if (!anchor) {
+    return {
+      request,
+      resolvedMode: "FALLBACK_REFERENCE_VIEW",
+      anchor: null,
+      fallbackReason: "No canonical or safely derived spatial anchor is available.",
+      readOnly: true,
+    };
+  }
+
+  if (request.mode === "INTERIOR_VIEW" && anchor.anchorType !== "volume") {
+    return {
+      request,
+      resolvedMode: "INSPECT",
+      anchor,
+      fallbackReason: "No valid interior volume is recorded.",
+      readOnly: true,
+    };
+  }
+
+  if (request.mode === "THIRD_PERSON_FOLLOW" && target.referenceClass !== "ENT") {
+    return {
+      request,
+      resolvedMode: "WIDE_FOLLOW",
+      anchor,
+      fallbackReason: "Third-person framing is unavailable; environmental tracking is used.",
+      readOnly: true,
+    };
+  }
+
+  return {
+    request,
+    resolvedMode: request.mode,
+    anchor,
+    fallbackReason: null,
+    readOnly: true,
+  };
+}

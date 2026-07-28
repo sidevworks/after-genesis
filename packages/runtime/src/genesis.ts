@@ -53,6 +53,7 @@ export async function commitGenesis(
     resolution: {
       founderId: built.config.founder.id,
       founderLocation: built.state.inhabitants[built.config.founder.id]?.location ?? null,
+      inhabitantIds: Object.keys(built.state.inhabitants).sort(),
     },
     visibility: { kind: "public" },
     preStateChecksum: built.emptyStateChecksum,

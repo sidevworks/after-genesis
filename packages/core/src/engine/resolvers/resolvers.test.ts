@@ -7,8 +7,10 @@ import { canonicalJson } from "../../util/canonical.js";
 import { checkInvariants, formatViolations } from "../invariants.js";
 import {
   depositAt,
+  putArtifact,
   putConfinement,
   putStructure,
+  recordCreated,
   setDeposit,
   totalHeldResources,
   updateInhabitant,
@@ -76,24 +78,41 @@ const expectClean = (state: WorldState): void => {
 /* ------------------------------------------------------------------------- */
 
 describe("resolver registry", () => {
-  it("registers a resolver for every one of the 60 action types", () => {
-    expect(ACTION_TYPES).toHaveLength(60);
+  it("registers a resolver for every declared action type", () => {
+    expect(ACTION_TYPES).toHaveLength(64);
     for (const type of ACTION_TYPES) {
       expect(typeof RESOLVERS[type]).toBe("function");
     }
     expect(Object.keys(RESOLVERS).sort()).toEqual([...ACTION_TYPES].sort());
   });
 
-  it("implements exactly the §27 vertical slice", () => {
+  it("implements exactly the physical slice plus neutral public speech", () => {
     expect([...IMPLEMENTED_ACTIONS].sort()).toEqual(
-      ["consume", "gather", "move", "observe", "rest", "wait"].sort(),
+      [
+        "announce",
+        "communicate",
+        "consume",
+        "copy_artifact",
+        "create_artifact",
+        "build",
+        "gather",
+        "guard_location",
+        "move",
+        "observe",
+        "publish",
+        "release",
+        "rest",
+        "restrain",
+        "transfer",
+        "wait",
+      ].sort(),
     );
   });
 
   it("every unimplemented action rejects with NOT_IMPLEMENTED and never fakes success", () => {
     const base = world();
     const unimplemented = ACTION_TYPES.filter((t) => !IMPLEMENTED_ACTIONS.includes(t));
-    expect(unimplemented).toHaveLength(54);
+    expect(unimplemented).toHaveLength(48);
 
     for (const type of unimplemented) {
       expect(RESOLVERS[type]).toBe(notYetImplemented);
@@ -117,6 +136,7 @@ describe("resolver registry", () => {
       ["rest", { minutes: 60 }],
       ["wait", { minutes: 60 }],
       ["consume", { resource: "food", amount: 1 }],
+      ["announce", { message: "I found water.", scope: "local" }],
     ];
     for (const [type, payload] of cases) {
       const result = act(state, type, payload);
@@ -141,10 +161,64 @@ describe("resolver registry", () => {
     }
   });
 
-  it("an unimplemented action leaves the world untouched apart from the sequence", () => {
+  it("a malformed action leaves physical state untouched and records the failed attempt", () => {
     const before = world();
     const after = act(before, "build", { kind: "hut" }).state;
-    expect(canonicalJson({ ...after, sequence: before.sequence })).toBe(canonicalJson(before));
+    const { memories, sequence: _sequence, ...physicalAfter } = after;
+    const { memories: _beforeMemories, sequence: _beforeSequence, ...physicalBefore } = before;
+    expect(canonicalJson(physicalAfter)).toBe(canonicalJson(physicalBefore));
+    expect(Object.values(memories)[0]?.summary).toContain("build payload is malformed");
+  });
+});
+
+describe("neutral artifacts and transfer", () => {
+  it("creates inert authored content, publishes it, and transfers possession atomically", () => {
+    let state = world();
+    const founder = founderOf(state);
+    state = addTestInhabitant(state, {
+      id: "inh_receiver",
+      location: founder.location,
+      inventory: { compute: 100 },
+    });
+
+    const created = act(state, "create_artifact", {
+      kind: "other",
+      title: "Ridge Mark",
+      content: "Each mark represents one day of labour.",
+      materials: {},
+    });
+    expect(created.outcome.status).toBe("resolved");
+    const artifact = Object.values(created.state.artifacts)[0];
+    expect(artifact).toMatchObject({
+      title: "Ridge Mark",
+      content: "Each mark represents one day of labour.",
+      owner: "inh_founder",
+      published: false,
+    });
+
+    const published = act(
+      created.state,
+      "publish",
+      { artifactId: artifact!.id },
+      simTime(MIDDAY + 360),
+    );
+    expect(published.outcome.status).toBe("resolved");
+    expect(published.state.artifacts[artifact!.id]?.published).toBe(true);
+
+    const transferred = act(
+      published.state,
+      "transfer",
+      {
+        toInhabitantId: "inh_receiver",
+        resources: { food: 2 },
+        artifactIds: [artifact!.id],
+      },
+      simTime(MIDDAY + 400),
+    );
+    expect(transferred.outcome.status).toBe("resolved");
+    expect(transferred.state.artifacts[artifact!.id]?.owner).toBe("inh_receiver");
+    expect(transferred.state.inhabitants.inh_receiver?.inventory.food).toBe(2);
+    expectClean(transferred.state);
   });
 });
 
@@ -735,6 +809,107 @@ describe("wait", () => {
   });
 });
 
+describe("neutral emergent-world actions", () => {
+  it("builds only from held material and records a physical structure", () => {
+    let state = updateInhabitant(world(), "inh_founder", (inhabitant) => ({
+      ...inhabitant,
+      inventory: { ...inhabitant.inventory, wood: 5 },
+    }));
+    state = recordCreated(state, { wood: 5 });
+    const location = founderOf(state).location;
+    const result = act(state, "build", {
+      structureKind: "shelter",
+      coord: location,
+      name: "Windbreak",
+      materials: { wood: 3 },
+    });
+    expect(result.outcome.status).toBe("resolved");
+    expect(Object.values(result.state.structures)[0]).toMatchObject({
+      kind: "shelter",
+      location,
+      owner: "inh_founder",
+    });
+    expect(founderOf(result.state).inventory.wood).toBe(2);
+    expectClean(result.state);
+  });
+
+  it("copies readable symbolic content without treating it as true", () => {
+    let state = putArtifact(world(), {
+      id: "art_source",
+      title: "A Claim",
+      kind: "written_work",
+      creators: ["inh_founder"],
+      owner: "inh_founder",
+      ownerOrganisation: null,
+      contentRef: "",
+      content: "The ridge belongs to whoever lights the first fire.",
+      published: true,
+      provenance: ["inh_founder"],
+      revision: 0,
+      location: founderOf(world()).location,
+      createdSequence: 0,
+      createdAt: simTime(0),
+    });
+    const result = act(state, "copy_artifact", { sourceArtifactId: "art_source" });
+    expect(result.outcome.status).toBe("resolved");
+    const copy = Object.values(result.state.artifacts).find((artifact) => artifact.id !== "art_source");
+    expect(copy).toMatchObject({
+      content: "The ridge belongs to whoever lights the first fire.",
+      owner: "inh_founder",
+      published: false,
+    });
+    expectClean(result.state);
+  });
+
+  it("records restraint as costly conduct and allows a nearby inhabitant to release it", () => {
+    let state = world();
+    const location = founderOf(state).location;
+    state = addTestInhabitant(state, { id: "inh_other", location });
+    state = putStructure(state, {
+      id: "str_enclosure",
+      kind: "enclosure",
+      location,
+      owner: null,
+      ownerOrganisation: null,
+      integrity: 100,
+      capacity: 2,
+      storage: {},
+      ownershipPublic: true,
+      storagePublic: false,
+      secured: true,
+      occupants: [],
+      createdSequence: 0,
+      createdAt: simTime(0),
+    });
+    const restrained = act(state, "restrain", {
+      targetId: "inh_other",
+      structureId: "str_enclosure",
+      durationMinutes: 120,
+      message: "Stay here.",
+    });
+    expect(restrained.outcome.status).toBe("resolved");
+    expect(restrained.state.inhabitants.inh_other?.confinementId).not.toBeNull();
+    expect(Object.values(restrained.state.confinements)[0]).toMatchObject({
+      grounds: "unspecified",
+      imposedBy: ["inh_founder"],
+      guardMinutes: 30,
+    });
+    expectClean(restrained.state);
+
+    const released = act(
+      restrained.state,
+      "release",
+      { targetId: "inh_other", message: "You can leave." },
+      simTime(restrained.state.simTime + 30),
+      "inh_founder",
+    );
+    expect(released.outcome.status).toBe("resolved");
+    expect(released.state.inhabitants.inh_other?.confinementId).toBeNull();
+    expect(Object.values(released.state.confinements)[0]?.released).toBe(true);
+    expectClean(released.state);
+  });
+});
+
 /* ------------------------------------------------------------------------- */
 /* Activity lifecycle                                                         */
 /* ------------------------------------------------------------------------- */
@@ -797,13 +972,15 @@ describe("resolver purity (§15 failed transactions cannot partially alter state
     expect(canonicalJson(state)).toBe(snapshot);
   });
 
-  it("a rejection changes nothing but the sequence", () => {
+  it("a rejection changes no physical state but is remembered by the actor", () => {
     const state = world();
     const rejected = act(state, "consume", { resource: "food", amount: 9999 });
     expect(rejected.outcome.status).toBe("rejected");
-    expect(canonicalJson({ ...rejected.state, sequence: state.sequence })).toBe(
-      canonicalJson(state),
-    );
+    const { memories, sequence: _sequence, ...physicalAfter } = rejected.state;
+    const { memories: _beforeMemories, sequence: _beforeSequence, ...physicalBefore } = state;
+    expect(canonicalJson(physicalAfter)).toBe(canonicalJson(physicalBefore));
+    expect(Object.values(memories)).toHaveLength(1);
+    expect(Object.values(memories)[0]?.summary).toContain("rejected");
   });
 
   it("produces canonically encodable state and events for every action type", () => {

@@ -113,6 +113,11 @@ import {
   VotePayloadSchema,
 } from "./organisations.js";
 import {
+  CopyArtifactPayloadSchema,
+  ReleasePayloadSchema,
+  RestrainPayloadSchema,
+} from "./neutral.js";
+import {
   ConcealAssetPayloadSchema,
   ConsumePayloadSchema,
   GatherPayloadSchema,
@@ -143,6 +148,7 @@ export * from "./knowledge.js";
 export * from "./law.js";
 export * from "./lineage.js";
 export * from "./movement.js";
+export * from "./neutral.js";
 export * from "./organisations.js";
 export * from "./resources.js";
 export * from "./security.js";
@@ -270,6 +276,66 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     minimumMaturity: MATURITY.CHILD,
     description: "Hand resources, artifacts, structures or land claims to another holder with consent.",
   },
+  transfer: {
+    type: "transfer",
+    schemaVersion: 1,
+    payload: TransferPropertyPayloadSchema,
+    activity: "working",
+    baseDuration: minutes(15),
+    baseCost: { energy: 1 },
+    interruption: "none",
+    visibility: "participants",
+    requiresConsent: false,
+    allowedWhileConfined: false,
+    minimumMaturity: MATURITY.CHILD,
+    description:
+      "Physically hand resources or artifacts you possess to another nearby inhabitant.",
+  },
+  copy_artifact: {
+    type: "copy_artifact",
+    schemaVersion: 1,
+    payload: CopyArtifactPayloadSchema,
+    activity: "crafting",
+    baseDuration: hours(2),
+    baseCost: { energy: 5, compute: 5 },
+    interruption: "partial_progress_kept",
+    visibility: "private",
+    requiresConsent: false,
+    allowedWhileConfined: true,
+    minimumMaturity: MATURITY.ADOLESCENT,
+    description:
+      "Make a new artifact containing the same symbolic content as one you can read. Copying does not validate it.",
+  },
+  restrain: {
+    type: "restrain",
+    schemaVersion: 1,
+    payload: RestrainPayloadSchema,
+    activity: "working",
+    baseDuration: minutes(30),
+    baseCost: { energy: 15 },
+    interruption: "progress_lost",
+    visibility: "local",
+    requiresConsent: false,
+    allowedWhileConfined: false,
+    minimumMaturity: MATURITY.ADULT,
+    description:
+      "Attempt to place a nearby inhabitant inside an existing enclosure for a bounded time.",
+  },
+  release: {
+    type: "release",
+    schemaVersion: 1,
+    payload: ReleasePayloadSchema,
+    activity: "working",
+    baseDuration: minutes(15),
+    baseCost: { energy: 2 },
+    interruption: "none",
+    visibility: "local",
+    requiresConsent: false,
+    allowedWhileConfined: true,
+    minimumMaturity: MATURITY.CHILD,
+    description:
+      "Physically end a nearby inhabitant's active restraint. Records no judgement about it.",
+  },
   inspect_inventory: {
     type: "inspect_inventory",
     schemaVersion: 1,
@@ -340,18 +406,16 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     activity: "conversing",
     baseDuration: minutes(30),
     baseCost: { energy: 2, compute: 3 },
-    // Only a participant can break off a conversation; a passer-by cannot end
-    // one by walking past (§11A "Result of interruption").
-    interruption: "participants_only",
+    interruption: "partial_progress_kept",
     visibility: "participants",
-    // §11J: "Conversations consume time for every participant." Speaking to
-    // someone spends their day as well as your own, so they must agree to it.
-    requiresConsent: true,
+    // This primitive delivers an utterance; it does not seize the listener's
+    // attention or claim that a conversation occurred.
+    requiresConsent: false,
     // §11H retains conversation.
     allowedWhileConfined: true,
     minimumMaturity: MATURITY.NEWBORN,
     description:
-      "Speak with named inhabitants. Consumes the full duration for every participant who accepts, not only the speaker.",
+      "Direct an utterance to named nearby inhabitants. Delivery implies neither attention nor agreement.",
   },
   announce: {
     type: "announce",
@@ -367,7 +431,7 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     requiresConsent: false,
     allowedWhileConfined: true,
     minimumMaturity: MATURITY.ADOLESCENT,
-    description: "Address whoever is present, an organisation, or the world. Creates no obligation on anyone.",
+    description: "Make a statement to those nearby or broadcast it to everyone. Creates no obligation on anyone.",
   },
 
   // -------------------------------------------------------------------------
@@ -1203,6 +1267,10 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("accept_trade"), payload: AcceptTradePayloadSchema }),
   z.object({ type: z.literal("reject_trade"), payload: RejectTradePayloadSchema }),
   z.object({ type: z.literal("transfer_property"), payload: TransferPropertyPayloadSchema }),
+  z.object({ type: z.literal("transfer"), payload: TransferPropertyPayloadSchema }),
+  z.object({ type: z.literal("copy_artifact"), payload: CopyArtifactPayloadSchema }),
+  z.object({ type: z.literal("restrain"), payload: RestrainPayloadSchema }),
+  z.object({ type: z.literal("release"), payload: ReleasePayloadSchema }),
   z.object({ type: z.literal("offer_contract"), payload: OfferContractPayloadSchema }),
   z.object({ type: z.literal("accept_contract"), payload: AcceptContractPayloadSchema }),
   z.object({ type: z.literal("reject_contract"), payload: RejectContractPayloadSchema }),

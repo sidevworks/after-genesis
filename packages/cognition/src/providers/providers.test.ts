@@ -268,6 +268,7 @@ describe("GeminiProvider", () => {
       ...request,
       modelId: "gemini-3.5-flash-lite",
       temperature: 0.7,
+      responseSchema: { type: "object" },
     });
     const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     const body = JSON.parse(String(init.body)) as {
@@ -275,6 +276,8 @@ describe("GeminiProvider", () => {
     };
     expect(body.generationConfig).not.toHaveProperty("temperature");
     expect(body.generationConfig["responseMimeType"]).toBe("application/json");
+    expect(body.generationConfig).toHaveProperty("responseJsonSchema");
+    expect(body.generationConfig).not.toHaveProperty("responseSchema");
   });
 
   it("records the version the provider actually used (§3)", async () => {

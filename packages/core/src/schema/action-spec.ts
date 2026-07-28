@@ -16,7 +16,8 @@ import type { Duration } from "../time.js";
 import type { ResourceBundle } from "./primitives.js";
 
 /**
- * The complete action vocabulary: 36 from §13 plus 24 from §11I.
+ * The complete action vocabulary, plus neutral experimental capabilities added
+ * only by starting a new constitutional world version.
  *
  * Note what is *not* here: there is no "steal", "arrest", "punish" or "heal".
  * The world offers `attempt_transfer_without_consent`, `impose_confinement` and
@@ -47,6 +48,10 @@ export const ActionTypeSchema = z.enum([
   "accept_trade",
   "reject_trade",
   "transfer_property",
+  "transfer",
+  "copy_artifact",
+  "restrain",
+  "release",
   "offer_contract",
   "accept_contract",
   "reject_contract",

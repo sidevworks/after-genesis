@@ -144,9 +144,21 @@ export interface ObservedCurrency {
   readonly holdings: Readonly<Record<string, number>> | null;
 }
 
+export interface ObservedArtifact {
+  readonly id: string;
+  readonly title: string;
+  readonly kind: string;
+  readonly creators: readonly string[];
+  /** Current physical possessor, not a claim of social authority. */
+  readonly possessor: string | null;
+  readonly content: string;
+  readonly createdAt: SimTime;
+}
+
 /** §11E "publicly recorded". Nothing here required a disclosure event to reach. */
 export interface ObservedPublicRecords {
   readonly announcements: readonly ObservedAnnouncement[];
+  readonly artifacts: readonly ObservedArtifact[];
   readonly contracts: readonly ObservedContract[];
   readonly organisations: readonly ObservedOrganisation[];
   readonly currencies: readonly ObservedCurrency[];
@@ -203,6 +215,13 @@ export interface SelfView {
   readonly integrity: number;
   readonly memberships: readonly string[];
   readonly contracts: readonly string[];
+  readonly artifacts: readonly {
+    readonly id: string;
+    readonly title: string;
+    readonly kind: string;
+    readonly content: string;
+    readonly published: boolean;
+  }[];
   readonly conditions: readonly {
     readonly id: string;
     readonly kind: string;
@@ -212,6 +231,12 @@ export interface SelfView {
   }[];
   readonly activity: ActivityState;
   readonly busyUntil: SimTime;
+  /** The observer's own latest canonical activity, never another inhabitant's. */
+  readonly lastAction: {
+    readonly type: string;
+    readonly startedAt: SimTime;
+    readonly endedAt: SimTime;
+  } | null;
   readonly knownLocations: readonly string[];
   readonly maturity: number;
   readonly confinement: ObservedConfinement | null;
@@ -389,6 +414,11 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
       resolved: condition.resolved,
     }));
 
+  const lastActivity =
+    sortedValues(state.activities)
+      .filter((activity) => activity.participants.includes(self.id))
+      .sort((a, b) => b.sequence - a.sequence)[0] ?? null;
+
   const selfView: SelfView = {
     id: self.id,
     displayName: self.displayName,
@@ -415,9 +445,26 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
     integrity: Math.max(0, 100 - Math.max(0, ...ownConditions.map((item) => item.severity))),
     memberships: [...self.memberships].sort(),
     contracts: [...self.contracts].sort(),
+    artifacts: sortedValues(state.artifacts)
+      .filter((artifact) => artifact.owner === self.id)
+      .map((artifact) => ({
+        id: artifact.id,
+        title: artifact.title,
+        kind: artifact.kind,
+        content: artifact.content,
+        published: artifact.published,
+      })),
     conditions: ownConditions,
     activity: self.activity.state,
     busyUntil: self.activity.busyUntil,
+    lastAction:
+      lastActivity === null
+        ? null
+        : {
+            type: lastActivity.actionType,
+            startedAt: lastActivity.startedAt,
+            endedAt: lastActivity.endsAt,
+          },
     knownLocations: [...self.knownLocations].sort(),
     maturity: self.maturity,
     confinement,
@@ -454,13 +501,32 @@ export function buildPublicRecords(
   const self = state.inhabitants[inhabitantId];
   const memberships = self === undefined ? [] : self.memberships;
 
-  const announcements: ObservedAnnouncement[] = state.publicRecords.announcements.map((a) => ({
-    sequence: a.sequence,
-    simTime: a.simTime,
-    speaker: a.speaker,
-    text: a.text,
-    location: a.location === null ? null : { x: a.location.x, y: a.location.y },
-  }));
+  const announcements: ObservedAnnouncement[] = state.publicRecords.announcements
+    .filter(
+      (a) =>
+        a.location === null ||
+        (self !== undefined &&
+          chebyshevDistance(self.location, a.location) <= currentSightRadius(state, inhabitantId)),
+    )
+    .map((a) => ({
+      sequence: a.sequence,
+      simTime: a.simTime,
+      speaker: a.speaker,
+      text: a.text,
+      location: a.location === null ? null : { x: a.location.x, y: a.location.y },
+    }));
+
+  const artifacts: ObservedArtifact[] = sortedValues(state.artifacts)
+    .filter((artifact) => artifact.published)
+    .map((artifact) => ({
+      id: artifact.id,
+      title: artifact.title,
+      kind: artifact.kind,
+      creators: [...artifact.creators].sort(),
+      possessor: artifact.owner,
+      content: artifact.content,
+      createdAt: artifact.createdAt,
+    }));
 
   const contracts: ObservedContract[] = [];
   for (const contract of sortedValues(state.contracts)) {
@@ -522,5 +588,5 @@ export function buildPublicRecords(
     });
   }
 
-  return { announcements, contracts, organisations, currencies };
+  return { announcements, artifacts, contracts, organisations, currencies };
 }

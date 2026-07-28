@@ -26,6 +26,7 @@ export type MemoryId = Branded<string, "MemoryId">;
 export type ConditionId = Branded<string, "ConditionId">;
 export type TreatmentId = Branded<string, "TreatmentId">;
 export type ActivityId = Branded<string, "ActivityId">;
+export type ConfinementId = Branded<string, "ConfinementId">;
 
 /** Prefixes make ids self-describing in logs and the audit export. */
 const PREFIX = {
@@ -39,6 +40,7 @@ const PREFIX = {
   condition: "cnd",
   treatment: "trt",
   activity: "act",
+  confinement: "cnf",
 } as const;
 
 type EntityKind = keyof typeof PREFIX;
@@ -83,6 +85,8 @@ export const deriveConditionId = (w: string, seq: number, d = 0) =>
   deriveId("condition", w, seq, d) as ConditionId;
 export const deriveActivityId = (w: string, seq: number, d = 0) =>
   deriveId("activity", w, seq, d) as ActivityId;
+export const deriveConfinementId = (w: string, seq: number, d = 0) =>
+  deriveId("confinement", w, seq, d) as ConfinementId;
 
 /** An event id is simply the world id and sequence number: unique by construction. */
 export function makeEventId(worldId: WorldId, sequence: number): EventId {

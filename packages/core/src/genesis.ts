@@ -16,20 +16,31 @@ import { ResourceBundleSchema } from "./schema/primitives.js";
 import { GENESIS_TIME } from "./time.js";
 import type { Sha256Hex } from "./util/hash.js";
 
+const GenesisInhabitantSchema = z.object({
+  id: z.string().min(1),
+  displayName: z.string().min(1).max(80),
+  modelId: z.string().min(1),
+  inventory: ResourceBundleSchema,
+  traits: z.record(z.string(), z.number().int().min(0).max(100)).default({}),
+  values: z.array(z.string().min(1)).default([]),
+  privateGoals: z.array(z.string().min(1)).default([]),
+});
+
 export const GenesisConfigSchema = z.object({
   worldId: z.string().min(1),
   seed: z.string().min(1),
   width: z.number().int().min(4).max(256).default(DEFAULT_MAP_WIDTH),
   height: z.number().int().min(4).max(256).default(DEFAULT_MAP_HEIGHT),
-  founder: z.object({
+  founder: GenesisInhabitantSchema.extend({
     id: z.string().min(1).default("inh_founder"),
-    displayName: z.string().min(1).max(80),
-    modelId: z.string().min(1),
-    inventory: ResourceBundleSchema,
-    traits: z.record(z.string(), z.number().int().min(0).max(100)).default({}),
-    values: z.array(z.string().min(1)).default([]),
-    privateGoals: z.array(z.string().min(1)).default([]),
   }),
+  /** Additional independent inhabitants present from the first instant. */
+  inhabitants: z.array(GenesisInhabitantSchema).max(31).optional(),
+}).superRefine((config, ctx) => {
+  const ids = [config.founder.id, ...(config.inhabitants ?? []).map((item) => item.id)];
+  if (new Set(ids).size !== ids.length) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Genesis inhabitant ids must be unique" });
+  }
 });
 export type GenesisConfig = z.infer<typeof GenesisConfigSchema>;
 
@@ -53,24 +64,27 @@ export function buildGenesis(raw: GenesisConfig): BuiltGenesis {
   const location = firstPassableTile(generated.map);
   if (location === null) throw new Error("Genesis map has no passable founder tile");
 
-  const founder = makeInhabitant({
-    id: config.founder.id,
-    displayName: config.founder.displayName,
-    location,
-    birthTime: GENESIS_TIME,
-    creationSequence: 0,
-    generation: 0,
-    inventory: config.founder.inventory,
-    traits: config.founder.traits,
-    values: config.founder.values,
-    privateGoals: config.founder.privateGoals,
-    maturity: 3,
-    modelId: config.founder.modelId,
-  });
-  const state = {
-    ...addGenesisInhabitant(empty, founder),
-    sequence: 0,
-  };
+  let populated = empty;
+  for (const inhabitant of [config.founder, ...(config.inhabitants ?? [])]) {
+    populated = addGenesisInhabitant(
+      populated,
+      makeInhabitant({
+        id: inhabitant.id,
+        displayName: inhabitant.displayName,
+        location,
+        birthTime: GENESIS_TIME,
+        creationSequence: 0,
+        generation: 0,
+        inventory: inhabitant.inventory,
+        traits: inhabitant.traits,
+        values: inhabitant.values,
+        privateGoals: inhabitant.privateGoals,
+        maturity: 3,
+        modelId: inhabitant.modelId,
+      }),
+    );
+  }
+  const state = { ...populated, sequence: 0 };
   return {
     config,
     emptyStateChecksum: computeStateChecksum(empty),

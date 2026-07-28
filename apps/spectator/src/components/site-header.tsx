@@ -5,10 +5,12 @@ import { NavLinks } from "./nav-links";
 
 export const NAV = [
   { href: "/", label: "Overview" },
+  { href: "/observatory", label: "Observatory" },
   { href: "/map", label: "Map" },
   { href: "/inhabitants", label: "Inhabitants" },
   { href: "/lineage", label: "Lineage" },
   { href: "/events", label: "Events" },
+  { href: "/patterns", label: "Patterns" },
   { href: "/organisations", label: "Organisations" },
   { href: "/economy", label: "Economy" },
   { href: "/artifacts", label: "Artifacts" },

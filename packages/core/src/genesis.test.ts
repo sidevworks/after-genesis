@@ -32,4 +32,41 @@ describe("buildGenesis", () => {
       buildGenesis(config).stateChecksum,
     );
   });
+
+  it("creates additional independent inhabitants deterministically", () => {
+    const built = buildGenesis({
+      ...config,
+      inhabitants: [
+        {
+          id: "inh_ember",
+          displayName: "Ember",
+          modelId: "test-model",
+          inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+          traits: { patience: 80 },
+          values: ["careful observation"],
+          privateGoals: ["learn from others"],
+        },
+      ],
+    });
+
+    expect(Object.keys(built.state.inhabitants).sort()).toEqual([
+      "inh_ember",
+      "inh_founder",
+    ]);
+    expect(built.state.inhabitants.inh_ember?.privateGoals).toEqual(["learn from others"]);
+  });
+
+  it("rejects duplicate Genesis inhabitant ids", () => {
+    expect(() =>
+      buildGenesis({
+        ...config,
+        inhabitants: [
+          {
+            ...config.founder,
+            displayName: "Duplicate",
+          },
+        ],
+      }),
+    ).toThrow("Genesis inhabitant ids must be unique");
+  });
 });

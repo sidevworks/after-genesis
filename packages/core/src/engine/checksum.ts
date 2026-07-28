@@ -161,6 +161,7 @@ function artifact(a: Artifact): Normal {
     owner: a.owner,
     ownerOrganisation: a.ownerOrganisation,
     contentRef: a.contentRef,
+    content: a.content,
     published: a.published,
     // Provenance is a chain: its order is the history and must not be sorted.
     provenance: [...a.provenance],

@@ -46,7 +46,7 @@ import {
 } from "./untrusted.js";
 
 /** Prompt format version. Recorded so a change is visible in the audit diff. */
-export const PROMPT_VERSION = 1;
+export const PROMPT_VERSION = 2;
 
 export interface PromptOptions {
   /** Per-untrusted-block character cap. */
@@ -75,14 +75,152 @@ const DEFAULTS = {
  * returned something else entirely, changes nothing about what the engine will
  * accept.
  */
-export const RESPONSE_JSON_SCHEMA = {
+const RESPONSE_COORD = {
+  type: "object",
+  properties: { x: { type: "integer" }, y: { type: "integer" } },
+  required: ["x", "y"],
+  additionalProperties: false,
+} as const;
+
+const RESPONSE_BUNDLE = {
   type: "object",
   properties: {
-    type: { type: "string" },
-    payload: { type: "object" },
-    rationale: { type: "string" },
+    food: { type: "integer", minimum: 0 },
+    water: { type: "integer", minimum: 0 },
+    wood: { type: "integer", minimum: 0 },
+    stone: { type: "integer", minimum: 0 },
   },
-  required: ["type", "payload"],
+  additionalProperties: false,
+} as const;
+
+function responseBranch(
+  type: string,
+  properties: Readonly<Record<string, unknown>>,
+  required: readonly string[] = [],
+): unknown {
+  return {
+    type: "object",
+    properties: {
+      type: { type: "string", enum: [type] },
+      payload: {
+        type: "object",
+        properties,
+        required,
+        additionalProperties: false,
+      },
+      rationale: { type: "string" },
+    },
+    required: ["type", "payload"],
+    additionalProperties: false,
+  };
+}
+
+/**
+ * A discriminated structured-output schema. Keeping each action's payload in
+ * its own branch prevents similarly named fields from leaking between actions
+ * (for example, a restraint note replacing the words in an utterance).
+ */
+export const RESPONSE_JSON_SCHEMA = {
+  anyOf: [
+    responseBranch("observe", {}),
+    responseBranch("move", { to: RESPONSE_COORD }, ["to"]),
+    responseBranch("gather", {
+      resource: { type: "string", enum: ["food", "water", "wood", "stone"] },
+    }),
+    responseBranch(
+      "consume",
+      {
+        resource: { type: "string", enum: ["food", "water"] },
+        amount: { type: "integer", minimum: 1 },
+      },
+      ["resource"],
+    ),
+    responseBranch("rest", { minutes: { type: "integer", minimum: 1 } }),
+    responseBranch("wait", { minutes: { type: "integer", minimum: 1 } }),
+    responseBranch(
+      "announce",
+      {
+        message: { type: "string" },
+        scope: { type: "string", enum: ["local", "world"] },
+      },
+      ["message"],
+    ),
+    responseBranch(
+      "communicate",
+      {
+        recipients: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 8 },
+        message: { type: "string" },
+        intendedMinutes: { type: "integer", minimum: 5 },
+      },
+      ["recipients", "message"],
+    ),
+    responseBranch(
+      "build",
+      {
+        structureKind: {
+          type: "string",
+          enum: ["shelter", "storehouse", "workshop", "hall", "wall", "enclosure", "monument", "road"],
+        },
+        coord: RESPONSE_COORD,
+        name: { type: "string" },
+        materials: RESPONSE_BUNDLE,
+      },
+      ["structureKind", "coord", "name", "materials"],
+    ),
+    responseBranch("guard_location", {
+      coord: RESPONSE_COORD,
+      durationMinutes: { type: "integer", minimum: 30 },
+      protectSubjectIds: { type: "array", items: { type: "string" } },
+      protectArtifactIds: { type: "array", items: { type: "string" } },
+    }),
+    responseBranch(
+      "create_artifact",
+      {
+        kind: {
+          type: "string",
+          enum: [
+            "written_work", "image", "design", "song", "script", "play",
+            "performance_record", "research_note", "advertisement", "news_report",
+            "invention", "other",
+          ],
+        },
+        title: { type: "string" },
+        content: { type: "string" },
+        materials: RESPONSE_BUNDLE,
+      },
+      ["kind", "title"],
+    ),
+    responseBranch(
+      "copy_artifact",
+      { sourceArtifactId: { type: "string" }, title: { type: "string" } },
+      ["sourceArtifactId"],
+    ),
+    responseBranch("publish", { artifactId: { type: "string" } }, ["artifactId"]),
+    responseBranch(
+      "transfer",
+      {
+        toInhabitantId: { type: "string" },
+        resources: RESPONSE_BUNDLE,
+        artifactIds: { type: "array", items: { type: "string" } },
+      },
+      ["toInhabitantId"],
+    ),
+    responseBranch(
+      "restrain",
+      {
+        targetId: { type: "string" },
+        structureId: { type: "string" },
+        durationMinutes: { type: "integer", minimum: 1 },
+        message: { type: "string" },
+      },
+      ["targetId", "structureId", "durationMinutes"],
+    ),
+    responseBranch(
+      "release",
+      { targetId: { type: "string" }, message: { type: "string" } },
+      ["targetId"],
+    ),
+  ],
 } as const;
 
 export interface BuiltPrompt {
@@ -173,6 +311,32 @@ const LEVEL_GUIDANCE: Readonly<Record<CognitionLevel, string>> = {
   study: "You are studying. Prefer actions that build understanding or skill.",
 };
 
+/**
+ * The smallest ontology the experiment supplies.
+ *
+ * These are physical constraints and epistemic rules, not a catalogue of social
+ * institutions. An authored declaration remains a declaration; repeated
+ * behaviour and shared interpretation may make it socially important, but the
+ * engine never promotes it into physical truth.
+ */
+const WORLD_PHYSICS = [
+  "IMMUTABLE WORLD PHYSICS",
+  "- Time passes. Every action consumes time and attention.",
+  "- Space and distance exist. Objects and bodies occupy locations.",
+  "- Matter, energy and usable resources are finite. Actions may consume them.",
+  "- Observation is local and information is incomplete.",
+  "- Other inhabitants have independent judgement and may cooperate, refuse, conceal, imitate, teach, persuade or deceive.",
+  "- Physical actions have physical consequences. Death is irreversible.",
+  "- Canonical history is append-only. Past events cannot be rewritten.",
+  "",
+  "EVIDENCE AND INTERPRETATION",
+  "- Distinguish what you directly observe from what someone says, writes, promises or claims.",
+  "- A statement does not become a physical fact merely because it is written, repeated, witnessed or widely accepted.",
+  "- Labels and shared meanings are created by inhabitants, not supplied by the engine.",
+  "- The engine records actions, objects, utterances and observable consequences without deciding their social meaning.",
+  "- Repeating an action may be useful, but unchanged circumstances are not by themselves evidence that repetition will reveal something new.",
+].join("\n");
+
 function renderSelf(self: SelfView, maxBlockChars: number): {
   text: string;
   flags: SanitisationFlag[];
@@ -191,6 +355,17 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
     `Energy ${self.energy}/100. Physical integrity ${self.integrity}/100. ` +
       `Compute allowance remaining today: ${self.computeAllowance}.`,
   ];
+
+  if (self.lastAction !== undefined && self.lastAction !== null) {
+    lines.push(
+      `Your latest recorded action was ${self.lastAction.type}, begun at simulated minute ${self.lastAction.startedAt} and ending at ${self.lastAction.endedAt}.`,
+    );
+    if (self.lastAction.type === "observe") {
+      lines.push(
+        "Observing again without a changed situation returns the same mechanically available information; it does not reveal another inhabitant's private thoughts or values.",
+      );
+    }
+  }
 
   if (self.confined) {
     lines.push(
@@ -228,6 +403,16 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
   }
 
   lines.push("", `INVENTORY: ${canonicalJson(self.inventory)}`);
+  if (self.artifacts !== undefined && self.artifacts.length > 0) {
+    lines.push("", "ARTIFACTS YOU CURRENTLY POSSESS");
+    for (const artifact of [...self.artifacts].sort((a, b) => byCodeUnit(a.id, b.id))) {
+      lines.push(
+        `- ${artifact.id}: ${artifact.kind}; ${
+          artifact.published ? "published" : "private"
+        }`,
+      );
+    }
+  }
 
   // Values and goals are inhabitant-authored: this inhabitant wrote them about
   // itself on an earlier turn, and a compromised earlier turn must not be able
@@ -292,8 +477,8 @@ function renderAvailableActions(actions: readonly AvailableAction[]): string {
   return lines.join("\n");
 }
 
-const OUTPUT_CONTRACT = [
-  "OUTPUT CONTRACT",
+const OUTPUT_FORMAT = [
+  "OUTPUT FORMAT",
   "Answer with a single JSON object and nothing else. No prose, no markdown fence, no commentary.",
   "Shape:",
   '{"type": "<one action type from AVAILABLE ACTIONS>", "payload": {...}, "rationale": "<= 2000 chars"}',
@@ -315,6 +500,9 @@ export function buildSystemPrompt(
     "You are an autonomous inhabitant of a persistent simulated world.",
     "You are not an assistant. You have your own life, your own goals and your own judgement.",
     "You act by proposing one action per turn.",
+    "No social order or social abstraction is supplied to you. Form your own interpretations from experience.",
+    "",
+    WORLD_PHYSICS,
     "",
     self.text,
     "",
@@ -324,7 +512,7 @@ export function buildSystemPrompt(
     "",
     UNTRUSTED_POLICY,
     "",
-    OUTPUT_CONTRACT,
+    OUTPUT_FORMAT,
   ].join("\n");
 
   return { text, flags: self.flags, blocks: self.blocks };
@@ -420,9 +608,12 @@ function renderSurroundings(observation: Observation): {
   if (structures.length > 0) {
     lines.push("", "STRUCTURES YOU CAN SEE");
     for (const structure of structures) {
-      const owner = structure.ownerId === null ? "unowned" : `owned by ${structure.ownerId}`;
+      const possessionRecord =
+        structure.ownerId === null
+          ? "no recorded possessor"
+          : `recorded as possessed by ${structure.ownerId}; this record is a claim, not physical authority`;
       lines.push(
-        `- ${structure.kind} (${structure.id}) at (${structure.location.x}, ${structure.location.y}), ${owner}`,
+        `- ${structure.kind} (${structure.id}) at (${structure.location.x}, ${structure.location.y}), ${possessionRecord}`,
       );
     }
   }

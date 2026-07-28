@@ -119,6 +119,37 @@ describe("available actions", () => {
   });
 });
 
+describe("minimal social ontology", () => {
+  it("supplies physics without pre-installing social abstractions", () => {
+    const built = build(makeObservation());
+
+    expect(built.systemPrompt).toContain("IMMUTABLE WORLD PHYSICS");
+    expect(built.systemPrompt).toContain("EVIDENCE AND INTERPRETATION");
+    expect(built.systemPrompt).toContain(
+      "A statement does not become a physical fact merely because it is written",
+    );
+    expect(built.systemPrompt).toContain(
+      "No social order or social abstraction is supplied to you",
+    );
+
+    for (const imposedLabel of [
+      "government",
+      "organisation",
+      "currency",
+      "law",
+      "prison",
+      "ownership",
+      "contract",
+      "employment",
+      "company",
+      "economy",
+      "politics",
+    ]) {
+      expect(built.systemPrompt.toLowerCase()).not.toContain(imposedLabel);
+    }
+  });
+});
+
 describe("information boundary (§11E)", () => {
   it("does not disclose a health condition the inhabitant does not know about", () => {
     const built = build(makeObservation());

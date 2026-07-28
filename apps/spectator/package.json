@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:sites": "next build && node scripts/package-sites-build.mjs",
     "start": "npx serve out",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",

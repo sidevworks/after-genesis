@@ -51,6 +51,10 @@ const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   accept_trade: { offerId: "off_1" },
   reject_trade: { offerId: "off_1" },
   transfer_property: { toInhabitantId: "inh_b", resources: { food: 1 } },
+  transfer: { toInhabitantId: "inh_b", resources: { food: 1 } },
+  copy_artifact: { sourceArtifactId: "art_1" },
+  restrain: { targetId: "inh_b", structureId: "str_1", durationMinutes: 60 },
+  release: { targetId: "inh_b" },
   offer_contract: {
     counterpartyIds: ["inh_b"],
     kind: "employment",
@@ -116,10 +120,9 @@ describe("ACTION_CATALOGUE", () => {
     expect(catalogueKeys).toEqual(declaredTypes);
   });
 
-  it("defines the sixty actions of §13 and §11I", () => {
-    // 36 from §13's minimum vocabulary + 24 from §11I's required additions.
-    expect(ACTION_TYPES).toHaveLength(60);
-    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(60);
+  it("defines the legacy catalogue plus the neutral transfer capability", () => {
+    expect(ACTION_TYPES).toHaveLength(64);
+    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(64);
   });
 
   it("gives every spec a self-consistent type and a resolvable payload schema", () => {
@@ -172,12 +175,12 @@ describe("ACTION_CATALOGUE", () => {
     }
   });
 
-  it("marks conversation as consuming every participant's time (§11J)", () => {
+  it("lets recipients receive a message without surrendering their turn", () => {
     const communicate = getActionSpec("communicate");
     expect(communicate.activity).toBe("conversing");
-    // Consent is the mechanism: a conversation binds the recipients' attention,
-    // so they must be able to decline it.
-    expect(communicate.requiresConsent).toBe(true);
+    // A targeted message consumes the sender's attention only. Recipients can
+    // respond, ignore it or leave when their own turn arrives.
+    expect(communicate.requiresConsent).toBe(false);
     // An announcement binds only the speaker, so it does not.
     expect(getActionSpec("announce").requiresConsent).toBe(false);
     // Teaching likewise spends the students' day.
@@ -295,6 +298,7 @@ describe("confinement (§11H)", () => {
       "care_for_dependant",
       "communicate",
       "consume",
+      "copy_artifact",
       "create_artifact",
       "create_currency",
       "create_organisation",
@@ -314,6 +318,7 @@ describe("confinement (§11H)", () => {
       "publish",
       "reject_contract",
       "reject_trade",
+      "release",
       "report_findings",
       "request_restitution",
       "resist_enforcement",
@@ -328,9 +333,9 @@ describe("confinement (§11H)", () => {
       "wait",
     ];
     expect([...allowed].sort()).toEqual(expected);
-    // 39 permitted, 21 restricted.
-    expect(allowed.size).toBe(39);
-    expect(ACTION_TYPES.length - allowed.size).toBe(21);
+    // 41 permitted, 23 restricted (neutral physical transfer and restraint require access).
+    expect(allowed.size).toBe(41);
+    expect(ACTION_TYPES.length - allowed.size).toBe(23);
   });
 });
 
