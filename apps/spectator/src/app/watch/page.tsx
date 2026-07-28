@@ -1,0 +1,94 @@
+import type { Metadata } from "next";
+import { CinemaChannel, type ChannelSubject } from "@/components/cinema/cinema-channel";
+import { Badge, Panel } from "@/components/ui";
+import { observatorySource } from "@/lib/observatory-source";
+
+export const metadata: Metadata = {
+  title: "Watch",
+  description:
+    "A continuous, camera-tracked rendering of the canonical After Genesis record. Read-only.",
+};
+
+export default function WatchPage() {
+  const run = observatorySource.getRun();
+  const entities = observatorySource.getReferences("ENT");
+  const disclosure = run.disclosure;
+  const activities = run.activities ?? [];
+  const withheld = activities.filter((activity) => !activity.contentsDisclosed).length;
+
+  const subjects: ChannelSubject[] = run.inhabitants.map((inhabitant) => {
+    const record = entities.find(
+      (entity) => entity.canonicalMetadata.canonicalId === inhabitant.id,
+    );
+    return {
+      id: inhabitant.id,
+      displayName: inhabitant.displayName,
+      status: inhabitant.status,
+      generation: inhabitant.generation,
+      refId: record?.refId ?? null,
+    };
+  });
+
+  return (
+    <div className="space-y-6">
+      {/*
+        The picture comes first. A page that explains itself for six hundred
+        pixels before showing anything is a document about a world, not a window
+        onto one — and the whole point of this route is the window.
+      */}
+      <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <h1 className="text-lg font-medium tracking-tight text-ink">
+            Every recorded hour, watchable
+          </h1>
+          <Badge tone="alive">completed run</Badge>
+          <Badge tone="warn">read only</Badge>
+        </div>
+        <p className="eyebrow">
+          {activities.length.toLocaleString()} activities · {run.events.length.toLocaleString()}{" "}
+          events · 50 world days
+        </p>
+      </header>
+
+      <CinemaChannel subjects={subjects} />
+
+      <p className="max-w-3xl border-t border-line pt-5 text-sm leading-relaxed text-muted">
+        The canonical record stores {activities.length.toLocaleString()} activities across{" "}
+        {run.events.length.toLocaleString()} events. This view turns that discrete record into a
+        continuous one: for any minute of world time it can say where every inhabitant stood, what
+        activity occupied them, and how far through it they were. The camera reads that projection.
+        It cannot enter the world, and the world cannot perceive it.
+      </p>
+
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Panel eyebrow="Disclosure" title={`Policy version ${disclosure?.policyVersion ?? 1}`}>
+          <div className="space-y-3 px-4 py-4 text-sm leading-relaxed text-muted">
+            <p>{disclosure?.envelope ?? run.disclosurePolicy}</p>
+            <p>{disclosure?.contents ?? ""}</p>
+            <p className="text-dim">
+              {withheld.toLocaleString()} of {activities.length.toLocaleString()} activities have
+              withheld contents. Those intervals are rendered as an occupied figure in a neutral
+              posture, and the caption says so. No withheld content is reconstructed, summarised or
+              guessed at anywhere in this application.
+            </p>
+          </div>
+        </Panel>
+
+        <Panel eyebrow="What you are seeing" title="Canonical fact and derived presentation">
+          <dl className="divide-y divide-line-soft text-sm">
+            {[
+              ["Canonical", "Positions, activities, participants, start and end times, world clock, resource outcomes where disclosed, and the disclosure state itself."],
+              ["Derived", "Camera framing and movement, shot selection, day and night lighting, walking gait, work gestures, tree and boulder placement, character colour."],
+              ["Never rendered", "Private reasoning, withheld speech, undisclosed quantities, or any behaviour the record does not contain."],
+            ].map(([term, copy]) => (
+              <div key={term} className="grid gap-1 px-4 py-3 sm:grid-cols-[8rem_1fr]">
+                <dt className="eyebrow">{term}</dt>
+                <dd className="leading-relaxed text-muted">{copy}</dd>
+              </div>
+            ))}
+          </dl>
+        </Panel>
+      </div>
+    </div>
+  );
+}

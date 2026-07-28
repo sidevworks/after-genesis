@@ -6,6 +6,7 @@ import { NavLinks } from "./nav-links";
 
 export const NAV = [
   { href: "/", label: "Overview" },
+  { href: "/watch", label: "Watch" },
   { href: "/observatory", label: "Observatory" },
   { href: "/map", label: "Map" },
   { href: "/inhabitants", label: "Inhabitants" },

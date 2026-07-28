@@ -714,6 +714,351 @@ a {
   }
 }
 
+/* -------------------------------------------------------------------------- */
+/* Cinema — the continuous viewport, its transport and its captions.           */
+/*                                                                             */
+/* The surface is deliberately theatrical: a wide dark frame, letterboxed       */
+/* overlays, a caption where a subtitle would sit. It is also deliberately      */
+/* honest — the disclosure state changes the caption's colour and border, so a  */
+/* withheld interval never looks like a recorded one at a glance.               */
+/* -------------------------------------------------------------------------- */
+
+@layer components {
+  .cinema {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .cinema__frame {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-line);
+    border-radius: 0.375rem;
+    background: #05090d;
+    aspect-ratio: 21 / 9;
+    min-height: 24rem;
+  }
+
+  .cinema__canvas {
+    position: absolute;
+    inset: 0;
+  }
+
+  .cinema__canvas canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  .cinema__overlay {
+    position: absolute;
+    right: 0;
+    left: 0;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.15rem;
+    pointer-events: none;
+  }
+
+  .cinema__overlay--top {
+    top: 0;
+    background: linear-gradient(to bottom, rgba(4, 8, 12, 0.82), transparent);
+  }
+
+  .cinema__title {
+    margin-top: 0.15rem;
+    font-size: 1.15rem;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--color-ink);
+  }
+
+  .cinema__shot {
+    text-align: right;
+    max-width: 22rem;
+  }
+
+  .cinema__shot-kind {
+    font-family: var(--font-mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--color-amber);
+  }
+
+  .cinema__shot > small {
+    display: block;
+    margin-top: 0.2rem;
+    font-size: 0.7rem;
+    line-height: 1.45;
+    color: var(--color-dim);
+  }
+
+  .cinema__provenance {
+    font-size: 0.72rem;
+    line-height: 1.6;
+    color: var(--color-dim);
+  }
+
+  .cinema__provenance strong {
+    color: var(--color-muted);
+    font-weight: 500;
+  }
+
+  /* ---------------------------------------------------------------- caption */
+
+  .cinema-caption {
+    position: absolute;
+    right: 1.15rem;
+    bottom: 1.15rem;
+    left: 1.15rem;
+    z-index: 2;
+    max-width: 46rem;
+    padding: 0.7rem 0.9rem;
+    border-left: 2px solid var(--color-line);
+    border-radius: 0.25rem;
+    background: rgba(5, 9, 13, 0.84);
+    backdrop-filter: blur(6px);
+    pointer-events: none;
+  }
+
+  .cinema-caption--disclosed {
+    border-left-color: var(--color-alive);
+  }
+
+  .cinema-caption--withheld {
+    border-left-color: var(--color-warn);
+  }
+
+  .cinema-caption--unrecorded {
+    border-left-color: var(--color-dim);
+  }
+
+  .cinema-caption__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.6rem;
+  }
+
+  .cinema-caption__who {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--color-ink);
+  }
+
+  .cinema-caption__badge {
+    font-family: var(--font-mono);
+    font-size: 0.58rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    padding: 0.12rem 0.4rem;
+    border-radius: 2px;
+    border: 1px solid currentColor;
+  }
+
+  .cinema-caption--disclosed .cinema-caption__badge {
+    color: var(--color-alive);
+  }
+
+  .cinema-caption--withheld .cinema-caption__badge {
+    color: var(--color-warn);
+  }
+
+  .cinema-caption--unrecorded .cinema-caption__badge {
+    color: var(--color-dim);
+  }
+
+  .cinema-caption__state {
+    margin-left: auto;
+    font-size: 0.62rem;
+    color: var(--color-dim);
+  }
+
+  .cinema-caption__line {
+    margin-top: 0.35rem;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--color-ink);
+  }
+
+  .cinema-caption__note {
+    margin-top: 0.3rem;
+    font-size: 0.7rem;
+    line-height: 1.5;
+    color: var(--color-dim);
+  }
+
+  /* -------------------------------------------------------------- transport */
+
+  .transport {
+    display: grid;
+    gap: 0.6rem;
+    padding: 0.75rem 0.9rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.375rem;
+    background-color: color-mix(in srgb, var(--color-panel) 88%, transparent);
+  }
+
+  .transport__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .transport__play,
+  .transport__step,
+  .transport__rates > button {
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.06em;
+    padding: 0.34rem 0.7rem;
+    border: 1px solid var(--color-line);
+    border-radius: 2px;
+    color: var(--color-muted);
+    background: var(--color-panel-2);
+    transition: color 120ms, border-color 120ms, background-color 120ms;
+  }
+
+  .transport__play {
+    min-width: 5.25rem;
+    color: var(--color-amber);
+    border-color: var(--color-amber-dim);
+  }
+
+  .transport__play:hover,
+  .transport__step:hover,
+  .transport__rates > button:hover {
+    color: var(--color-ink);
+    border-color: var(--color-dim);
+  }
+
+  .transport__rates {
+    display: flex;
+    gap: 0.25rem;
+    margin-left: 0.25rem;
+  }
+
+  .transport__position {
+    margin-left: auto;
+    font-size: 0.68rem;
+    color: var(--color-dim);
+  }
+
+  .transport__track {
+    position: relative;
+    padding-top: 0.35rem;
+  }
+
+  .transport__marks {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    height: 0.7rem;
+    color: var(--color-amber-dim);
+    opacity: 0.65;
+  }
+
+  .transport__scrub {
+    width: 100%;
+    appearance: none;
+    height: 1.35rem;
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .transport__scrub::-webkit-slider-runnable-track {
+    height: 2px;
+    background: var(--color-line);
+  }
+
+  .transport__scrub::-moz-range-track {
+    height: 2px;
+    background: var(--color-line);
+  }
+
+  .transport__scrub::-webkit-slider-thumb {
+    appearance: none;
+    width: 3px;
+    height: 1.05rem;
+    margin-top: -0.52rem;
+    border-radius: 1px;
+    background: var(--color-amber);
+  }
+
+  .transport__scrub::-moz-range-thumb {
+    width: 3px;
+    height: 1.05rem;
+    border: none;
+    border-radius: 1px;
+    background: var(--color-amber);
+  }
+
+  /* ---------------------------------------------------------------- channel */
+
+  .channel-picker {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .channel-picker__option {
+    text-align: left;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: 0.25rem;
+    background-color: color-mix(in srgb, var(--color-panel) 88%, transparent);
+    transition: border-color 120ms, background-color 120ms;
+  }
+
+  .channel-picker__option:hover {
+    border-color: var(--color-dim);
+  }
+
+  .channel-picker__option[aria-pressed="true"] {
+    border-color: var(--color-amber-dim);
+    background-color: var(--color-panel-2);
+  }
+
+  .channel-picker__name {
+    display: block;
+    font-size: 0.85rem;
+    color: var(--color-ink);
+  }
+
+  .channel-picker__option[aria-pressed="true"] .channel-picker__name {
+    color: var(--color-amber);
+  }
+
+  .channel-picker__option > small {
+    display: block;
+    margin-top: 0.1rem;
+    font-size: 0.66rem;
+    color: var(--color-dim);
+  }
+}
+
+@media (max-width: 640px) {
+  .cinema__frame {
+    aspect-ratio: 4 / 3;
+    min-height: 18rem;
+  }
+
+  .cinema__shot {
+    text-align: left;
+  }
+
+  .transport__position {
+    margin-left: 0;
+  }
+}
+
 /* claude.md §20: the interface should never move in a way the reader did not ask for. */
 @media (prefers-reduced-motion: reduce) {
   html {

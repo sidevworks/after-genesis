@@ -6,6 +6,32 @@
  * Usage:
  *   node --experimental-strip-types src/fixtures/generate-observatory-export.mts \
  *     ../../..//.worlds/emergence-v2-final-1
+ *
+ * ## Disclosure policy 2 — activity envelopes
+ *
+ * Policy 1 exported canonical events only, which meant a private or
+ * participant-only event disclosed nothing at all: not that it happened, not
+ * where, not to whom. That is stricter than the world's own information model.
+ * claude.md §11E classifies "nearby inhabitants" and "public activity" as
+ * *directly observable*, and lists only "private conversations", "intentions"
+ * and "private memories" as private. Two inhabitants standing on a tile talking
+ * for ninety minutes is a physical fact any passer-by could see; the words are
+ * not.
+ *
+ * So this export now emits, for every canonical `ActivityRecord`:
+ *
+ *   - the **envelope** — who, where, when it started, when it ended, which
+ *     primitive activity, whether it could be interrupted. Physically
+ *     observable, therefore disclosed.
+ *   - the **contents** — resolution detail, speech, reasoning, quantities.
+ *     Disclosed only when the originating canonical event was already public
+ *     or local, exactly as under policy 1.
+ *
+ * `contentsDisclosed` marks which is which on every record, so the spectator
+ * can render an honest "something happened here and its contents are withheld"
+ * rather than either inventing behaviour or pretending the time was empty.
+ *
+ * Reverting is a one-line change: set INCLUDE_ACTIVITY_ENVELOPES to false.
  */
 
 import { readFileSync, writeFileSync } from "node:fs";
@@ -87,10 +113,72 @@ function eventProjection(event: JsonObject) {
   };
 }
 
+/** Set to false to revert to policy 1 (canonical events only). */
+const INCLUDE_ACTIVITY_ENVELOPES = true;
+
+/**
+ * Which canonical event sequences disclosed their contents. An activity's
+ * contents are disclosed exactly when its originating event's were — the
+ * envelope projection never widens content visibility.
+ */
+const disclosedSequences = new Set(
+  events
+    .filter((event) => {
+      const kind = String((event.visibility as JsonObject).kind);
+      return kind === "public" || kind === "local";
+    })
+    .map((event) => Number(event.sequence)),
+);
+
+/**
+ * Project one canonical `ActivityRecord` to a physically observable envelope.
+ * Nothing here is invented: every field is copied from canonical state.
+ */
+function activityProjection(activity: JsonObject) {
+  const sequence = Number(activity.sequence);
+  const location = activity.location as JsonObject;
+  return {
+    id: activity.id,
+    sequence,
+    actionType: activity.actionType,
+    activityState: activity.state,
+    participants: [...((activity.participants as string[]) ?? [])].sort(),
+    location: { x: Number(location.x), y: Number(location.y) },
+    startedAt: Number(activity.startedAt),
+    endsAt: Number(activity.endsAt),
+    interruption: activity.interruption,
+    open: Boolean(activity.open),
+    contentsDisclosed: disclosedSequences.has(sequence),
+  };
+}
+
+const activities = INCLUDE_ACTIVITY_ENVELOPES
+  ? Object.values((state.activities ?? {}) as Record<string, JsonObject>)
+      .map(activityProjection)
+      .sort(
+        (left, right) =>
+          left.startedAt - right.startedAt ||
+          left.sequence - right.sequence ||
+          String(left.id).localeCompare(String(right.id)),
+      )
+  : [];
+
 const output = {
-  exportVersion: 1,
+  exportVersion: 2,
   disclosurePolicy:
-    "Canonical public and local physical facts only. Private and participant-only contents are withheld.",
+    "Canonical public and local physical facts, plus physically observable activity envelopes. " +
+    "Private and participant-only contents are withheld.",
+  disclosure: {
+    policyVersion: 2,
+    envelope:
+      "Activity envelopes — participants, location, primitive activity, start and end time — are " +
+      "disclosed for every canonical activity, because an inhabitant occupying a tile for a " +
+      "measurable period is directly observable (claude.md §11E).",
+    contents:
+      "Activity contents — speech, reasoning, quantities, resolution detail — are disclosed only " +
+      "when the originating canonical event was public or local. `contentsDisclosed` marks each " +
+      "record. Withheld contents are never reconstructed, summarised or inferred.",
+  },
   world: {
     id: state.worldId,
     seed: state.seed,
@@ -108,8 +196,12 @@ const output = {
   inhabitants,
   structures: Object.values((state.structures ?? {}) as Record<string, JsonObject>),
   artifacts: Object.values((state.artifacts ?? {}) as Record<string, JsonObject>),
+  activities,
   events: events.map(eventProjection),
 };
 
 writeFileSync(outputFile, `${JSON.stringify(output, null, 2)}\n`, "utf8");
-console.log(`Wrote ${output.events.length} events to ${outputFile.pathname}`);
+console.log(
+  `Wrote ${output.events.length} events and ${activities.length} activity envelopes ` +
+    `to ${outputFile.pathname}`,
+);

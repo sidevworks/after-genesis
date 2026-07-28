@@ -233,9 +233,38 @@ export interface SceneDescription {
   references: SceneReference[];
 }
 
+/**
+ * A physically observable activity envelope (disclosure policy 2).
+ *
+ * The envelope is always disclosed: an inhabitant occupying a tile for a
+ * measurable period is directly observable (claude.md §11E). `contentsDisclosed`
+ * says whether the originating canonical event also disclosed *what happened* —
+ * when it is false, the Observatory must render the occupied time honestly and
+ * invent nothing about it.
+ */
+export interface ActivityEnvelope {
+  id: string;
+  sequence: number;
+  actionType: string;
+  activityState: string;
+  participants: string[];
+  location: { x: number; y: number };
+  startedAt: number;
+  endsAt: number;
+  interruption: string;
+  open: boolean;
+  contentsDisclosed: boolean;
+}
+
 export interface ObservatoryRun {
   exportVersion: number;
   disclosurePolicy: string;
+  disclosure?: {
+    policyVersion: number;
+    envelope: string;
+    contents: string;
+  };
+  activities?: ActivityEnvelope[];
   world: {
     id: string;
     seed: string;

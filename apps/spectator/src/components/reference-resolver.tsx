@@ -7,9 +7,44 @@ import { observatorySource } from "@/lib/observatory-source";
 import type { CameraMode } from "@/lib/observatory-types";
 import { resolveReferenceAddress } from "@/lib/reference-address";
 import { ReferencePanel } from "./reference-panel";
-import { FollowCameraView } from "./follow-camera-view";
-import { EventReplayView } from "./event-replay-view";
+import { CinemaViewport } from "./cinema/cinema-viewport";
 import { Badge, KeyValue, Panel } from "./ui";
+
+/**
+ * Where a `watch` deep link should drop the playhead.
+ *
+ * Following an inhabitant starts at their first canonical record, so the link
+ * plays a life rather than a final freeze-frame. Watching an event starts a
+ * short lead-in before it, so the moment arrives on screen instead of being
+ * already over — the lead-in shows canonical record like any other interval and
+ * is not a reconstruction of anything.
+ */
+const EVENT_LEAD_IN_MINUTES = 45;
+
+interface WatchTarget {
+  readonly subjectId: string | null;
+  readonly initialTick: number;
+}
+
+function watchTargetFor(
+  record: { referenceClass: string; canonicalMetadata: Record<string, unknown> },
+  run: ReturnType<typeof observatorySource.getRun>,
+): WatchTarget {
+  if (record.referenceClass === "ENT") {
+    const canonicalId = record.canonicalMetadata.canonicalId;
+    const id = typeof canonicalId === "string" ? canonicalId : null;
+    const inhabitant = run.inhabitants.find((candidate) => candidate.id === id);
+    return { subjectId: id, initialTick: inhabitant?.birthTime ?? 0 };
+  }
+
+  const sequence = Number(record.canonicalMetadata.sequence ?? Number.NaN);
+  const event = run.events.find((candidate) => candidate.sequence === sequence);
+  if (event === undefined) return { subjectId: null, initialTick: 0 };
+  return {
+    subjectId: event.actorId,
+    initialTick: Math.max(0, event.simTime - EVENT_LEAD_IN_MINUTES),
+  };
+}
 
 export function ReferenceResolver() {
   const [address, setAddress] = useState<ReturnType<typeof resolveReferenceAddress>>(null);
@@ -80,10 +115,18 @@ export function ReferenceResolver() {
           perceptible inside canonical space.
         </p>
       </header>
-      {record.referenceClass === "ENT" ? (
-        <FollowCameraView record={record} run={observatorySource.getRun()} view={view} />
-      ) : record.referenceClass === "EVT" || record.referenceClass === "ACT" ? (
-        <EventReplayView record={record} run={observatorySource.getRun()} />
+      {record.referenceClass === "ENT" ||
+      record.referenceClass === "EVT" ||
+      record.referenceClass === "ACT" ? (
+        (() => {
+          const target = watchTargetFor(record, observatorySource.getRun());
+          return (
+            <CinemaViewport
+              subjectId={target.subjectId}
+              initialTick={target.initialTick}
+            />
+          );
+        })()
       ) : (
         <Panel eyebrow="Camera resolution" title="Stable camera protocol">
           <KeyValue

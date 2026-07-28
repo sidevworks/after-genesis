@@ -53,5 +53,6 @@ test-results/
 .DS_Store
 Thumbs.db
 .idea/
+.claude/
 .vscode/*
 !.vscode/extensions.json
