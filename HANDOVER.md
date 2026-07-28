@@ -19,11 +19,12 @@
 - Branch: `main`
 - Last source commit deployed to staging:
   `f589ff255f955bfbbc220228180299e7919404b4`
-- Local commits not yet confirmed pushed at the time of this handover:
+- Staging infrastructure-hardening commits pushed to `main`:
   - `b4bde8a` — explicit Cloud Build upload exclusions
   - `5f2a58c` — use the Cloud Run origin as the task OIDC audience
   - `f589ff2` — install only worker production dependencies in the image
 - Earlier CI-verified staging-worker commit: `ce9d706`
+- Current repository head at handover: `e17b9ef`
 
 ## Staging project
 
@@ -131,6 +132,10 @@ GitHub Actions run for `ce9d706`:
 
 `https://github.com/sidevworks/after-genesis/actions/runs/30314774669`
 
+GitHub Actions run for the final staging handover head `e17b9ef`:
+
+`https://github.com/sidevworks/after-genesis/actions/runs/30316373918`
+
 Passed:
 
 - Secret scan
@@ -155,23 +160,21 @@ Live staging smoke test:
 ## Remaining work, in order
 
 1. Delete the exposed private key in the separate `after-genesis` project.
-2. Push the three local infrastructure-hardening commits and this handover,
-   then require green CI.
-3. Add durable cross-instance/day/total spend accounting. Current spend
+2. Add durable cross-instance/day/total spend accounting. Current spend
    ceilings are process-local.
-4. Add a staging-only, reversible fixture/bootstrap path. Do not reuse the
+3. Add a staging-only, reversible fixture/bootstrap path. Do not reuse the
    irreversible production Genesis command for integration testing.
-5. Run a real staging world fixture through:
+4. Run a real staging world fixture through:
    Cloud Tasks → OIDC → worker → Gemini → audit store → atomic Firestore commit.
-6. Test duplicate delivery, worker crash after commit, provider outage,
+5. Test duplicate delivery, worker crash after commit, provider outage,
    Firestore contention, queue outage, and replay from recorded responses.
-7. Connect and deploy the read-only spectator against public projections only.
-8. Resolve or formally accept the remaining production dependency advisories.
+6. Connect and deploy the read-only spectator against public projections only.
+7. Resolve or formally accept the remaining production dependency advisories.
    The slim worker image currently reports five high advisories in the Google
    client dependency chain.
-9. Complete accelerated civilization testing and the required continuous
+8. Complete accelerated civilization testing and the required continuous
    fourteen-day dress rehearsal.
-10. Produce a written launch-readiness report before considering Genesis.
+9. Produce a written launch-readiness report before considering Genesis.
 
 ## Useful inspection commands
 
