@@ -77,7 +77,10 @@ export class CloudTasksTurnQueue implements TurnQueue {
         : {
             oidcToken: {
               serviceAccountEmail: this.#options.serviceAccountEmail,
-              audience: this.#options.audience ?? this.#options.workerUrl,
+              // Cloud Run validates the service origin as the OIDC audience,
+              // not the route path that receives the task.
+              audience:
+                this.#options.audience ?? new URL(this.#options.workerUrl).origin,
             },
           };
 

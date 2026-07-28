@@ -38,7 +38,7 @@ describe("CloudTasksTurnQueue", () => {
         name: string;
         httpRequest: {
           body: string;
-          oidcToken?: { serviceAccountEmail: string };
+          oidcToken?: { serviceAccountEmail: string; audience: string };
         };
       };
     };
@@ -47,6 +47,7 @@ describe("CloudTasksTurnQueue", () => {
     expect(first?.task.name).toBe(second?.task.name);
     expect(first?.task.name).toMatch(/\/tasks\/turn-[0-9a-f]{40}$/);
     expect(first?.task.httpRequest.oidcToken?.serviceAccountEmail).toContain("@project");
+    expect(first?.task.httpRequest.oidcToken?.audience).toBe("https://worker.example");
     expect(
       JSON.parse(Buffer.from(first?.task.httpRequest.body ?? "", "base64").toString("utf8")),
     ).toEqual(task);
