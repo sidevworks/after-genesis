@@ -92,15 +92,23 @@ function capabilitiesFor(
   }
 
   if (referenceClass === "EVT") {
-    capabilities.replay = isWithheld
-      ? { available: false, reason: "Canonical visibility withholds this event's contents." }
-      : { available: true, modes: ["PATH_REPLAY", "SITE_VIEW"] };
+    capabilities.replay = {
+      available: true,
+      modes: isWithheld ? ["FALLBACK_REFERENCE_VIEW"] : ["PATH_REPLAY", "SITE_VIEW"],
+      ...(isWithheld
+        ? { reason: "The canonical event envelope is playable; protected contents remain withheld." }
+        : {}),
+    };
   }
 
   if (referenceClass === "ACT") {
-    capabilities.watch_action = isWithheld
-      ? { available: false, reason: "Canonical visibility withholds this action's contents." }
-      : { available: true, modes: ["PATH_REPLAY", "SITE_VIEW"] };
+    capabilities.watch_action = {
+      available: true,
+      modes: isWithheld ? ["FALLBACK_REFERENCE_VIEW"] : ["PATH_REPLAY", "SITE_VIEW"],
+      ...(isWithheld
+        ? { reason: "The canonical action envelope is playable; protected contents remain withheld." }
+        : {}),
+    };
     capabilities.replay = capabilities.watch_action;
   }
 

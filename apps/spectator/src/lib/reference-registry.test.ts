@@ -97,6 +97,13 @@ describe("Observatory reference registry", () => {
     );
     expect(withheld).toBeDefined();
     expect(withheld?.canonicalMetadata.detail).toBeNull();
-    expect(withheld?.capabilityManifest.replay?.available).toBe(false);
+    expect(withheld?.capabilityManifest.replay?.available).toBe(true);
+  });
+
+  it("makes every canonical event playable without violating visibility", () => {
+    const registry = buildReferenceRegistry(run);
+    const events = registry.records.filter((record) => record.referenceClass === "EVT");
+    expect(events).toHaveLength(run.events.length);
+    expect(events.every((record) => record.capabilityManifest.replay?.available)).toBe(true);
   });
 });

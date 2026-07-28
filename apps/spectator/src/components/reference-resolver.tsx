@@ -7,6 +7,8 @@ import { observatorySource } from "@/lib/observatory-source";
 import type { CameraMode } from "@/lib/observatory-types";
 import { resolveReferenceAddress } from "@/lib/reference-address";
 import { ReferencePanel } from "./reference-panel";
+import { FollowCameraView } from "./follow-camera-view";
+import { EventReplayView } from "./event-replay-view";
 import { Badge, KeyValue, Panel } from "./ui";
 
 export function ReferenceResolver() {
@@ -78,19 +80,25 @@ export function ReferenceResolver() {
           perceptible inside canonical space.
         </p>
       </header>
-      <Panel eyebrow="Camera resolution" title="Stable camera protocol">
-        <KeyValue
-          rows={[
-            { key: "Target", value: record.refId, mono: true },
-            { key: "Requested mode", value: requestedMode, mono: true },
-            { key: "Resolved mode", value: view.resolvedMode, mono: true },
-            { key: "World tick", value: scene.worldTick, mono: true },
-            { key: "Anchor", value: view.anchor?.anchorId ?? "No valid spatial anchor", mono: true },
-            { key: "Fallback", value: view.fallbackReason ?? "None" },
-            { key: "World write path", value: "ABSENT", mono: true },
-          ]}
-        />
-      </Panel>
+      {record.referenceClass === "ENT" ? (
+        <FollowCameraView record={record} run={observatorySource.getRun()} view={view} />
+      ) : record.referenceClass === "EVT" || record.referenceClass === "ACT" ? (
+        <EventReplayView record={record} run={observatorySource.getRun()} />
+      ) : (
+        <Panel eyebrow="Camera resolution" title="Stable camera protocol">
+          <KeyValue
+            rows={[
+              { key: "Target", value: record.refId, mono: true },
+              { key: "Requested mode", value: requestedMode, mono: true },
+              { key: "Resolved mode", value: view.resolvedMode, mono: true },
+              { key: "World tick", value: scene.worldTick, mono: true },
+              { key: "Anchor", value: view.anchor?.anchorId ?? "No valid spatial anchor", mono: true },
+              { key: "Fallback", value: view.fallbackReason ?? "None" },
+              { key: "World write path", value: "ABSENT", mono: true },
+            ]}
+          />
+        </Panel>
+      )}
       <ReferencePanel record={record} related={related} />
     </div>
   );
