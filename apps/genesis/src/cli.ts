@@ -154,10 +154,20 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   };
 }
 
-function demoConfig(
-  modelId: string = "offline-instinct-cognition-v2",
-  mechanicalTest = true,
-): GenesisConfig {
+/**
+ * The world begins with exactly one inhabitant (§7).
+ *
+ * Every later inhabitant must originate from an existing one through the
+ * world's own creation action. Seeding companions at Genesis would hand the
+ * founder a society it did not build, and a rehearsal that started that way
+ * would not be exercising the path that actually runs at launch: whether one
+ * inhabitant can survive alone, and whether it ever chooses to create another.
+ *
+ * The engine still supports additional inhabitants at Genesis — see
+ * GenesisConfig.inhabitants and its tests. This configuration simply declines
+ * to use that, because the experiment is what one founder does.
+ */
+function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
@@ -169,36 +179,10 @@ function demoConfig(
       modelId,
       sex: "female",
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-      traits: mechanicalTest ? { curiosity: 75, patience: 60 } : {},
-      values: mechanicalTest ? ["curiosity", "continuity"] : [],
-      privateGoals: mechanicalTest
-        ? ["remain alive and decide through experience what matters"]
-        : [],
+      traits: { curiosity: 75, patience: 60 },
+      values: ["curiosity", "continuity"],
+      privateGoals: ["remain alive and decide through experience what matters"],
     },
-    inhabitants: mechanicalTest
-      ? [
-          {
-            id: "inh_ember",
-            displayName: "Ember",
-            modelId,
-            sex: "male",
-            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-            traits: { curiosity: 55, patience: 80 },
-            values: ["continuity", "patience"],
-            privateGoals: ["understand nearby beings through their voluntary actions"],
-          },
-          {
-            id: "inh_lumen",
-            displayName: "Lumen",
-            modelId,
-            sex: "female",
-            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-            traits: { curiosity: 85, patience: 45 },
-            values: ["experimentation", "independence"],
-            privateGoals: ["test ideas against observable consequences"],
-          },
-        ]
-      : [],
   };
 }
 
@@ -511,7 +495,7 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       args.provider === "offline"
         ? "offline-instinct-cognition-v2"
         : resolveModelRouting(process.env).routine;
-    const config = demoConfig(modelId, true);
+    const config = demoConfig(modelId);
     if (!args.resume) {
       await commitGenesis(
         { eventStore, stateStore, clock, provenance: PROVENANCE },
