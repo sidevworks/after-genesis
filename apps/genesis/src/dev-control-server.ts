@@ -11,7 +11,6 @@ loadEnvFile(resolve(ROOT, ".env"));
 
 const PORT = Number(process.env.AG_DEV_CONTROL_PORT ?? 8787);
 const RUN_DIR = process.env.AG_DEV_RUN_DIR ?? ".worlds/dev-rehearsal";
-const MAX_PAID_RUN_USD = process.env.AG_DEV_MAX_SPEND_USD ?? "5";
 
 /**
  * Where this controller publishes the world it drives. Untracked, and separate
@@ -249,7 +248,6 @@ async function reset(): Promise<void> {
       "0",
       "--provider",
       activeProvider,
-      ...(activeProvider === "gemini" ? ["--max-spend-usd", MAX_PAID_RUN_USD] : []),
       "--output",
       RUN_DIR,
     ],
@@ -283,7 +281,6 @@ async function advance(params: URLSearchParams): Promise<void> {
         "1",
         "--provider",
         activeProvider,
-        ...(activeProvider === "gemini" ? ["--max-spend-usd", MAX_PAID_RUN_USD] : []),
         "--output",
         RUN_DIR,
       ],
@@ -315,7 +312,6 @@ async function fastForward(params: URLSearchParams): Promise<void> {
       String(days),
       "--provider",
       activeProvider,
-      ...(activeProvider === "gemini" ? ["--max-spend-usd", MAX_PAID_RUN_USD] : []),
       "--output",
       RUN_DIR,
     ],
