@@ -51,6 +51,7 @@ export function DevWorldControls() {
   const [provider, setProvider] = useState<"gemini" | "offline">("offline");
   const liveRefreshRef = useRef(false);
   const lastChainHeadRef = useRef<string | null>(null);
+  const providerInitializedRef = useRef(false);
 
   async function refresh() {
     try {
@@ -58,7 +59,10 @@ export function DevWorldControls() {
       if (!response.ok) throw new Error(`controller returned ${response.status}`);
       const body = (await response.json()) as DevStatus;
       setStatus(body);
-      setProvider(body.provider);
+      if (!providerInitializedRef.current) {
+        providerInitializedRef.current = true;
+        setProvider(body.provider);
+      }
       setError(null);
       const chainHead = body.summary?.chainHead ?? null;
       if (liveRefreshRef.current && chainHead !== null && chainHead !== lastChainHeadRef.current) {
