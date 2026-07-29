@@ -358,13 +358,61 @@ function listNames(ids: readonly string[], state: WorldState): string {
   return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
 }
 
+/**
+ * What an inhabitant reached for, when the world refused to let them have it.
+ *
+ * Deliberately an attempt rather than an accomplishment: a rejected action
+ * changed nothing, and the log has to say so.
+ */
+function formatRejection(
+  actionType: string,
+  actor: string,
+  payload: Readonly<Record<string, unknown>>,
+  reason: string | null,
+): string {
+  const resource = textAt(payload, "resource");
+  const attempt =
+    actionType === "gather"
+      ? `gather ${resource ?? "resources"}`
+      : actionType === "consume"
+        ? `consume ${resource ?? "resources"}`
+        : actionType === "move"
+          ? `move${coordText(payload.to) === null ? "" : ` to ${coordText(payload.to)}`}`
+          : actionType.replace(/_/g, " ");
+  return `${actor} tried to ${attempt}, without effect${reason === null ? "" : `: ${reason}`}.`;
+}
+
 function formatEventDescription(e: CanonicalEvent, state: WorldState): string {
   if (e.type === "genesis") return "Genesis — the world is spoken into being.";
   const actor = actorName(e, state);
   const payload = payloadOf(e);
   const detail = (e.resolution as { readonly detail?: unknown } | undefined)?.detail;
-  const outcome = (e.resolution as { readonly outcome?: { readonly detail?: unknown } } | undefined)
-    ?.outcome;
+  const outcome = (
+    e.resolution as
+      | {
+          readonly outcome?: {
+            readonly detail?: unknown;
+            readonly status?: unknown;
+            readonly reason?: unknown;
+          };
+        }
+      | undefined
+  )?.outcome;
+
+  // A refused action is not a smaller version of a successful one. Rendering it
+  // as an accomplishment states that something occurred which did not, and this
+  // log is the engine's record of what observably happened (§16, §11G).
+  if (outcome?.status === "rejected") {
+    return formatRejection(
+      e.type.replace(/^action\./, ""),
+      actor,
+      payload,
+      typeof outcome.reason === "string" && outcome.reason.trim().length > 0
+        ? outcome.reason.trim()
+        : null,
+    );
+  }
+
   const outcomeDetail = outcome?.detail;
   const resolved =
     typeof outcomeDetail === "object" && outcomeDetail !== null
@@ -386,7 +434,9 @@ function formatEventDescription(e: CanonicalEvent, state: WorldState): string {
   }
   if (actionType === "consume") {
     const resource = textAt(payload, "resource") ?? textAt(resolved, "resource") ?? "resources";
-    const amount = numberAt(payload, "amount");
+    // What was actually consumed, not merely what was asked for: the engine may
+    // resolve a different amount than the proposal named.
+    const amount = numberAt(resolved, "amount") ?? numberAt(payload, "amount");
     return `${actor} consumed${amount === null ? "" : ` ${amount}`} ${resource}.`;
   }
   if (actionType === "rest") {
