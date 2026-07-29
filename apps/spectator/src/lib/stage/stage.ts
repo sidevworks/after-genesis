@@ -401,12 +401,15 @@ export class Stage {
     };
 
     this.onWheel = (event: WheelEvent) => {
-      event.preventDefault();
-      beginOverride();
-      this.overrideDistance = Math.min(
-        Math.max(this.overrideDistance + event.deltaY * 0.014, 3),
-        70,
-      );
+      // Only capture wheel events for 3D camera zoom if modifier key is held
+      if (event.ctrlKey || event.metaKey || event.altKey) {
+        event.preventDefault();
+        beginOverride();
+        this.overrideDistance = Math.min(
+          Math.max(this.overrideDistance + event.deltaY * 0.014, 3),
+          70,
+        );
+      }
     };
 
     canvas.addEventListener("pointerdown", this.onPointerDown);

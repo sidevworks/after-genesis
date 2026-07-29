@@ -119,7 +119,8 @@ export interface Structure {
     | "workshop"
     | "well"
     | "bridge"
-    | "monument";
+    | "monument"
+    | (string & {});
   at: Coord;
   /** Inhabitant id, or organisation id when owned communally. */
   ownerId: string;

@@ -6,8 +6,8 @@
   "genesisSeed": "ag-genesis-2026-07-07-0x5eed7a91",
   "schemaVersion": "world-rules/1.4.0",
   "status": "running",
-  "simTime": 90140,
-  "lastEventAt": "2026-07-28T03:53:20.000Z",
+  "simTime": 129020,
+  "lastEventAt": "2026-08-06T06:20:00.000Z",
   "mapWidth": 32,
   "mapHeight": 32,
   "population": {
@@ -23,9 +23,9 @@
   "structureCount": 8,
   "organisationCount": 2,
   "artifactCount": 6,
-  "eventCount": 234,
-  "chainHead": "sha256:8bf69866518e41d74dd6dcf38e2a2fd303291830b1faa4515ba1ec82ab9b25d7",
-  "stateChecksum": "sha256:dbefda6081f48c80d1dc0652e70ee5a0662f4b318ab064cd5564cbd584c598a8",
+  "eventCount": 338,
+  "chainHead": "sha256:d23b82e15a653f9e19eea49c74c787405de33fc95d95c1e9b0ca137077e39d8f",
+  "stateChecksum": "sha256:ce064ad112a06888c444048d7e1fe3a1f30127c44ddb6ae37978714929c3e40e",
   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f"
  },
@@ -8056,7 +8056,7 @@
    },
    "birthSimTime": 0,
    "parentIds": [],
-   "energy": 0.45,
+   "energy": 0.95,
    "activity": "resting",
    "reputation": 0.82,
    "creationEventId": "EV-00000",
@@ -8103,49 +8103,49 @@
    "needs": [
     {
      "name": "food",
-     "level": 0.98
-    },
-    {
-     "name": "water",
-     "level": 0.33
-    },
-    {
-     "name": "rest",
      "level": 0.85
     },
     {
-     "name": "safety",
+     "name": "water",
      "level": 0.95
     },
     {
-     "name": "purpose",
+     "name": "rest",
      "level": 0.82
+    },
+    {
+     "name": "safety",
+     "level": 0.57
+    },
+    {
+     "name": "purpose",
+     "level": 0.87
     }
    ],
    "computeAllowance": {
-    "usedToday": 3.3,
+    "usedToday": 4.3,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 35
-    },
-    {
-     "resource": "water",
-     "quantity": 33
-    },
-    {
-     "resource": "wood",
      "quantity": 17
     },
     {
-     "resource": "stone",
+     "resource": "water",
      "quantity": 16
     },
     {
+     "resource": "wood",
+     "quantity": 30
+    },
+    {
+     "resource": "stone",
+     "quantity": 20
+    },
+    {
      "resource": "energy",
-     "quantity": 28
+     "quantity": 11
     }
    ],
    "property": {
@@ -8235,6 +8235,22 @@
      "valence": -0.1,
      "since": 46820,
      "interactionCount": 1
+    },
+    {
+     "otherId": "INH-009",
+     "otherName": "Iolen",
+     "kind": "acquaintance",
+     "valence": 0.41,
+     "since": 35470,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-012",
+     "otherName": "Lume",
+     "kind": "acquaintance",
+     "valence": 0.36,
+     "since": 52955,
+     "interactionCount": 1
     }
    ],
    "reputationDetail": [
@@ -8269,21 +8285,21 @@
     }
    ],
    "health": {
-    "integrity": 0.85,
+    "integrity": 0.8,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-001-22b3",
-    "description": "resonant and slow"
+    "description": "warm, slightly rough"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.6-flash",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89892,
-   "nextEligibleSimTime": 90268,
+   "lastActionSimTime": 128798,
+   "nextEligibleSimTime": 129294,
    "topSkill": {
     "name": "construction",
     "level": 0.71
@@ -8448,7 +8464,7 @@
      "kind": "child",
      "valence": 0.18,
      "since": 26545,
-     "interactionCount": 3
+     "interactionCount": 4
     },
     {
      "otherId": "INH-005",
@@ -8456,7 +8472,7 @@
      "kind": "sibling",
      "valence": 0.28,
      "since": 16335,
-     "interactionCount": 8
+     "interactionCount": 9
     },
     {
      "otherId": "INH-010",
@@ -8488,7 +8504,7 @@
      "kind": "adversary",
      "valence": -0.71,
      "since": 35470,
-     "interactionCount": 6
+     "interactionCount": 7
     }
    ],
    "reputationDetail": [
@@ -8562,8 +8578,8 @@
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89762,
-   "nextEligibleSimTime": 90168,
+   "lastActionSimTime": 128642,
+   "nextEligibleSimTime": 129048,
    "topSkill": {
     "name": "organisation",
     "level": 0.69
@@ -8805,7 +8821,7 @@
    "parentIds": [
     "INH-001"
    ],
-   "energy": 0.27,
+   "energy": 0.25,
    "activity": "studying",
    "reputation": 0.7,
    "creationEventId": "EV-00021",
@@ -8843,54 +8859,54 @@
     "shared shelter",
     "collective decision"
    ],
-   "privateGoalCount": 2,
+   "privateGoalCount": 4,
    "disclosedGoals": [],
    "needs": [
     {
      "name": "food",
-     "level": 0.96
-    },
-    {
-     "name": "water",
      "level": 0.39
     },
     {
-     "name": "rest",
+     "name": "water",
      "level": 0.8
     },
     {
-     "name": "safety",
+     "name": "rest",
      "level": 0.97
     },
     {
-     "name": "purpose",
+     "name": "safety",
      "level": 0.95
+    },
+    {
+     "name": "purpose",
+     "level": 0.48
     }
    ],
    "computeAllowance": {
-    "usedToday": 2.5,
+    "usedToday": 3,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 21
-    },
-    {
-     "resource": "water",
      "quantity": 26
     },
     {
-     "resource": "wood",
+     "resource": "water",
      "quantity": 14
     },
     {
-     "resource": "stone",
+     "resource": "wood",
      "quantity": 35
     },
     {
+     "resource": "stone",
+     "quantity": 12
+    },
+    {
      "resource": "energy",
-     "quantity": 10
+     "quantity": 15
     }
    ],
    "property": {
@@ -8975,6 +8991,14 @@
      "valence": -0.18,
      "since": 20990,
      "interactionCount": 1
+    },
+    {
+     "otherId": "INH-008",
+     "otherName": "Hallow",
+     "kind": "acquaintance",
+     "valence": 0.11,
+     "since": 30645,
+     "interactionCount": 1
     }
    ],
    "reputationDetail": [
@@ -8984,7 +9008,7 @@
     },
     {
      "context": "The Ridge Compact",
-     "value": 0.64
+     "value": 0.49
     }
    ],
    "memberships": [
@@ -9013,21 +9037,21 @@
     }
    ],
    "health": {
-    "integrity": 0.83,
+    "integrity": 0.73,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-004-261d",
-    "description": "low, even, unhurried"
+    "description": "warm, slightly rough"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 90004,
-   "nextEligibleSimTime": 90368,
+   "lastActionSimTime": 128742,
+   "nextEligibleSimTime": 129318,
    "topSkill": {
     "name": "writing",
     "level": 0.72
@@ -9046,7 +9070,7 @@
    "parentIds": [
     "INH-001"
    ],
-   "energy": 0.35,
+   "energy": 0.47,
    "activity": "crafting",
    "reputation": 0.66,
    "creationEventId": "EV-00028",
@@ -9084,54 +9108,54 @@
     "fair exchange",
     "care for the young"
    ],
-   "privateGoalCount": 2,
+   "privateGoalCount": 4,
    "disclosedGoals": [],
    "needs": [
     {
      "name": "food",
-     "level": 0.78
-    },
-    {
-     "name": "water",
      "level": 0.64
     },
     {
-     "name": "rest",
+     "name": "water",
      "level": 0.93
     },
     {
-     "name": "safety",
+     "name": "rest",
      "level": 0.37
     },
     {
-     "name": "purpose",
+     "name": "safety",
      "level": 0.23
+    },
+    {
+     "name": "purpose",
+     "level": 0.52
     }
    ],
    "computeAllowance": {
-    "usedToday": 2.9,
+    "usedToday": 1.3,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 21
-    },
-    {
-     "resource": "water",
      "quantity": 37
     },
     {
-     "resource": "wood",
+     "resource": "water",
      "quantity": 35
     },
     {
-     "resource": "stone",
+     "resource": "wood",
      "quantity": 5
     },
     {
+     "resource": "stone",
+     "quantity": 26
+    },
+    {
      "resource": "energy",
-     "quantity": 24
+     "quantity": 27
     }
    ],
    "property": {
@@ -9185,7 +9209,7 @@
      "kind": "sibling",
      "valence": 0.19,
      "since": 16335,
-     "interactionCount": 8
+     "interactionCount": 9
     },
     {
      "otherId": "INH-004",
@@ -9234,6 +9258,14 @@
      "valence": 0.33,
      "since": 40915,
      "interactionCount": 2
+    },
+    {
+     "otherId": "INH-012",
+     "otherName": "Lume",
+     "kind": "acquaintance",
+     "valence": 0.11,
+     "since": 52955,
+     "interactionCount": 1
     }
    ],
    "reputationDetail": [
@@ -9243,7 +9275,7 @@
     },
     {
      "context": "The Ridge Compact",
-     "value": 0.5
+     "value": 0.47
     }
    ],
    "memberships": [
@@ -9280,21 +9312,21 @@
    ],
    "publicMemories": [],
    "health": {
-    "integrity": 0.92,
+    "integrity": 0.76,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-005-1a44",
-    "description": "low, even, unhurried"
+    "description": "bright and clipped"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 90029,
-   "nextEligibleSimTime": 90443,
+   "lastActionSimTime": 128642,
+   "nextEligibleSimTime": 129212,
    "topSkill": {
     "name": "crafting",
     "level": 0.77
@@ -9560,8 +9592,8 @@
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89830,
-   "nextEligibleSimTime": 90259,
+   "lastActionSimTime": 128710,
+   "nextEligibleSimTime": 129139,
    "topSkill": {
     "name": "construction",
     "level": 0.58
@@ -9580,7 +9612,7 @@
    "parentIds": [
     "INH-002"
    ],
-   "energy": 0.44,
+   "energy": 0.87,
    "activity": "gathering",
    "reputation": 0.52,
    "creationEventId": "EV-00048",
@@ -9616,54 +9648,54 @@
     "self-reliance",
     "freedom of movement"
    ],
-   "privateGoalCount": 2,
+   "privateGoalCount": 3,
    "disclosedGoals": [],
    "needs": [
     {
      "name": "food",
-     "level": 0.89
-    },
-    {
-     "name": "water",
-     "level": 0.55
-    },
-    {
-     "name": "rest",
      "level": 0.69
     },
     {
-     "name": "safety",
+     "name": "water",
      "level": 0.58
     },
     {
-     "name": "purpose",
+     "name": "rest",
      "level": 0.63
+    },
+    {
+     "name": "safety",
+     "level": 0.28
+    },
+    {
+     "name": "purpose",
+     "level": 0.3
     }
    ],
    "computeAllowance": {
-    "usedToday": 0.7,
+    "usedToday": 3.1,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 29
-    },
-    {
-     "resource": "water",
-     "quantity": 24
-    },
-    {
-     "resource": "wood",
      "quantity": 36
     },
     {
-     "resource": "stone",
+     "resource": "water",
      "quantity": 16
     },
     {
+     "resource": "wood",
+     "quantity": 35
+    },
+    {
+     "resource": "stone",
+     "quantity": 23
+    },
+    {
      "resource": "energy",
-     "quantity": 33
+     "quantity": 11
     }
    ],
    "property": {
@@ -9700,7 +9732,7 @@
      "kind": "parent",
      "valence": 0.12,
      "since": 26545,
-     "interactionCount": 3
+     "interactionCount": 4
     },
     {
      "otherId": "INH-006",
@@ -9724,6 +9756,22 @@
      "kind": "sibling",
      "valence": -0.02,
      "since": 40915,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-011",
+     "otherName": "Kessa",
+     "kind": "acquaintance",
+     "valence": 0.28,
+     "since": 46820,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-012",
+     "otherName": "Lume",
+     "kind": "acquaintance",
+     "valence": 0.18,
+     "since": 52955,
      "interactionCount": 1
     }
    ],
@@ -9759,21 +9807,21 @@
    ],
    "publicMemories": [],
    "health": {
-    "integrity": 0.87,
+    "integrity": 0.75,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-007-b01",
-    "description": "low, even, unhurried"
+    "description": "dry and precise"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89966,
-   "nextEligibleSimTime": 90315,
+   "lastActionSimTime": 129016,
+   "nextEligibleSimTime": 129178,
    "topSkill": {
     "name": "construction",
     "level": 0.54
@@ -9792,7 +9840,7 @@
    "parentIds": [
     "INH-003"
    ],
-   "energy": 0.37,
+   "energy": 0.74,
    "activity": "caring",
    "reputation": 0.68,
    "creationEventId": "EV-00060",
@@ -9833,49 +9881,49 @@
    "needs": [
     {
      "name": "food",
-     "level": 0.74
-    },
-    {
-     "name": "water",
-     "level": 0.43
-    },
-    {
-     "name": "rest",
      "level": 0.6
     },
     {
-     "name": "safety",
+     "name": "water",
      "level": 0.23
     },
     {
-     "name": "purpose",
+     "name": "rest",
      "level": 0.58
+    },
+    {
+     "name": "safety",
+     "level": 0.52
+    },
+    {
+     "name": "purpose",
+     "level": 0.94
     }
    ],
    "computeAllowance": {
-    "usedToday": 2.9,
+    "usedToday": 3.7,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 15
-    },
-    {
-     "resource": "water",
-     "quantity": 30
-    },
-    {
-     "resource": "wood",
      "quantity": 31
     },
     {
-     "resource": "stone",
+     "resource": "water",
      "quantity": 13
     },
     {
+     "resource": "wood",
+     "quantity": 35
+    },
+    {
+     "resource": "stone",
+     "quantity": 20
+    },
+    {
      "resource": "energy",
-     "quantity": 33
+     "quantity": 7
     }
    ],
    "property": {
@@ -9941,7 +9989,7 @@
      "kind": "acquaintance",
      "valence": 0.23,
      "since": 46820,
-     "interactionCount": 1
+     "interactionCount": 2
     },
     {
      "otherId": "INH-010",
@@ -9949,6 +9997,22 @@
      "kind": "acquaintance",
      "valence": 0.37,
      "since": 40915,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-004",
+     "otherName": "Dovie",
+     "kind": "acquaintance",
+     "valence": -0.01,
+     "since": 30645,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-009",
+     "otherName": "Iolen",
+     "kind": "acquaintance",
+     "valence": 0.29,
+     "since": 35470,
      "interactionCount": 1
     }
    ],
@@ -9959,7 +10023,7 @@
     },
     {
      "context": "The Low Water Circle",
-     "value": 0.92
+     "value": 0.62
     }
    ],
    "memberships": [
@@ -10004,21 +10068,21 @@
     }
    ],
    "health": {
-    "integrity": 0.84,
+    "integrity": 0.73,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-008-1875",
-    "description": "dry and precise"
+    "description": "warm, slightly rough"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89978,
-   "nextEligibleSimTime": 90295,
+   "lastActionSimTime": 128745,
+   "nextEligibleSimTime": 129062,
    "topSkill": {
     "name": "diagnosis",
     "level": 0.46
@@ -10037,7 +10101,7 @@
    "parentIds": [
     "INH-004"
    ],
-   "energy": 0.25,
+   "energy": 0.56,
    "activity": "conversing",
    "reputation": 0.38,
    "creationEventId": "EV-00080",
@@ -10078,49 +10142,49 @@
    "needs": [
     {
      "name": "food",
-     "level": 0.96
+     "level": 0.22
     },
     {
      "name": "water",
-     "level": 0.69
+     "level": 0.71
     },
     {
      "name": "rest",
-     "level": 0.54
+     "level": 0.51
     },
     {
      "name": "safety",
-     "level": 0.82
+     "level": 0.4
     },
     {
      "name": "purpose",
-     "level": 0.22
+     "level": 0.43
     }
    ],
    "computeAllowance": {
-    "usedToday": 4.5,
+    "usedToday": 5.3,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 12
+     "quantity": 15
     },
     {
      "resource": "water",
-     "quantity": 25
-    },
-    {
-     "resource": "wood",
-     "quantity": 22
-    },
-    {
-     "resource": "stone",
      "quantity": 4
     },
     {
+     "resource": "wood",
+     "quantity": 34
+    },
+    {
+     "resource": "stone",
+     "quantity": 37
+    },
+    {
      "resource": "energy",
-     "quantity": 13
+     "quantity": 23
     }
    ],
    "property": {
@@ -10173,7 +10237,7 @@
      "kind": "adversary",
      "valence": -0.78,
      "since": 35470,
-     "interactionCount": 6
+     "interactionCount": 7
     },
     {
      "otherId": "INH-010",
@@ -10181,13 +10245,45 @@
      "kind": "adversary",
      "valence": -0.6,
      "since": 40915,
-     "interactionCount": 7
+     "interactionCount": 8
+    },
+    {
+     "otherId": "INH-001",
+     "otherName": "Aleth",
+     "kind": "acquaintance",
+     "valence": 0.27,
+     "since": 35470,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-008",
+     "otherName": "Hallow",
+     "kind": "acquaintance",
+     "valence": -0.07,
+     "since": 35470,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-012",
+     "otherName": "Lume",
+     "kind": "acquaintance",
+     "valence": 0.19,
+     "since": 52955,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-011",
+     "otherName": "Kessa",
+     "kind": "acquaintance",
+     "valence": 0.13,
+     "since": 46820,
+     "interactionCount": 1
     },
     {
      "otherId": "INH-006",
      "otherName": "Fenne",
      "kind": "acquaintance",
-     "valence": 0.27,
+     "valence": -0.24,
      "since": 35470,
      "interactionCount": 1
     }
@@ -10230,15 +10326,15 @@
    },
    "voice": {
     "voiceId": "elv-inh-009-c9c",
-    "description": "warm, slightly rough"
+    "description": "bright and clipped"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 90038,
-   "nextEligibleSimTime": 90247,
+   "lastActionSimTime": 128821,
+   "nextEligibleSimTime": 129251,
    "topSkill": {
     "name": "research",
     "level": 0.51
@@ -10425,7 +10521,7 @@
      "kind": "adversary",
      "valence": -0.52,
      "since": 40915,
-     "interactionCount": 7
+     "interactionCount": 8
     },
     {
      "otherId": "INH-008",
@@ -10508,8 +10604,8 @@
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89843,
-   "nextEligibleSimTime": 90288,
+   "lastActionSimTime": 128723,
+   "nextEligibleSimTime": 129168,
    "topSkill": {
     "name": "organisation",
     "level": 0.48
@@ -10528,7 +10624,7 @@
    "parentIds": [
     "INH-005"
    ],
-   "energy": 0.47,
+   "energy": 0.7,
    "activity": "crafting",
    "reputation": 0.5,
    "creationEventId": "EV-00119",
@@ -10564,54 +10660,54 @@
     "plain speech",
     "self-reliance"
    ],
-   "privateGoalCount": 4,
+   "privateGoalCount": 3,
    "disclosedGoals": [],
    "needs": [
     {
      "name": "food",
-     "level": 0.55
-    },
-    {
-     "name": "water",
-     "level": 0.71
-    },
-    {
-     "name": "rest",
-     "level": 0.57
-    },
-    {
-     "name": "safety",
      "level": 0.42
     },
     {
-     "name": "purpose",
+     "name": "water",
      "level": 0.92
+    },
+    {
+     "name": "rest",
+     "level": 0.37
+    },
+    {
+     "name": "safety",
+     "level": 0.67
+    },
+    {
+     "name": "purpose",
+     "level": 0.74
     }
    ],
    "computeAllowance": {
-    "usedToday": 1.5,
+    "usedToday": 0.8,
     "dailyLimit": 10
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 10
-    },
-    {
-     "resource": "water",
-     "quantity": 16
-    },
-    {
-     "resource": "wood",
-     "quantity": 6
-    },
-    {
-     "resource": "stone",
      "quantity": 35
     },
     {
+     "resource": "water",
+     "quantity": 21
+    },
+    {
+     "resource": "wood",
+     "quantity": 16
+    },
+    {
+     "resource": "stone",
+     "quantity": 14
+    },
+    {
      "resource": "energy",
-     "quantity": 19
+     "quantity": 30
     }
    ],
    "property": {
@@ -10664,7 +10760,7 @@
      "kind": "acquaintance",
      "valence": 0.09,
      "since": 46820,
-     "interactionCount": 1
+     "interactionCount": 2
     },
     {
      "otherId": "INH-010",
@@ -10681,6 +10777,30 @@
      "valence": 0.11,
      "since": 46820,
      "interactionCount": 1
+    },
+    {
+     "otherId": "INH-009",
+     "otherName": "Iolen",
+     "kind": "acquaintance",
+     "valence": -0.11,
+     "since": 46820,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-007",
+     "otherName": "Gaure",
+     "kind": "acquaintance",
+     "valence": 0.02,
+     "since": 46820,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-012",
+     "otherName": "Lume",
+     "kind": "acquaintance",
+     "valence": -0.19,
+     "since": 52955,
+     "interactionCount": 1
     }
    ],
    "reputationDetail": [
@@ -10690,7 +10810,7 @@
     },
     {
      "context": "The Low Water Circle",
-     "value": 0.73
+     "value": 0.47
     }
    ],
    "memberships": [
@@ -10726,21 +10846,21 @@
    ],
    "publicMemories": [],
    "health": {
-    "integrity": 0.81,
+    "integrity": 0.84,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-011-2408",
-    "description": "quiet, with long pauses"
+    "description": "bright and clipped"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 90097,
-   "nextEligibleSimTime": 90197,
+   "lastActionSimTime": 128760,
+   "nextEligibleSimTime": 129267,
    "topSkill": {
     "name": "crafting",
     "level": 0.43
@@ -10759,7 +10879,7 @@
    "parentIds": [
     "INH-006"
    ],
-   "energy": 0.95,
+   "energy": 0.46,
    "activity": "conversing",
    "reputation": 0.57,
    "creationEventId": "EV-00135",
@@ -10795,54 +10915,54 @@
     "self-reliance",
     "freedom of movement"
    ],
-   "privateGoalCount": 3,
+   "privateGoalCount": 2,
    "disclosedGoals": [],
    "needs": [
     {
      "name": "food",
-     "level": 0.64
+     "level": 0.73
     },
     {
      "name": "water",
-     "level": 0.32
+     "level": 0.84
     },
     {
      "name": "rest",
-     "level": 0.67
+     "level": 0.45
     },
     {
      "name": "safety",
-     "level": 0.44
+     "level": 0.6
     },
     {
      "name": "purpose",
-     "level": 0.45
+     "level": 0.78
     }
    ],
    "computeAllowance": {
-    "usedToday": 4.8,
+    "usedToday": 0.8,
     "dailyLimit": 6
    },
    "inventory": [
     {
      "resource": "food",
-     "quantity": 17
+     "quantity": 23
     },
     {
      "resource": "water",
-     "quantity": 6
+     "quantity": 37
     },
     {
      "resource": "wood",
-     "quantity": 20
+     "quantity": 25
     },
     {
      "resource": "stone",
-     "quantity": 20
+     "quantity": 22
     },
     {
      "resource": "energy",
-     "quantity": 2
+     "quantity": 7
     }
    ],
    "property": {
@@ -10888,6 +11008,46 @@
      "valence": 0.68,
      "since": 52955,
      "interactionCount": 3
+    },
+    {
+     "otherId": "INH-001",
+     "otherName": "Aleth",
+     "kind": "acquaintance",
+     "valence": 0.03,
+     "since": 52955,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-009",
+     "otherName": "Iolen",
+     "kind": "acquaintance",
+     "valence": -0.2,
+     "since": 52955,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-005",
+     "otherName": "Erish",
+     "kind": "acquaintance",
+     "valence": 0.09,
+     "since": 52955,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-011",
+     "otherName": "Kessa",
+     "kind": "acquaintance",
+     "valence": 0.08,
+     "since": 52955,
+     "interactionCount": 1
+    },
+    {
+     "otherId": "INH-007",
+     "otherName": "Gaure",
+     "kind": "acquaintance",
+     "valence": -0.24,
+     "since": 52955,
+     "interactionCount": 1
     }
    ],
    "reputationDetail": [
@@ -10897,7 +11057,7 @@
     },
     {
      "context": "The Low Water Circle",
-     "value": 0.85
+     "value": 0.66
     }
    ],
    "memberships": [
@@ -10941,21 +11101,21 @@
     }
    ],
    "health": {
-    "integrity": 0.87,
+    "integrity": 0.88,
     "conditions": [],
     "history": []
    },
    "voice": {
     "voiceId": "elv-inh-012-7d",
-    "description": "bright and clipped"
+    "description": "dry and precise"
    },
    "model": {
     "provider": "google",
     "model": "gemini-3.5-flash-lite",
     "version": "2026-06-11"
    },
-   "lastActionSimTime": 89934,
-   "nextEligibleSimTime": 90382,
+   "lastActionSimTime": 128892,
+   "nextEligibleSimTime": 129081,
    "topSkill": {
     "name": "performance",
     "level": 0.5
@@ -18951,6 +19111,73 @@
    "id": "EV-00225",
    "worldId": "AG-1",
    "sequence": 225,
+   "simTime": 79995,
+   "actor": "INH-002",
+   "type": "gather",
+   "description": "Berrun gathered 3 units of stone at tile (15,16) over 62 minutes, consuming 1.2 units of energy.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 3
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a023f5ff63b81bd22bce9e5316c15c1292c3e02b4b888c81ec833decc0796c76",
+   "postStateChecksum": "sha256:6cf3269554a5d11ee42820120b53ba0813617cc804c577c3a3130a541a52c4dc",
+   "modelRequestHash": "sha256:03be915309cf1bcb234b72574c666866ccac09b5bdaa4d30d3b644c97818e4d1",
+   "modelResponseHash": "sha256:c3e917729e897f9c7ff6b09d9825453c73210b2f35e7c48efb70ea1db52102be",
+   "prevHash": "sha256:275a6f31a1467eec2131aa08cefa1704036dfb3ae62ded61579606ddb98f3c3d",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-25T21:25:00.000Z",
+   "hash": "sha256:d529eaf4f5eae8f8b54d13405aa68061a864e2e3b3fe210409a3d6758d9ff57d",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00226",
+   "worldId": "AG-1",
+   "sequence": 226,
+   "simTime": 80060,
+   "actor": "INH-004",
+   "type": "practise",
+   "description": "Dovie practised teaching for 173 minutes at tile (14,13). Recorded teaching proficiency increased by 0.015.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "skill": "teaching"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:6cf3269554a5d11ee42820120b53ba0813617cc804c577c3a3130a541a52c4dc",
+   "postStateChecksum": "sha256:e0f94dfbe32c590aa186e458a7793a9e6e9b7d6fe259339c261b2cb89443ae3c",
+   "modelRequestHash": "sha256:386b45d1d8e1e7e3370f9e0435d0930b6f2926db1e26e05ddbe1a994cfc22a77",
+   "modelResponseHash": "sha256:7843500eed311b97273b3f88d84ab4331aa987b84a3dde977076e1e1a510abe7",
+   "prevHash": "sha256:d529eaf4f5eae8f8b54d13405aa68061a864e2e3b3fe210409a3d6758d9ff57d",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-25T21:46:40.000Z",
+   "hash": "sha256:66b59121bfc9e61dfb8ce377985035bdfd7a2ddb172fbf2fbd97506af08da4c3",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00227",
+   "worldId": "AG-1",
+   "sequence": 227,
    "simTime": 80225,
    "actor": "INH-005",
    "type": "practise",
@@ -18963,15 +19190,15 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:a023f5ff63b81bd22bce9e5316c15c1292c3e02b4b888c81ec833decc0796c76",
-   "postStateChecksum": "sha256:3932bdced6b820f4613b929c8cfd04e936961a0f5610f895261b6add208a14f8",
-   "modelRequestHash": "sha256:1da39b2671017c0670922da1c91e95b0325fee0e498f6cfe350da73a6e73ad21",
-   "modelResponseHash": "sha256:30d6d8e18817d6d9e67c17c4f1e34a423e046fe8dd51874a0eba455274dd17a5",
-   "prevHash": "sha256:275a6f31a1467eec2131aa08cefa1704036dfb3ae62ded61579606ddb98f3c3d",
+   "preStateChecksum": "sha256:e0f94dfbe32c590aa186e458a7793a9e6e9b7d6fe259339c261b2cb89443ae3c",
+   "postStateChecksum": "sha256:5ab221e8b3043c182515cd8ea9ba976fb1c30f959c84809a0d15e4cf0d94b7d4",
+   "modelRequestHash": "sha256:650cc48b2441488c0a7a2dc6ff2b6b01a3e3f16062732a89d86f24ae9f3b9040",
+   "modelResponseHash": "sha256:d0d7da083d0b9492d358aa51f1188e8d2ac51616178730b0e4e75aa3b4c5084c",
+   "prevHash": "sha256:66b59121bfc9e61dfb8ce377985035bdfd7a2ddb172fbf2fbd97506af08da4c3",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Erish",
    "realTime": "2026-07-25T22:41:40.000Z",
-   "hash": "sha256:8a76d2878c51ac108eaccb97d9fcc97d043258a79c3315b23374da77eb767b8d",
+   "hash": "sha256:f371e715591d9ee4f04371d446b47e0e49a78875da601f24657ece3f566e5d34",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [],
@@ -18981,9 +19208,81 @@
    }
   },
   {
-   "id": "EV-00226",
+   "id": "EV-00228",
    "worldId": "AG-1",
-   "sequence": 226,
+   "sequence": 228,
+   "simTime": 81075,
+   "actor": "INH-011",
+   "type": "move",
+   "description": "Kessa moved from tile (11,19) to tile (12,19) over 51 minutes.",
+   "subjects": [
+    "INH-011"
+   ],
+   "inputs": {
+    "fromX": 11,
+    "fromY": 19,
+    "toX": 12,
+    "toY": 19
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:5ab221e8b3043c182515cd8ea9ba976fb1c30f959c84809a0d15e4cf0d94b7d4",
+   "postStateChecksum": "sha256:25aad5eb64cb8ba3d21fc901cf590fe4df424ad41a8f4a8b5760b47786cbe07e",
+   "modelRequestHash": "sha256:2eb4019651d00d0641f63b373c8afeb83ba061213197a955c030bd4f70a339eb",
+   "modelResponseHash": "sha256:e5e0b4ba24d4a4b5c39131c9643d2e765b4bffa5cb06055df9ba9c2607f95f88",
+   "prevHash": "sha256:f371e715591d9ee4f04371d446b47e0e49a78875da601f24657ece3f566e5d34",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-07-26T03:25:00.000Z",
+   "hash": "sha256:7c557b948d5d74c0d39b54548578eae56fb9c628b4f2402d509ea300a6ea0198",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00229",
+   "worldId": "AG-1",
+   "sequence": 229,
+   "simTime": 81080,
+   "actor": "INH-005",
+   "type": "move",
+   "description": "Erish moved from tile (12,18) to tile (12,17) over 49 minutes.",
+   "subjects": [
+    "INH-005"
+   ],
+   "inputs": {
+    "fromX": 12,
+    "fromY": 18,
+    "toX": 12,
+    "toY": 17
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:25aad5eb64cb8ba3d21fc901cf590fe4df424ad41a8f4a8b5760b47786cbe07e",
+   "postStateChecksum": "sha256:ec996f27b23f47650e02aa58e2621ecbdefaa85abd0d2aba539de5316f64fecb",
+   "modelRequestHash": "sha256:684cea5a74e9ee131946f5bfb99120618f1287fe6e2916a197ad52b307ca09e6",
+   "modelResponseHash": "sha256:3910584ae4acd943a0d190de9d66ddb8e51736c0995ff0ca5fc21b39a9d94196",
+   "prevHash": "sha256:7c557b948d5d74c0d39b54548578eae56fb9c628b4f2402d509ea300a6ea0198",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-07-26T03:26:40.000Z",
+   "hash": "sha256:81343d050cddbbe47cde265e68994862a275ed1f65bed94272a141639157bd85",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00230",
+   "worldId": "AG-1",
+   "sequence": 230,
    "simTime": 81245,
    "actor": "INH-010",
    "type": "transfer.executed",
@@ -18998,15 +19297,15 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:3932bdced6b820f4613b929c8cfd04e936961a0f5610f895261b6add208a14f8",
-   "postStateChecksum": "sha256:c339388c19f1e2ebd31339c2875d06f02ba43bef79a7215d85d989ce685c28d8",
-   "modelRequestHash": "sha256:75b69c1cbf4ca3ed0cb6ecc4c046f0bc25fcb7eafddab195c7d21aa57a9eb47a",
-   "modelResponseHash": "sha256:3d98ba465f8598243b474af88eee18eb6c86ce472a4fa9d6e8a2edfe7887aba3",
-   "prevHash": "sha256:8a76d2878c51ac108eaccb97d9fcc97d043258a79c3315b23374da77eb767b8d",
+   "preStateChecksum": "sha256:ec996f27b23f47650e02aa58e2621ecbdefaa85abd0d2aba539de5316f64fecb",
+   "postStateChecksum": "sha256:33faa200e9270fd682e835c44a9410843bc7802c85bf013426c772ba367d6b13",
+   "modelRequestHash": "sha256:21684eb6897f85f0ce0845584fe8309a6d1c36668316bef8075630e08cdceb44",
+   "modelResponseHash": "sha256:3dd363baeebb803f142afe8826f3ec2766bde92f3029f8f3d70a132bb2913b04",
+   "prevHash": "sha256:81343d050cddbbe47cde265e68994862a275ed1f65bed94272a141639157bd85",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Jarn",
    "realTime": "2026-07-26T04:21:40.000Z",
-   "hash": "sha256:adc287965e9dc87437212a79a43dc874a35bc9aa22532384d4d14c767f0ec650",
+   "hash": "sha256:a54696aff5e71c55939f0f75616ecdd84f4c08f2474bee73ecbd58d890e62f74",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [],
@@ -19016,9 +19315,112 @@
    }
   },
   {
-   "id": "EV-00227",
+   "id": "EV-00231",
    "worldId": "AG-1",
-   "sequence": 227,
+   "sequence": 231,
+   "simTime": 81245,
+   "actor": "INH-010",
+   "type": "move",
+   "description": "Jarn moved from tile (15,15) to tile (14,16) over 37 minutes.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 15,
+    "toX": 14,
+    "toY": 16
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:33faa200e9270fd682e835c44a9410843bc7802c85bf013426c772ba367d6b13",
+   "postStateChecksum": "sha256:2947bd397c9a3d86ea764981f388264c4a30f6e8a82ff479057682f08c25904d",
+   "modelRequestHash": "sha256:185380c77160c99dea03f0752abfbe7fa80c20943ada70bbc93b6f747fe310a1",
+   "modelResponseHash": "sha256:d441a2524a9b7bcb13b62a3d712abefcdf86bf43533fc4fd596a6822e7468d54",
+   "prevHash": "sha256:a54696aff5e71c55939f0f75616ecdd84f4c08f2474bee73ecbd58d890e62f74",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-07-26T04:21:40.000Z",
+   "hash": "sha256:f89e35b934d53a4907118edbd70cd5148044931b6aaf5b5f4b49fe1f30af7c49",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00232",
+   "worldId": "AG-1",
+   "sequence": 232,
+   "simTime": 82575,
+   "actor": "INH-006",
+   "type": "practise",
+   "description": "Fenne practised accounting for 103 minutes at tile (17,20). Recorded accounting proficiency increased by 0.009.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "skill": "accounting"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:2947bd397c9a3d86ea764981f388264c4a30f6e8a82ff479057682f08c25904d",
+   "postStateChecksum": "sha256:5e1b9f21d24a5d45893f4d207b0a6e92e2b0d3c007444d5babf661f8cc113d72",
+   "modelRequestHash": "sha256:87ee86b540307b98fba22a8df3050a5907b9054877a934ebe4d261be219390c9",
+   "modelResponseHash": "sha256:a7f1078d66eaabf6b83b93d7ac7dd734f4fce2cc688031c72f2f52fdcc07a3b1",
+   "prevHash": "sha256:f89e35b934d53a4907118edbd70cd5148044931b6aaf5b5f4b49fe1f30af7c49",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-07-26T11:45:00.000Z",
+   "hash": "sha256:1c84c547c478cd0f79c446d748272ae7045d6fddd215783c75f3484c5321a3db",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00233",
+   "worldId": "AG-1",
+   "sequence": 233,
+   "simTime": 82625,
+   "actor": "INH-012",
+   "type": "gather",
+   "description": "Lume gathered 8 units of food at tile (18,21) over 99 minutes, consuming 2.0 units of energy.",
+   "subjects": [
+    "INH-012"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 8
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:5e1b9f21d24a5d45893f4d207b0a6e92e2b0d3c007444d5babf661f8cc113d72",
+   "postStateChecksum": "sha256:b62a8d7d5966a3d23914592908ccacc55a6b0d0215f2ffeb07146bd8ed607b6f",
+   "modelRequestHash": "sha256:27f0475eba2162dae3aa4660aa82ec46a916410ec08fca84045fc821edef2131",
+   "modelResponseHash": "sha256:afd8f854d71341a2fa30a7e894482e7c32af7e476a908423a94393a484b885a3",
+   "prevHash": "sha256:1c84c547c478cd0f79c446d748272ae7045d6fddd215783c75f3484c5321a3db",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-07-26T12:01:40.000Z",
+   "hash": "sha256:357dd09b43b5d3edaf98b37085a59d31cd4438437199bb3a418fbb151ef38458",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 18,
+    "y": 21
+   }
+  },
+  {
+   "id": "EV-00234",
+   "worldId": "AG-1",
+   "sequence": 234,
    "simTime": 82800,
    "actor": "INH-012",
    "type": "artifact.created",
@@ -19034,15 +19436,15 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:c339388c19f1e2ebd31339c2875d06f02ba43bef79a7215d85d989ce685c28d8",
-   "postStateChecksum": "sha256:4016a64bd11eb62942788e1029d35d890cdb9a2339615e02afd297a223da33cc",
-   "modelRequestHash": "sha256:2090b79f03e09646c120a384d76c6963858c4d0c92b7ab25eeab5be7e537a743",
-   "modelResponseHash": "sha256:8190a9b898d3ef2465d54add1a5446619c6845eb566464365a55994e152d6a76",
-   "prevHash": "sha256:adc287965e9dc87437212a79a43dc874a35bc9aa22532384d4d14c767f0ec650",
+   "preStateChecksum": "sha256:b62a8d7d5966a3d23914592908ccacc55a6b0d0215f2ffeb07146bd8ed607b6f",
+   "postStateChecksum": "sha256:0c9a7320a43f865ac2b1bb8c6313e1f48634fd71d80d6c0f7debd4f74ac83f26",
+   "modelRequestHash": "sha256:4cc4b1ee2d58417c8caa7466be02ceb57d2231db73bf4879c6936c59e713ae99",
+   "modelResponseHash": "sha256:2ec66fd2781ce492ec7815f0b92bc67a63d4b4704a0ea6dd41703693fbdffa15",
+   "prevHash": "sha256:357dd09b43b5d3edaf98b37085a59d31cd4438437199bb3a418fbb151ef38458",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Lume",
    "realTime": "2026-07-26T13:00:00.000Z",
-   "hash": "sha256:a4c82aa07067fc8b867a44ac5baab863f342120e73a17e9edf97cff3db37511c",
+   "hash": "sha256:22c198e0de28d21953c59f7fbbbdec98cbabcb0d50b66eda09db1c8e2a8aaf57",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [],
@@ -19052,9 +19454,77 @@
    }
   },
   {
-   "id": "EV-00228",
+   "id": "EV-00235",
    "worldId": "AG-1",
-   "sequence": 228,
+   "sequence": 235,
+   "simTime": 82885,
+   "actor": "INH-002",
+   "type": "practise",
+   "description": "Berrun practised writing for 163 minutes at tile (15,16). Recorded writing proficiency increased by 0.008.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "skill": "writing"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:0c9a7320a43f865ac2b1bb8c6313e1f48634fd71d80d6c0f7debd4f74ac83f26",
+   "postStateChecksum": "sha256:d306fa9b58e18f03b4f25d7b8562d6fdf7594de51f50552714fd64d2f07ec389",
+   "modelRequestHash": "sha256:17f361fa3654e1263e10e537995daf0512914b61340daae6c769b7de09b7761f",
+   "modelResponseHash": "sha256:835f94db83d7b3ef9cc6ed42e751571baf5545f0ea208dccad48a0e7ec52539d",
+   "prevHash": "sha256:22c198e0de28d21953c59f7fbbbdec98cbabcb0d50b66eda09db1c8e2a8aaf57",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-26T13:28:20.000Z",
+   "hash": "sha256:f84915da5b9eb5d5d1d87b686751d9b0a1002b4d3cdc207e6a2c9e0b36e5b718",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00236",
+   "worldId": "AG-1",
+   "sequence": 236,
+   "simTime": 83895,
+   "actor": "INH-004",
+   "type": "conversation.public",
+   "description": "Dovie and Hallow conversed at tile (14,13) for 52 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-004",
+    "INH-008"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d306fa9b58e18f03b4f25d7b8562d6fdf7594de51f50552714fd64d2f07ec389",
+   "postStateChecksum": "sha256:9ed774ee6af3b6c3d8c819de87e3a5d12eebe15938a73ab49f0dec664dc55ffe",
+   "modelRequestHash": "sha256:9eb4f19e90212875aa295aaad8665fc4f753a3615f78913ebf7c204199e90663",
+   "modelResponseHash": "sha256:b9eb3d2c60fe1479bbc9ad20cda7d4db88cd720ce851ff19e5b2d152dede89b5",
+   "prevHash": "sha256:f84915da5b9eb5d5d1d87b686751d9b0a1002b4d3cdc207e6a2c9e0b36e5b718",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-26T19:05:00.000Z",
+   "hash": "sha256:467bf416f59ff463713a16e6d9c84a6221668477824e6dab7a507a63c20d47b8",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00237",
+   "worldId": "AG-1",
+   "sequence": 237,
    "simTime": 84150,
    "actor": "INH-012",
    "type": "artifact.published",
@@ -19067,15 +19537,15 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:4016a64bd11eb62942788e1029d35d890cdb9a2339615e02afd297a223da33cc",
-   "postStateChecksum": "sha256:65f5af4857df2011b4fa81c1892d084c61da3e0d94299bcb50799a433b6791c4",
-   "modelRequestHash": "sha256:c8bad7bc796c6bbd71bcab65792fb6c0ade6b8809c786e5dd4fe857c5cbf06fa",
-   "modelResponseHash": "sha256:3e2482ba3140240bbc96cef57d7d9b8112f01486daf8e602df7385607a2e718d",
-   "prevHash": "sha256:a4c82aa07067fc8b867a44ac5baab863f342120e73a17e9edf97cff3db37511c",
+   "preStateChecksum": "sha256:9ed774ee6af3b6c3d8c819de87e3a5d12eebe15938a73ab49f0dec664dc55ffe",
+   "postStateChecksum": "sha256:2e6ac5a0e3884ca24fba1904074ddd8bc830d3d9f260ba67b64610c25ce9b248",
+   "modelRequestHash": "sha256:9aa1b56adc003988efde58bb95a62f509a9b9b219d4f23110a3f45a0c15d6dfe",
+   "modelResponseHash": "sha256:0a2f67e7390c1d752495e63ee50583c1e9afdd1f6c85b73749a97d32fdcd529e",
+   "prevHash": "sha256:467bf416f59ff463713a16e6d9c84a6221668477824e6dab7a507a63c20d47b8",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Lume",
    "realTime": "2026-07-26T20:30:00.000Z",
-   "hash": "sha256:4d9ac735c5d7b4f0842cbd1cd4a71ea503ccd4d4235b33fe5df78e4a37ef2723",
+   "hash": "sha256:5b9fb60f874b549e5662e2df21513c22d81c78fab905fa56fe66623bf0fb918e",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [
@@ -19086,7 +19556,7 @@
      "byKind": "inhabitant",
      "text": "Lume's account of the confinement omits that restitution was agreed. I dispute it.",
      "simTime": 84950,
-     "recordedInEventId": "EV-00228"
+     "recordedInEventId": "EV-00237"
     }
    ],
    "location": {
@@ -19095,9 +19565,79 @@
    }
   },
   {
-   "id": "EV-00229",
+   "id": "EV-00238",
    "worldId": "AG-1",
-   "sequence": 229,
+   "sequence": 238,
+   "simTime": 84420,
+   "actor": "INH-007",
+   "type": "move",
+   "description": "Gaure moved from tile (15,18) to tile (14,17) over 33 minutes.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 18,
+    "toX": 14,
+    "toY": 17
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:2e6ac5a0e3884ca24fba1904074ddd8bc830d3d9f260ba67b64610c25ce9b248",
+   "postStateChecksum": "sha256:d83664517828f8931c89c3303ac28fcd7634247096f3f6e3d5869c008f17c2b5",
+   "modelRequestHash": "sha256:368efb7fe19fb0b3811ef02fd10e94eaaaec8ab2c4bea1aca7ec9af6b8aac92c",
+   "modelResponseHash": "sha256:4c4b8512ed7ec03a5e18f1169f0ac7e2f305e062640ba727d36d57900230dc58",
+   "prevHash": "sha256:5b9fb60f874b549e5662e2df21513c22d81c78fab905fa56fe66623bf0fb918e",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-07-26T22:00:00.000Z",
+   "hash": "sha256:e50544421f61febb3d65c193ef0ebdb42ce358f4ce2afe5f4267e0842a5993eb",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00239",
+   "worldId": "AG-1",
+   "sequence": 239,
+   "simTime": 84535,
+   "actor": "INH-006",
+   "type": "gather",
+   "description": "Fenne gathered 3 units of stone at tile (17,20) over 83 minutes, consuming 1.1 units of energy.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 3
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d83664517828f8931c89c3303ac28fcd7634247096f3f6e3d5869c008f17c2b5",
+   "postStateChecksum": "sha256:f589653a2f5137cf0638ca8183bf6be5d41fa67c3610a08a3f444dee8ee6afb0",
+   "modelRequestHash": "sha256:9a31b4df68849778dd8cb2918b60d0986523589c2c0cc2ccad7cbdabd1876151",
+   "modelResponseHash": "sha256:5bf5cb28ed578d5af5159d9bf8804f4b4ad7c26fd1aebc758f94041d562daeff",
+   "prevHash": "sha256:e50544421f61febb3d65c193ef0ebdb42ce358f4ce2afe5f4267e0842a5993eb",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-07-26T22:38:20.000Z",
+   "hash": "sha256:45ca95251e3849213abe5e41d88296c0d2bd463aa90f9e95229636e0605cb3bd",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00240",
+   "worldId": "AG-1",
+   "sequence": 240,
    "simTime": 84705,
    "actor": null,
    "type": "contract.breached",
@@ -19111,21 +19651,55 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:65f5af4857df2011b4fa81c1892d084c61da3e0d94299bcb50799a433b6791c4",
-   "postStateChecksum": "sha256:5f119d9acf00b0a8256da3418dec973dc53a97448f3f55f945a93bfc89bfbf24",
-   "prevHash": "sha256:4d9ac735c5d7b4f0842cbd1cd4a71ea503ccd4d4235b33fe5df78e4a37ef2723",
+   "preStateChecksum": "sha256:f589653a2f5137cf0638ca8183bf6be5d41fa67c3610a08a3f444dee8ee6afb0",
+   "postStateChecksum": "sha256:a378ef12fd3041494e7da2b306777e3fa68f1308c8a49e4c41a29e98ffe630cd",
+   "prevHash": "sha256:45ca95251e3849213abe5e41d88296c0d2bd463aa90f9e95229636e0605cb3bd",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": null,
    "realTime": "2026-07-26T23:35:00.000Z",
-   "hash": "sha256:96f1fc6e6cffd570600a6ad0191830da7874ba6be7860631c5b99ccef62ac5b5",
+   "hash": "sha256:afc2c015342271ce034373a2536a0efd336e301c5807c2b020c964d9f43f46aa",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": []
   },
   {
-   "id": "EV-00230",
+   "id": "EV-00241",
    "worldId": "AG-1",
-   "sequence": 230,
+   "sequence": 241,
+   "simTime": 85325,
+   "actor": "INH-008",
+   "type": "gather",
+   "description": "Hallow gathered 6 units of stone at tile (16,16) over 123 minutes, consuming 1.8 units of energy.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 6
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a378ef12fd3041494e7da2b306777e3fa68f1308c8a49e4c41a29e98ffe630cd",
+   "postStateChecksum": "sha256:a6849198452847fe0254b8dbeae43893417a4417295a2ab4c3fa284670a30f40",
+   "modelRequestHash": "sha256:cd583826164bd6e69f6c179bad3aa48f99d6d8cd4e2a36f6f52bf5bff925d2fd",
+   "modelResponseHash": "sha256:93a48cedd40f94499286cfdf0d1f94afd7697f3c18bfafb7fa3326d5d4060324",
+   "prevHash": "sha256:afc2c015342271ce034373a2536a0efd336e301c5807c2b020c964d9f43f46aa",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-27T03:01:40.000Z",
+   "hash": "sha256:cbf5335301d341b9f0eb96eed83620141031e2c620b7cc9d246a1f5ba9d37e16",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00242",
+   "worldId": "AG-1",
+   "sequence": 242,
    "simTime": 85800,
    "actor": "INH-007",
    "type": "artifact.sold",
@@ -19141,23 +19715,160 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:5f119d9acf00b0a8256da3418dec973dc53a97448f3f55f945a93bfc89bfbf24",
-   "postStateChecksum": "sha256:b6ac4839b459cff55f83b9e32558e3cecaa80d2ff400df854882e34ce658fd83",
-   "modelRequestHash": "sha256:39a1b197c591aed4fef8fb19ebd58b2656d741a91f9b1032a1373e4cda3abf01",
-   "modelResponseHash": "sha256:45cf38414c02b3dd6f3d36dbcbd0c0b2171c16dd1e147805ad72f5e90e5a94cc",
-   "prevHash": "sha256:96f1fc6e6cffd570600a6ad0191830da7874ba6be7860631c5b99ccef62ac5b5",
+   "preStateChecksum": "sha256:a6849198452847fe0254b8dbeae43893417a4417295a2ab4c3fa284670a30f40",
+   "postStateChecksum": "sha256:67387ddd2f708454b47a7c2dab7aec33f7f91a14b5122a173e405eb00f9675b5",
+   "modelRequestHash": "sha256:122caf8d1066d5c926563bb612592d921c4831ff16a55cc6bd3c412c812b3f59",
+   "modelResponseHash": "sha256:c778d947e27d7066b95c202a5959f1ea8e3431f19081d3ffb0cca9c6b62c5911",
+   "prevHash": "sha256:cbf5335301d341b9f0eb96eed83620141031e2c620b7cc9d246a1f5ba9d37e16",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Gaure",
    "realTime": "2026-07-27T05:40:00.000Z",
-   "hash": "sha256:c1987b966ee3b3d05395a0eb37ccc73b279931028140ad088982861633c43343",
+   "hash": "sha256:668ef3a1678263c3b28c3620d9f3dc19681df6c3308a0fe7ffc6b23c0e24bc8e",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": []
   },
   {
-   "id": "EV-00231",
+   "id": "EV-00243",
    "worldId": "AG-1",
-   "sequence": 231,
+   "sequence": 243,
+   "simTime": 85885,
+   "actor": "INH-009",
+   "type": "practise",
+   "description": "Iolen practised accounting for 121 minutes at tile (13,12). Recorded accounting proficiency increased by 0.021.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "skill": "accounting"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:67387ddd2f708454b47a7c2dab7aec33f7f91a14b5122a173e405eb00f9675b5",
+   "postStateChecksum": "sha256:70392cd25ca8d2aa9141d5ae075506080c2ff8c31e1ded1e7e2ea7ecdc14468a",
+   "modelRequestHash": "sha256:009083b2689b0a769ce6571affb53c6ed44f53c18b712bbc83c7b0e1a0224388",
+   "modelResponseHash": "sha256:0469771ad9d41f8a2e61363846a7b2deb7f5f52f30ceea6519a66a2daf83063a",
+   "prevHash": "sha256:668ef3a1678263c3b28c3620d9f3dc19681df6c3308a0fe7ffc6b23c0e24bc8e",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-07-27T06:08:20.000Z",
+   "hash": "sha256:5d6f586d86927938434ce7f1d022de8773269b5a33ab610df6c521021c878c84",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00244",
+   "worldId": "AG-1",
+   "sequence": 244,
+   "simTime": 85940,
+   "actor": "INH-004",
+   "type": "gather",
+   "description": "Dovie gathered 4 units of stone at tile (14,13) over 107 minutes, consuming 1.8 units of energy.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 4
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:70392cd25ca8d2aa9141d5ae075506080c2ff8c31e1ded1e7e2ea7ecdc14468a",
+   "postStateChecksum": "sha256:a720f7409bac2e87e9197bda6e500a4e344faa02767a151a4091aa0d638bc341",
+   "modelRequestHash": "sha256:7c2698673f6d4f3a7cfa6477970a568142081f7fd2faba3f1e59e6aace00db5c",
+   "modelResponseHash": "sha256:0a402773692798b9fa9955b6a504977e6dde524a114b0bd264abe1ea9f76fbd5",
+   "prevHash": "sha256:5d6f586d86927938434ce7f1d022de8773269b5a33ab610df6c521021c878c84",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-27T06:26:40.000Z",
+   "hash": "sha256:5586a6e0580cb5f442f891c9b1f996a08ac9ddc50657631309ad4a4d080f52e3",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00245",
+   "worldId": "AG-1",
+   "sequence": 245,
+   "simTime": 86900,
+   "actor": "INH-004",
+   "type": "move",
+   "description": "Dovie moved from tile (14,13) to tile (15,12) over 32 minutes.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "fromX": 14,
+    "fromY": 13,
+    "toX": 15,
+    "toY": 12
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a720f7409bac2e87e9197bda6e500a4e344faa02767a151a4091aa0d638bc341",
+   "postStateChecksum": "sha256:bcd97f49e1f9b9e983cd853ce84ca8b31dcc95071c858de7db823bf4fa27119d",
+   "modelRequestHash": "sha256:ee859bbb76552ef2498e215b486eec044a0ad8dd4151de091b8795f8cef6c52d",
+   "modelResponseHash": "sha256:a7c72f682407c38825de06d0953f747b0ac8450154dc396e85dbac4f659e0fd7",
+   "prevHash": "sha256:5586a6e0580cb5f442f891c9b1f996a08ac9ddc50657631309ad4a4d080f52e3",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-27T11:46:40.000Z",
+   "hash": "sha256:55659a6495bd14e4c76a6edbbb58d2fa735cc914396f5ac3972ceda96e384fc4",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00246",
+   "worldId": "AG-1",
+   "sequence": 246,
+   "simTime": 87000,
+   "actor": "INH-012",
+   "type": "gather",
+   "description": "Lume gathered 4 units of stone at tile (18,21) over 117 minutes, consuming 1.4 units of energy.",
+   "subjects": [
+    "INH-012"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 4
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:bcd97f49e1f9b9e983cd853ce84ca8b31dcc95071c858de7db823bf4fa27119d",
+   "postStateChecksum": "sha256:2486abdba3446e60f8fd80475e77517b269321ab172e96351a57453be7179bfe",
+   "modelRequestHash": "sha256:e0e6f38f9a6de7259d58f8ce0bbc207ea47a9e51b955faadac25cf2bfee06226",
+   "modelResponseHash": "sha256:1e36a2c160d15aab6ee8f0a87e5b5c34deeac37784e873588baa1427e02fd8e2",
+   "prevHash": "sha256:55659a6495bd14e4c76a6edbbb58d2fa735cc914396f5ac3972ceda96e384fc4",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-07-27T12:20:00.000Z",
+   "hash": "sha256:31d710186278b793f26f70da24e5e4329b2fabcd2c680cc614a0958d98fe5382",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 18,
+    "y": 21
+   }
+  },
+  {
+   "id": "EV-00247",
+   "worldId": "AG-1",
+   "sequence": 247,
    "simTime": 87160,
    "actor": "INH-004",
    "type": "transfer.executed",
@@ -19172,15 +19883,15 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:b6ac4839b459cff55f83b9e32558e3cecaa80d2ff400df854882e34ce658fd83",
-   "postStateChecksum": "sha256:5ceca316d4e7e1eddbcaccd61b6b8a1b965980a4052cf44dcbe7fe5e93dfa9bb",
-   "modelRequestHash": "sha256:a6ce418c53733ae98984fc588e009f6d48ead4ae1328240c171947c88ed69222",
-   "modelResponseHash": "sha256:cbc57389c81a8b9f6f59fe114898b68226e9ae0aa83b8fd1f68dfeba78ea1e6d",
-   "prevHash": "sha256:c1987b966ee3b3d05395a0eb37ccc73b279931028140ad088982861633c43343",
+   "preStateChecksum": "sha256:2486abdba3446e60f8fd80475e77517b269321ab172e96351a57453be7179bfe",
+   "postStateChecksum": "sha256:3b3b3b4dd1d8a0420613ac769dc99ecbc8b2dde72b9bdaa8aed4ccbf41df5064",
+   "modelRequestHash": "sha256:4ff51e0e8220abfccb34015ecd8c86d08060cb6afedcb493f9bae4ef7b4ad52d",
+   "modelResponseHash": "sha256:dde17fc8c739088ba86b8d420576f683de2b4729614d28b23f59fc3963df847c",
+   "prevHash": "sha256:31d710186278b793f26f70da24e5e4329b2fabcd2c680cc614a0958d98fe5382",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Dovie",
    "realTime": "2026-07-27T13:13:20.000Z",
-   "hash": "sha256:5c4cbe77830780571c1c129e3f26cced68937f7dd898a89cfb9ef8d0f2278d8c",
+   "hash": "sha256:86b186a44d1b447f7c0abd324e6d073d658ab1b8c6ca51ea32e39cdba8f9b4af",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [],
@@ -19190,9 +19901,76 @@
    }
   },
   {
-   "id": "EV-00232",
+   "id": "EV-00248",
    "worldId": "AG-1",
-   "sequence": 232,
+   "sequence": 248,
+   "simTime": 87300,
+   "actor": "INH-010",
+   "type": "practise",
+   "description": "Jarn practised construction for 99 minutes at tile (15,15). Recorded construction proficiency increased by 0.020.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "skill": "construction"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:3b3b3b4dd1d8a0420613ac769dc99ecbc8b2dde72b9bdaa8aed4ccbf41df5064",
+   "postStateChecksum": "sha256:0958c3d607efca58320b14d7e290e3a332ce181c2860be3a1434512af57871e3",
+   "modelRequestHash": "sha256:d11aeab78d36a3501882c69f4ea061ead9c978e63e5586ce6ecc20098e08d084",
+   "modelResponseHash": "sha256:1f3a84a2cb36285f8bbd8502b36c3ddb612be27aa56df8d279ceb0647db7b0af",
+   "prevHash": "sha256:86b186a44d1b447f7c0abd324e6d073d658ab1b8c6ca51ea32e39cdba8f9b4af",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-07-27T14:00:00.000Z",
+   "hash": "sha256:e732c25d4890f46d941f7f7711a94f3a4dd23865949e90cab59d27da50617347",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00249",
+   "worldId": "AG-1",
+   "sequence": 249,
+   "simTime": 88205,
+   "actor": "INH-009",
+   "type": "gather",
+   "description": "Iolen gathered 3 units of food at tile (13,12) over 80 minutes, consuming 3.0 units of energy.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 3
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:0958c3d607efca58320b14d7e290e3a332ce181c2860be3a1434512af57871e3",
+   "postStateChecksum": "sha256:c7d8fb1bc1682b708ceb8436cd0551e2651f96c59622f56e988096ec13b94150",
+   "modelRequestHash": "sha256:c7ab1e672de1f70e2861fa3e7e65d424c1bc1d244845811383b542afc8f4ea72",
+   "modelResponseHash": "sha256:d35296ce57f1d74d64177338d80f1e7d214888d2f4ad08fae72e8a392108ad0c",
+   "prevHash": "sha256:e732c25d4890f46d941f7f7711a94f3a4dd23865949e90cab59d27da50617347",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-07-27T19:01:40.000Z",
+   "hash": "sha256:06995527bd023256a9d7766820aee0ca3445c2430a4224e5ab0c6a9827a58061",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00250",
+   "worldId": "AG-1",
+   "sequence": 250,
    "simTime": 88515,
    "actor": "INH-001",
    "type": "conversation.public",
@@ -19209,15 +19987,15 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:5ceca316d4e7e1eddbcaccd61b6b8a1b965980a4052cf44dcbe7fe5e93dfa9bb",
-   "postStateChecksum": "sha256:2fa083153efe4513db399273ace95f8decaa21d9b3aa5ae205ba0ba1a2acdfed",
-   "modelRequestHash": "sha256:36e1b394a04824e5a911e16f8376f34f6f71cd4367c42ac4bc07d272c67de786",
-   "modelResponseHash": "sha256:20135aa0afb698fcb99f407f468231bf23b21504fe4ebd8a7e4373dd1a2de2bf",
-   "prevHash": "sha256:5c4cbe77830780571c1c129e3f26cced68937f7dd898a89cfb9ef8d0f2278d8c",
+   "preStateChecksum": "sha256:c7d8fb1bc1682b708ceb8436cd0551e2651f96c59622f56e988096ec13b94150",
+   "postStateChecksum": "sha256:abbd7fd9e61483137569e4697399c5dc3ad5eae541d16a8a77c70aa6f5aecad6",
+   "modelRequestHash": "sha256:69524bb36017dd068ce63861dae2dd7d2829500caf6e09b01df7af623e69fbf3",
+   "modelResponseHash": "sha256:1ea1c30154e4d1e14d6daf4f4d59efed79f64f9cd6a7122391a764278996131e",
+   "prevHash": "sha256:06995527bd023256a9d7766820aee0ca3445c2430a4224e5ab0c6a9827a58061",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Aleth",
    "realTime": "2026-07-27T20:45:00.000Z",
-   "hash": "sha256:a3a4fc2839aa9eadd712e9b00eb61ae89fad047cb5f79fb44d855185d51bc9b6",
+   "hash": "sha256:b0b7d9244543f6cceb3d0ce934cdcffb350a5262b9f291b489135b99b8428f73",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [],
@@ -19227,10 +20005,2895 @@
    }
   },
   {
-   "id": "EV-00233",
+   "id": "EV-00251",
    "worldId": "AG-1",
-   "sequence": 233,
-   "simTime": 89800,
+   "sequence": 251,
+   "simTime": 88555,
+   "actor": "INH-009",
+   "type": "practise",
+   "description": "Iolen practised organisation for 86 minutes at tile (13,12). Recorded organisation proficiency increased by 0.010.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "skill": "organisation"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:abbd7fd9e61483137569e4697399c5dc3ad5eae541d16a8a77c70aa6f5aecad6",
+   "postStateChecksum": "sha256:16d16aba551833a216fd3d5d37adc62fd5e2307a65e0e3e3f925a6d7eed91b0a",
+   "modelRequestHash": "sha256:965b828c396d96410e5b6a7cd52dc250b3a3814ea0e34ad2240a476cb9162cbe",
+   "modelResponseHash": "sha256:406acf26109bc7bf2b0b8f83c84c29fd893106022f3f34d9854a27b26b8b8082",
+   "prevHash": "sha256:b0b7d9244543f6cceb3d0ce934cdcffb350a5262b9f291b489135b99b8428f73",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-07-27T20:58:20.000Z",
+   "hash": "sha256:e02ef8e283b1a4864b9f15b496fd14f5fa4d896e1af0a28d15b2adf049f075ee",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00252",
+   "worldId": "AG-1",
+   "sequence": 252,
+   "simTime": 88975,
+   "actor": "INH-010",
+   "type": "practise",
+   "description": "Jarn practised construction for 109 minutes at tile (15,15). Recorded construction proficiency increased by 0.015.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "skill": "construction"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:16d16aba551833a216fd3d5d37adc62fd5e2307a65e0e3e3f925a6d7eed91b0a",
+   "postStateChecksum": "sha256:a3e6b7a509b4d0f5e910b10643b948b1db5d29ecf91926cc1465825f5814afbd",
+   "modelRequestHash": "sha256:35de601f1c4dee082e0a3ca654086377927b6485ca0522a8ae33c72b36bd7029",
+   "modelResponseHash": "sha256:312ae07e1653bdeb647f09d31dcca5da58dc4d7f1d092ece16307a9ecc2e4869",
+   "prevHash": "sha256:e02ef8e283b1a4864b9f15b496fd14f5fa4d896e1af0a28d15b2adf049f075ee",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-07-27T23:18:20.000Z",
+   "hash": "sha256:984ab80aa133b1fb36afd2e9f553a3d62fae90e53943a3a2b4f1f73063050398",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00253",
+   "worldId": "AG-1",
+   "sequence": 253,
+   "simTime": 89805,
+   "actor": "INH-004",
+   "type": "move",
+   "description": "Dovie moved from tile (14,13) to tile (13,13) over 35 minutes.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "fromX": 14,
+    "fromY": 13,
+    "toX": 13,
+    "toY": 13
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a3e6b7a509b4d0f5e910b10643b948b1db5d29ecf91926cc1465825f5814afbd",
+   "postStateChecksum": "sha256:d4ef2194492ec0855472648b823559a43c261921261506bcc89effeed464b11e",
+   "modelRequestHash": "sha256:8abdf3f512d6d2ceb9650d45b37f486096eb4b0a13993218820a4503120b3edb",
+   "modelResponseHash": "sha256:c247df32b4f22ebb3404b845b89c05a5db1082931e56fef379176e72269d66bc",
+   "prevHash": "sha256:984ab80aa133b1fb36afd2e9f553a3d62fae90e53943a3a2b4f1f73063050398",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-28T03:55:00.000Z",
+   "hash": "sha256:e6529dfaf6c1b13823bd3b04a667b94e81069ea91175e5895f351c000d66c84a",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00254",
+   "worldId": "AG-1",
+   "sequence": 254,
+   "simTime": 90165,
+   "actor": "INH-011",
+   "type": "rest",
+   "description": "Kessa rested at tile (11,19) for 188 minutes. Recorded energy increased by 1.9 units.",
+   "subjects": [
+    "INH-011"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d4ef2194492ec0855472648b823559a43c261921261506bcc89effeed464b11e",
+   "postStateChecksum": "sha256:2f232c8586e76c8516fe66b77f9ad6190d9b7081a24831684fab9ead4cf1a3a6",
+   "modelRequestHash": "sha256:af150190888e5b31bab46f77a145178b20d699b955a437edc2637de882f2fef3",
+   "modelResponseHash": "sha256:bdd85d30d7c155c777e8e4d45ac6c5842bf619183b4362f5fe8e1813c892c920",
+   "prevHash": "sha256:e6529dfaf6c1b13823bd3b04a667b94e81069ea91175e5895f351c000d66c84a",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-07-28T05:55:00.000Z",
+   "hash": "sha256:00a244fd58d4f512b804923c51653d61ebb33319b56db39ea639a7771fcb48f1",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 11,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00255",
+   "worldId": "AG-1",
+   "sequence": 255,
+   "simTime": 90405,
+   "actor": "INH-008",
+   "type": "conversation.public",
+   "description": "Hallow and Kessa conversed at tile (16,16) for 53 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-008",
+    "INH-011"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:2f232c8586e76c8516fe66b77f9ad6190d9b7081a24831684fab9ead4cf1a3a6",
+   "postStateChecksum": "sha256:bf9dcc47c906def8aeafacddeec8b59a8d353b9e422c00775ef49ded4c83d7d0",
+   "modelRequestHash": "sha256:8cc7f23ae734bb4384ce87527219658546bc46333eef7423964c3f484d2b116d",
+   "modelResponseHash": "sha256:ced6988f72d440c8378c75db48d60f89f3b3fd724fd6e0a8114c3834cea90145",
+   "prevHash": "sha256:00a244fd58d4f512b804923c51653d61ebb33319b56db39ea639a7771fcb48f1",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-28T07:15:00.000Z",
+   "hash": "sha256:e8a422ea9756e8c26b976909b93c7961ab1bc715a96e0edfc0f6d39f1f4766e9",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00256",
+   "worldId": "AG-1",
+   "sequence": 256,
+   "simTime": 91100,
+   "actor": "INH-001",
+   "type": "move",
+   "description": "Aleth moved from tile (14,17) to tile (15,16) over 55 minutes.",
+   "subjects": [
+    "INH-001"
+   ],
+   "inputs": {
+    "fromX": 14,
+    "fromY": 17,
+    "toX": 15,
+    "toY": 16
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:bf9dcc47c906def8aeafacddeec8b59a8d353b9e422c00775ef49ded4c83d7d0",
+   "postStateChecksum": "sha256:a021411b41c29741a6a0e57a139d853875e753b0b98539b66c780f4bce3cd09f",
+   "modelRequestHash": "sha256:e3315605aac0ba7f8079fe006d11ec079668f2d1be916021dcd9d477e7609784",
+   "modelResponseHash": "sha256:228cac9bcebd8cf41bcd667c2e9f6d0309082bba187f9e398e648c5c64af08d7",
+   "prevHash": "sha256:e8a422ea9756e8c26b976909b93c7961ab1bc715a96e0edfc0f6d39f1f4766e9",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Aleth",
+   "realTime": "2026-07-28T11:06:40.000Z",
+   "hash": "sha256:756f58a18dd9faf28434ce7d46df6e2390f31e07973c2e993b1b95c5fe3b731b",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00257",
+   "worldId": "AG-1",
+   "sequence": 257,
+   "simTime": 91265,
+   "actor": "INH-007",
+   "type": "rest",
+   "description": "Gaure rested at tile (15,18) for 387 minutes. Recorded energy increased by 3.7 units.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a021411b41c29741a6a0e57a139d853875e753b0b98539b66c780f4bce3cd09f",
+   "postStateChecksum": "sha256:06d4bc994fc2e5a7c0d47d69b7a66355fd846d0360fce53586d7d51432c47589",
+   "modelRequestHash": "sha256:987ad974a48a7a1e3563edd16e8f89fb5abb5d166b320301625dd65b589c3cdb",
+   "modelResponseHash": "sha256:28d26c67467d86f9fb8195926247275daee97097c4cb9608fa1dde731a161188",
+   "prevHash": "sha256:756f58a18dd9faf28434ce7d46df6e2390f31e07973c2e993b1b95c5fe3b731b",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-07-28T12:01:40.000Z",
+   "hash": "sha256:0ca52560b8956c84708f8df639d9f1555ef3fb9a653c70d57380e1bd9b4862b2",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00258",
+   "worldId": "AG-1",
+   "sequence": 258,
+   "simTime": 91715,
+   "actor": "INH-009",
+   "type": "conversation.public",
+   "description": "Iolen and Berrun conversed at tile (13,12) for 58 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-009",
+    "INH-002"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:06d4bc994fc2e5a7c0d47d69b7a66355fd846d0360fce53586d7d51432c47589",
+   "postStateChecksum": "sha256:7a1e178059d325bd187a1128ef0105f10bb7f43b4648819b38a771f93276193e",
+   "modelRequestHash": "sha256:cd5044c9301d6fa2938c8b1a9dd3d0c324c1e81d12617a09babcce0eafaff0b6",
+   "modelResponseHash": "sha256:2ec54d7e90b52e4f8819d082598f5f646ddf9813cc0aea076e2769a5dd781d40",
+   "prevHash": "sha256:0ca52560b8956c84708f8df639d9f1555ef3fb9a653c70d57380e1bd9b4862b2",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-07-28T14:31:40.000Z",
+   "hash": "sha256:a84e0ab90cb3214f6648b610a870bbf80761acbfa1f92fdb3cccdcb819d1689a",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00259",
+   "worldId": "AG-1",
+   "sequence": 259,
+   "simTime": 92650,
+   "actor": "INH-009",
+   "type": "practise",
+   "description": "Iolen practised writing for 143 minutes at tile (13,12). Recorded writing proficiency increased by 0.012.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "skill": "writing"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:7a1e178059d325bd187a1128ef0105f10bb7f43b4648819b38a771f93276193e",
+   "postStateChecksum": "sha256:02ba5c65fe91e2e842cc4692b60d3da328209a269a81b70932942c00c8b3fbd6",
+   "modelRequestHash": "sha256:4e5112b4f1ceca966a4a2ecaaf2fcb9da74c0e7489137245bfe63d9f634da0c8",
+   "modelResponseHash": "sha256:f2aa4fd74f6e7da03f02360abd6a839621aa0d76f4206e9e19d32de4a730a590",
+   "prevHash": "sha256:a84e0ab90cb3214f6648b610a870bbf80761acbfa1f92fdb3cccdcb819d1689a",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-07-28T19:43:20.000Z",
+   "hash": "sha256:74957068e0c2e1035a96183067d81bf913c0ded5715e765a0b5fc0aa2f98ae86",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00260",
+   "worldId": "AG-1",
+   "sequence": 260,
+   "simTime": 92715,
+   "actor": "INH-002",
+   "type": "move",
+   "description": "Berrun moved from tile (15,16) to tile (16,16) over 50 minutes.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 16,
+    "toX": 16,
+    "toY": 16
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:02ba5c65fe91e2e842cc4692b60d3da328209a269a81b70932942c00c8b3fbd6",
+   "postStateChecksum": "sha256:818d33f65efc9250fbdd27886ee00885b6ecba6009bdec110ff71e6a1c33e679",
+   "modelRequestHash": "sha256:e2870c2fceb51d517153edcf36f4649c977413eed8551b9e743416327c452a8a",
+   "modelResponseHash": "sha256:ebbd64ceb9056323ba56c79bc7db3136bf6af40fc9ee838de29a80ca1d441473",
+   "prevHash": "sha256:74957068e0c2e1035a96183067d81bf913c0ded5715e765a0b5fc0aa2f98ae86",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-28T20:05:00.000Z",
+   "hash": "sha256:2471f940b55c2b7e7bf690327bca2304c4c9a034ba6fe39be387ec5738fd16b3",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00261",
+   "worldId": "AG-1",
+   "sequence": 261,
+   "simTime": 93170,
+   "actor": "INH-011",
+   "type": "move",
+   "description": "Kessa moved from tile (11,19) to tile (10,19) over 53 minutes.",
+   "subjects": [
+    "INH-011"
+   ],
+   "inputs": {
+    "fromX": 11,
+    "fromY": 19,
+    "toX": 10,
+    "toY": 19
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:818d33f65efc9250fbdd27886ee00885b6ecba6009bdec110ff71e6a1c33e679",
+   "postStateChecksum": "sha256:a8780ae29dc2ec80b911d240dab7230eb962d9324086ba181dac8e0566a5a877",
+   "modelRequestHash": "sha256:c72babcfa21b8b1a73cb8a46340d757dae8aba35daa145802e3f5a5b49610576",
+   "modelResponseHash": "sha256:ffef4903c5a89d01922dc3366352a2af86b8490a7cbdc554832493ed3289e8b4",
+   "prevHash": "sha256:2471f940b55c2b7e7bf690327bca2304c4c9a034ba6fe39be387ec5738fd16b3",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-07-28T22:36:40.000Z",
+   "hash": "sha256:d9ff3cc45b330c5bbae573838cc3c2835d2619f0819251033c7ed7a3f2823699",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 10,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00262",
+   "worldId": "AG-1",
+   "sequence": 262,
+   "simTime": 94280,
+   "actor": "INH-008",
+   "type": "practise",
+   "description": "Hallow practised research for 114 minutes at tile (16,16). Recorded research proficiency increased by 0.007.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "skill": "research"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a8780ae29dc2ec80b911d240dab7230eb962d9324086ba181dac8e0566a5a877",
+   "postStateChecksum": "sha256:c5b9ed4f988f4244774c41f6a8cae2132e2cca26a7418fd3fe505bd2216fcb10",
+   "modelRequestHash": "sha256:a58e15905d0dcb49340e6c5c215eea63e5201921ce5812f943fb2e59cdade4f5",
+   "modelResponseHash": "sha256:a2e5b2070225afe6ebab80586b63cf82521e06cb258a4e7ef3ba8da7a5661a67",
+   "prevHash": "sha256:d9ff3cc45b330c5bbae573838cc3c2835d2619f0819251033c7ed7a3f2823699",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-29T04:46:40.000Z",
+   "hash": "sha256:35bc73aa6616639d5490a1bc66e40f0f64ace1fc20b3004784c05cc56ff99983",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00263",
+   "worldId": "AG-1",
+   "sequence": 263,
+   "simTime": 94460,
+   "actor": "INH-002",
+   "type": "move",
+   "description": "Berrun moved from tile (15,16) to tile (15,15) over 39 minutes.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 16,
+    "toX": 15,
+    "toY": 15
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:c5b9ed4f988f4244774c41f6a8cae2132e2cca26a7418fd3fe505bd2216fcb10",
+   "postStateChecksum": "sha256:da201493c495bfd2e04aa038ffc7fdb74b4e21bc04bb8f893a19166624b35f4e",
+   "modelRequestHash": "sha256:67f0cc28df5f08fc3f87e880e403e436f0562d6c32fb67730201bfda6666b00e",
+   "modelResponseHash": "sha256:2b323f3cbd48c675be9c5c06491c5127607a3ce4e60d961d108f95a1ab5da27e",
+   "prevHash": "sha256:35bc73aa6616639d5490a1bc66e40f0f64ace1fc20b3004784c05cc56ff99983",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-29T05:46:40.000Z",
+   "hash": "sha256:959a51191d3965fd098681e98fb6c41736126675a6bc984fb3025bc871c8620e",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00264",
+   "worldId": "AG-1",
+   "sequence": 264,
+   "simTime": 94715,
+   "actor": "INH-008",
+   "type": "gather",
+   "description": "Hallow gathered 2 units of wood at tile (16,16) over 74 minutes, consuming 2.8 units of energy.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:da201493c495bfd2e04aa038ffc7fdb74b4e21bc04bb8f893a19166624b35f4e",
+   "postStateChecksum": "sha256:bfe30587844864adcf2efd15a81428171777f62fe33bd79ee637fde4b361cd53",
+   "modelRequestHash": "sha256:b9bf65a206c0cc1c29598d186bf8fbd8bde597481d2b45f5063ee0c2fe310605",
+   "modelResponseHash": "sha256:7b7b34287a92f029fda58a1fd7f73797eff01b1cb5a484b5f9e0f76dc67bc773",
+   "prevHash": "sha256:959a51191d3965fd098681e98fb6c41736126675a6bc984fb3025bc871c8620e",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-29T07:11:40.000Z",
+   "hash": "sha256:cb208caa2bb1955e7d8712cb1429ede9f3f1451d303900c4451e732cfafb4191",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00265",
+   "worldId": "AG-1",
+   "sequence": 265,
+   "simTime": 95450,
+   "actor": "INH-012",
+   "type": "practise",
+   "description": "Lume practised research for 132 minutes at tile (18,21). Recorded research proficiency increased by 0.016.",
+   "subjects": [
+    "INH-012"
+   ],
+   "inputs": {
+    "skill": "research"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:bfe30587844864adcf2efd15a81428171777f62fe33bd79ee637fde4b361cd53",
+   "postStateChecksum": "sha256:41de2bc4e92329f9bd8325291e11a9206445823b5aa438ed03ca6b41f141db82",
+   "modelRequestHash": "sha256:64c9bb5d6328ef94094e04e98b36c85a23c924b43c431d316fcd14ebcddf0ead",
+   "modelResponseHash": "sha256:855d8d4819720aa577b1e362ba87331baba8973678a892c34ec7116c9f49d468",
+   "prevHash": "sha256:cb208caa2bb1955e7d8712cb1429ede9f3f1451d303900c4451e732cfafb4191",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-07-29T11:16:40.000Z",
+   "hash": "sha256:7d424def82b7b7b26acd7f0b368747744fac9dfac8e05454390896780f1aed33",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 18,
+    "y": 21
+   }
+  },
+  {
+   "id": "EV-00266",
+   "worldId": "AG-1",
+   "sequence": 266,
+   "simTime": 96005,
+   "actor": "INH-008",
+   "type": "gather",
+   "description": "Hallow gathered 3 units of wood at tile (16,16) over 77 minutes, consuming 2.8 units of energy.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 3
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:41de2bc4e92329f9bd8325291e11a9206445823b5aa438ed03ca6b41f141db82",
+   "postStateChecksum": "sha256:9de555f62f8b2cd2ca0ccdc00049972b6cdd29a4caaf56268dea9c3dc9fb34c5",
+   "modelRequestHash": "sha256:ddbe608e87489b995d0896db8c1c4215ba2bddb2a1c9c32850079b65979cfcdf",
+   "modelResponseHash": "sha256:dbe02f47c425e28a16e54243007111401b26a4a976e64c902a2f0ebd0b45494f",
+   "prevHash": "sha256:7d424def82b7b7b26acd7f0b368747744fac9dfac8e05454390896780f1aed33",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-29T14:21:40.000Z",
+   "hash": "sha256:de653807c81191b1a447210305e5d977740cffaaa4a8e3afa5056c283228613b",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00267",
+   "worldId": "AG-1",
+   "sequence": 267,
+   "simTime": 96115,
+   "actor": "INH-002",
+   "type": "conversation.public",
+   "description": "Berrun and Erish conversed at tile (15,16) for 31 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-002",
+    "INH-005"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:9de555f62f8b2cd2ca0ccdc00049972b6cdd29a4caaf56268dea9c3dc9fb34c5",
+   "postStateChecksum": "sha256:2b420775a7096c5de661c15b56c1c0faedc10332e541945893885cb5e07ed34a",
+   "modelRequestHash": "sha256:4ea83303c1250b643116a4e279334b2928d76682aee97007c24bde9cac70bb11",
+   "modelResponseHash": "sha256:d099809c1ca665b07fa540c3c8fee1a054ae577a3e455c4599bc018c5b7c9115",
+   "prevHash": "sha256:de653807c81191b1a447210305e5d977740cffaaa4a8e3afa5056c283228613b",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-29T14:58:20.000Z",
+   "hash": "sha256:e65d10abfd22d8fdb3b2304fb6843c6544701bc27556d6b2a7d63018e38eeca0",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00268",
+   "worldId": "AG-1",
+   "sequence": 268,
+   "simTime": 96950,
+   "actor": "INH-001",
+   "type": "gather",
+   "description": "Aleth gathered 3 units of stone at tile (14,17) over 90 minutes, consuming 1.1 units of energy.",
+   "subjects": [
+    "INH-001"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 3
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:2b420775a7096c5de661c15b56c1c0faedc10332e541945893885cb5e07ed34a",
+   "postStateChecksum": "sha256:948313b9b64bf5d2313c668fb51e1f8e693b058dd8f7de88e2317a523bdbacff",
+   "modelRequestHash": "sha256:04843b82f747076b10d2c6811bb272fa04cc6aadcbdc9e4675af7eaa7df1f86d",
+   "modelResponseHash": "sha256:780975c2f7e69643258374764ca20def9b6136d2418a6e3b43a417ecc73c4e57",
+   "prevHash": "sha256:e65d10abfd22d8fdb3b2304fb6843c6544701bc27556d6b2a7d63018e38eeca0",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Aleth",
+   "realTime": "2026-07-29T19:36:40.000Z",
+   "hash": "sha256:baabd9070a23fbf9a51b931bab4ac6d64b4d2b90238be6bd6868359976924d87",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00269",
+   "worldId": "AG-1",
+   "sequence": 269,
+   "simTime": 96970,
+   "actor": "INH-004",
+   "type": "rest",
+   "description": "Dovie rested at tile (14,13) for 260 minutes. Recorded energy increased by 2.4 units.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:948313b9b64bf5d2313c668fb51e1f8e693b058dd8f7de88e2317a523bdbacff",
+   "postStateChecksum": "sha256:a04167c54bd850389e8a20e9352b2516b3642863f928daf4592929a3e2ecacc4",
+   "modelRequestHash": "sha256:ba7a7d250a9b205a6ff1a6f9504361be419f3c1225b741be1d97589e93004df7",
+   "modelResponseHash": "sha256:f41867cb5dec552cc3ac7eff1fc17700b766a57daf97885fda679b3e8c877372",
+   "prevHash": "sha256:baabd9070a23fbf9a51b931bab4ac6d64b4d2b90238be6bd6868359976924d87",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-29T19:43:20.000Z",
+   "hash": "sha256:bad3a699283d9b217836b2d9b94da1479ec7f5be5bf5ade808049b52b307f6b4",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00270",
+   "worldId": "AG-1",
+   "sequence": 270,
+   "simTime": 97425,
+   "actor": "INH-005",
+   "type": "move",
+   "description": "Erish moved from tile (12,18) to tile (11,17) over 23 minutes.",
+   "subjects": [
+    "INH-005"
+   ],
+   "inputs": {
+    "fromX": 12,
+    "fromY": 18,
+    "toX": 11,
+    "toY": 17
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:a04167c54bd850389e8a20e9352b2516b3642863f928daf4592929a3e2ecacc4",
+   "postStateChecksum": "sha256:774055a1c4625b9a9ec7be0368a24f5d01b6f04c4d7c292194df7c3edf91ab91",
+   "modelRequestHash": "sha256:1abbd20c56c01c49ecad75436d8cc851b92b1f206f99757b32bfe152c00f9843",
+   "modelResponseHash": "sha256:cf0c21ded093d6efa1b8e6d176692c94d6c8587e09f37514e1843800b6d6aa04",
+   "prevHash": "sha256:bad3a699283d9b217836b2d9b94da1479ec7f5be5bf5ade808049b52b307f6b4",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-07-29T22:15:00.000Z",
+   "hash": "sha256:7662f14b6317329bf26f3d6c13c4a8ebdbddd4955fd0ac21c4e08e0ffccb7b15",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 11,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00271",
+   "worldId": "AG-1",
+   "sequence": 271,
+   "simTime": 98335,
+   "actor": "INH-005",
+   "type": "gather",
+   "description": "Erish gathered 2 units of stone at tile (12,18) over 49 minutes, consuming 1.3 units of energy.",
+   "subjects": [
+    "INH-005"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:774055a1c4625b9a9ec7be0368a24f5d01b6f04c4d7c292194df7c3edf91ab91",
+   "postStateChecksum": "sha256:af5f6b2abcce4cc3fa0fcbbcc5faa1a12dbf26b99f812188847ea594bf2e1aeb",
+   "modelRequestHash": "sha256:bc27a4fa460d96f18fe4dff09cbd56922722a5face270ea583f18480ffdb353b",
+   "modelResponseHash": "sha256:e0e3571d24087f28d97689a6394d31fb82336918d288fa8c9ba858edee1ee871",
+   "prevHash": "sha256:7662f14b6317329bf26f3d6c13c4a8ebdbddd4955fd0ac21c4e08e0ffccb7b15",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-07-30T03:18:20.000Z",
+   "hash": "sha256:1cd8949b2eeed963ff335334aadcc931aa4e23f411120f0528514e66e790dc4f",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00272",
+   "worldId": "AG-1",
+   "sequence": 272,
+   "simTime": 98560,
+   "actor": "INH-002",
+   "type": "gather",
+   "description": "Berrun gathered 9 units of water at tile (15,16) over 93 minutes, consuming 2.6 units of energy.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "resource": "water",
+    "quantity": 9
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:af5f6b2abcce4cc3fa0fcbbcc5faa1a12dbf26b99f812188847ea594bf2e1aeb",
+   "postStateChecksum": "sha256:9c4c648b30c67221a8fdfb0ae38e8a593ca91dd012c9eaecca35c5a8a921c81d",
+   "modelRequestHash": "sha256:02cf7c683baa2f290132d7f27cc7668c7d867af6921fc21d0b391da8870aafab",
+   "modelResponseHash": "sha256:8d03e6f7a4defe98ab269d394bcc2ccd20fad4c9b83f324998d731e0b31f6768",
+   "prevHash": "sha256:1cd8949b2eeed963ff335334aadcc931aa4e23f411120f0528514e66e790dc4f",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-30T04:33:20.000Z",
+   "hash": "sha256:11aa8cc5c5c46d706a752ced9ad032e3103c0edce257b61c0083e6a523f68c7f",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00273",
+   "worldId": "AG-1",
+   "sequence": 273,
+   "simTime": 98940,
+   "actor": "INH-001",
+   "type": "gather",
+   "description": "Aleth gathered 7 units of stone at tile (14,17) over 62 minutes, consuming 3.0 units of energy.",
+   "subjects": [
+    "INH-001"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 7
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:9c4c648b30c67221a8fdfb0ae38e8a593ca91dd012c9eaecca35c5a8a921c81d",
+   "postStateChecksum": "sha256:c64eb170d22d448221019fcdff7df26ce11067829dc986a0c750871ec7d58e9c",
+   "modelRequestHash": "sha256:d762e5d64ce8dc8cd27f2cc55393ef1e7dd39337cc177060de16b4562b549fd4",
+   "modelResponseHash": "sha256:20a4f14d099ff9426b97deed6fd1699a19638534ac0789bbe1a2b31361a4a129",
+   "prevHash": "sha256:11aa8cc5c5c46d706a752ced9ad032e3103c0edce257b61c0083e6a523f68c7f",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Aleth",
+   "realTime": "2026-07-30T06:40:00.000Z",
+   "hash": "sha256:4a00acd4cb348f13f904394c1772f0e93d97b65baf6bfb9e3f0a87ac2b048490",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00274",
+   "worldId": "AG-1",
+   "sequence": 274,
+   "simTime": 100060,
+   "actor": "INH-007",
+   "type": "practise",
+   "description": "Gaure practised communication for 143 minutes at tile (15,18). Recorded communication proficiency increased by 0.011.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "skill": "communication"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:c64eb170d22d448221019fcdff7df26ce11067829dc986a0c750871ec7d58e9c",
+   "postStateChecksum": "sha256:0e6674e881fc925c1b870b50f1cc29e59fd613ccb83281d71128a270c54cae71",
+   "modelRequestHash": "sha256:0b64c7b24a40ee8bb8bda5d2b848ae5b422c3c5f2e43901674251daea871d94e",
+   "modelResponseHash": "sha256:a2a48a13305b8a183f9edf99426f45b33085e16a6afef961c8d47537aa7d54c4",
+   "prevHash": "sha256:4a00acd4cb348f13f904394c1772f0e93d97b65baf6bfb9e3f0a87ac2b048490",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-07-30T12:53:20.000Z",
+   "hash": "sha256:079ce527190f91dc81bdd82ce5bdbc37af1fc9346427cc6bba512baae8ca0ca6",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00275",
+   "worldId": "AG-1",
+   "sequence": 275,
+   "simTime": 100075,
+   "actor": "INH-010",
+   "type": "gather",
+   "description": "Jarn gathered 8 units of food at tile (15,15) over 128 minutes, consuming 2.6 units of energy.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 8
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:0e6674e881fc925c1b870b50f1cc29e59fd613ccb83281d71128a270c54cae71",
+   "postStateChecksum": "sha256:99e7757ca4017ebc19515286be9832f65b8e9bac8b70c41445f3e67873a8f893",
+   "modelRequestHash": "sha256:a1b194182b0f6a841eb802a2acdd8bb576b8249d17fafa192f54bdd5ab7c7dca",
+   "modelResponseHash": "sha256:c6c7207edfe1491e79c4daa6727f502d9fc68d9a2d5f7fdc5540d146da7c123d",
+   "prevHash": "sha256:079ce527190f91dc81bdd82ce5bdbc37af1fc9346427cc6bba512baae8ca0ca6",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-07-30T12:58:20.000Z",
+   "hash": "sha256:c248c712239ae1105030fb3e1643b173810bad0687e30b3d1fe31c182528949c",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00276",
+   "worldId": "AG-1",
+   "sequence": 276,
+   "simTime": 100485,
+   "actor": "INH-001",
+   "type": "conversation.public",
+   "description": "Aleth and Iolen conversed at tile (14,17) for 26 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-001",
+    "INH-009"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:99e7757ca4017ebc19515286be9832f65b8e9bac8b70c41445f3e67873a8f893",
+   "postStateChecksum": "sha256:adf63f85fc076791531cb0784a88b55a35e46504bad4d7e739d1da462a00ee9e",
+   "modelRequestHash": "sha256:8a7bfd3a497ed487c9d98d168fa2feabc02c5fec3a401467fc0dda39c0e2e630",
+   "modelResponseHash": "sha256:9649a8d7ab7c9318486119a29483d0926aff37b2923527a02c9d9aec4ea83f3a",
+   "prevHash": "sha256:c248c712239ae1105030fb3e1643b173810bad0687e30b3d1fe31c182528949c",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Aleth",
+   "realTime": "2026-07-30T15:15:00.000Z",
+   "hash": "sha256:f2f76fab55994a57a0ae5373b1f34f7babf108dc50bdd81ee0198972ca99f956",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00277",
+   "worldId": "AG-1",
+   "sequence": 277,
+   "simTime": 101575,
+   "actor": "INH-010",
+   "type": "move",
+   "description": "Jarn moved from tile (15,15) to tile (14,15) over 55 minutes.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 15,
+    "toX": 14,
+    "toY": 15
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:adf63f85fc076791531cb0784a88b55a35e46504bad4d7e739d1da462a00ee9e",
+   "postStateChecksum": "sha256:caf50122bd6ff3049aecefeb67789e174a79f156368d0f8a81735120a6745eeb",
+   "modelRequestHash": "sha256:4a6f7529b3510406167e7e8cd95e42b54f934bb7df8d560b709cb46eba20d4b0",
+   "modelResponseHash": "sha256:21077c5bc884bb4dd15d29219586433131d27c4d075cef479ce26dfc547a96f2",
+   "prevHash": "sha256:f2f76fab55994a57a0ae5373b1f34f7babf108dc50bdd81ee0198972ca99f956",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-07-30T21:18:20.000Z",
+   "hash": "sha256:f399cfedde537190642dea7a9fc279238c22a237cb552e6b725ea7608fe6f4d1",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00278",
+   "worldId": "AG-1",
+   "sequence": 278,
+   "simTime": 101595,
+   "actor": "INH-001",
+   "type": "gather",
+   "description": "Aleth gathered 6 units of water at tile (14,17) over 65 minutes, consuming 1.6 units of energy.",
+   "subjects": [
+    "INH-001"
+   ],
+   "inputs": {
+    "resource": "water",
+    "quantity": 6
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:caf50122bd6ff3049aecefeb67789e174a79f156368d0f8a81735120a6745eeb",
+   "postStateChecksum": "sha256:96df55b21cf92974e8b85d84d6e00cf93621fb6967837d27739fbc345f3b6cfc",
+   "modelRequestHash": "sha256:d163df8d00973e5b3ef8f8f5345f370d3ab6f4f37a13d7a70c9beae991df0471",
+   "modelResponseHash": "sha256:cc0725542680951aa8fc902131a6ca7bb341c0fe75a3b3223c294875aa5c28c2",
+   "prevHash": "sha256:f399cfedde537190642dea7a9fc279238c22a237cb552e6b725ea7608fe6f4d1",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Aleth",
+   "realTime": "2026-07-30T21:25:00.000Z",
+   "hash": "sha256:014bf67e6a49cbfbff953d90fbc1b06dde98342f47e3fd7762350e71ce40a210",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00279",
+   "worldId": "AG-1",
+   "sequence": 279,
+   "simTime": 101665,
+   "actor": "INH-007",
+   "type": "move",
+   "description": "Gaure moved from tile (15,18) to tile (14,19) over 48 minutes.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 18,
+    "toX": 14,
+    "toY": 19
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:96df55b21cf92974e8b85d84d6e00cf93621fb6967837d27739fbc345f3b6cfc",
+   "postStateChecksum": "sha256:f024179f615b34ca927f6662e51882cd503e82000ee3bb980678e0ad2b1e4898",
+   "modelRequestHash": "sha256:b249c3f6cf0f1ea2cde62633b948659268cf9fa81d25468b7e96b937ebab7851",
+   "modelResponseHash": "sha256:aa8057652bac37dee8fbaba35031b3f744cb82b63e6830aa8c403ec2187b4460",
+   "prevHash": "sha256:014bf67e6a49cbfbff953d90fbc1b06dde98342f47e3fd7762350e71ce40a210",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-07-30T21:48:20.000Z",
+   "hash": "sha256:cd5d5447f1493ba0e7ba736aa4d17f53d325626724248566fb1ea43cf265a410",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00280",
+   "worldId": "AG-1",
+   "sequence": 280,
+   "simTime": 103150,
+   "actor": "INH-008",
+   "type": "move",
+   "description": "Hallow moved from tile (16,16) to tile (16,16) over 55 minutes.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "fromX": 16,
+    "fromY": 16,
+    "toX": 16,
+    "toY": 16
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:f024179f615b34ca927f6662e51882cd503e82000ee3bb980678e0ad2b1e4898",
+   "postStateChecksum": "sha256:b3fc1ca3819e568599341aa4be716ec5203de748148d0be6e3e59c1953695217",
+   "modelRequestHash": "sha256:20dd0d89eae62c23d4ec59524065336334771a61ce099ee55d5debb2b4debb26",
+   "modelResponseHash": "sha256:6e11e1be26b2a1e577cc8af4b174801b20b986b74ef2c673af0e5245ed42490a",
+   "prevHash": "sha256:cd5d5447f1493ba0e7ba736aa4d17f53d325626724248566fb1ea43cf265a410",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-31T06:03:20.000Z",
+   "hash": "sha256:2cfb6d13db3d2d1daaf21ccd8ea5c736e9e89a585dd1ae3056481b9c81741f54",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00281",
+   "worldId": "AG-1",
+   "sequence": 281,
+   "simTime": 103240,
+   "actor": "INH-004",
+   "type": "gather",
+   "description": "Dovie gathered 4 units of stone at tile (14,13) over 81 minutes, consuming 1.8 units of energy.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 4
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:b3fc1ca3819e568599341aa4be716ec5203de748148d0be6e3e59c1953695217",
+   "postStateChecksum": "sha256:3f8a02dda2061acec141fbd44f070427879cc1c1807796d893c5f78fba4ce9d9",
+   "modelRequestHash": "sha256:e5a24b75c86c65932bdef78a6ed4fc8acc72aa7739fa86a9a40b3a4f17c826c8",
+   "modelResponseHash": "sha256:fe830f32199a8e65b03f697e34d54c5ec54a3251bc31cb874a3b9a509bede127",
+   "prevHash": "sha256:2cfb6d13db3d2d1daaf21ccd8ea5c736e9e89a585dd1ae3056481b9c81741f54",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-31T06:33:20.000Z",
+   "hash": "sha256:34aa0bd76699ae4fec9dccacaef97245ff99a84ed2450b6975549298e2d43db6",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00282",
+   "worldId": "AG-1",
+   "sequence": 282,
+   "simTime": 103295,
+   "actor": "INH-008",
+   "type": "observe",
+   "description": "Hallow observed the tiles within 2 tiles of (16,16) and recorded 3 previously unrecorded features.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "radius": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:3f8a02dda2061acec141fbd44f070427879cc1c1807796d893c5f78fba4ce9d9",
+   "postStateChecksum": "sha256:c27b8aec80d0d3e017cea25a577763b6eccfc1f7fe582f8c2956176a0d4aba2f",
+   "modelRequestHash": "sha256:5f5e0a0d142172f6bdbe99ebdb4744c93d8d1eab8091754d5f067cd3f13e2054",
+   "modelResponseHash": "sha256:2838c2e3db15b9a04afaf349581193d3ba95f963f7168161870bf9b8cbb8c337",
+   "prevHash": "sha256:34aa0bd76699ae4fec9dccacaef97245ff99a84ed2450b6975549298e2d43db6",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-07-31T06:51:40.000Z",
+   "hash": "sha256:5403d13558ba927cb16a3ed0fee5d514641d4e8b59d2e73f93a15820cdfda7e9",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00283",
+   "worldId": "AG-1",
+   "sequence": 283,
+   "simTime": 104430,
+   "actor": "INH-011",
+   "type": "practise",
+   "description": "Kessa practised communication for 159 minutes at tile (11,19). Recorded communication proficiency increased by 0.010.",
+   "subjects": [
+    "INH-011"
+   ],
+   "inputs": {
+    "skill": "communication"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:c27b8aec80d0d3e017cea25a577763b6eccfc1f7fe582f8c2956176a0d4aba2f",
+   "postStateChecksum": "sha256:6d55dcfba22c7281243474e8a495889cfa8da31ff4a372b57f91c82a15b8c16e",
+   "modelRequestHash": "sha256:6efe99a78f8d6f638d08504ff7546bde1b2683621e1317a90a252e2deb5b271b",
+   "modelResponseHash": "sha256:0ce2f0fb0d253fc34d8176db4b20dfa2d1a898a73691eac5ce234df3113c8928",
+   "prevHash": "sha256:5403d13558ba927cb16a3ed0fee5d514641d4e8b59d2e73f93a15820cdfda7e9",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-07-31T13:10:00.000Z",
+   "hash": "sha256:125d9db78f95f6d97c179df9d7eea5016f48913b67dd36665326d09d3d575dd6",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 11,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00284",
+   "worldId": "AG-1",
+   "sequence": 284,
+   "simTime": 104510,
+   "actor": "INH-009",
+   "type": "move",
+   "description": "Iolen moved from tile (13,12) to tile (13,13) over 32 minutes.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "fromX": 13,
+    "fromY": 12,
+    "toX": 13,
+    "toY": 13
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:6d55dcfba22c7281243474e8a495889cfa8da31ff4a372b57f91c82a15b8c16e",
+   "postStateChecksum": "sha256:e4b7e1bc8fe8683482671f13e7e319bc0b9bf14ce00f554c9ba29d37097d60cc",
+   "modelRequestHash": "sha256:6887fa8c539d3588da24da532d5a897407b21583c01fe882f180dce8756d34db",
+   "modelResponseHash": "sha256:da46b1c6c4feafced783e0d07c16d624cfe87e6784d5714e4a11e1842e448374",
+   "prevHash": "sha256:125d9db78f95f6d97c179df9d7eea5016f48913b67dd36665326d09d3d575dd6",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-07-31T13:36:40.000Z",
+   "hash": "sha256:dc21faaddf4d053289edb6fb04241ab81cbb7094a5c1e79be1f615aa18e1ad84",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00285",
+   "worldId": "AG-1",
+   "sequence": 285,
+   "simTime": 104575,
+   "actor": "INH-006",
+   "type": "observe",
+   "description": "Fenne observed the tiles within 2 tiles of (17,20) and recorded 2 previously unrecorded features.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "radius": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:e4b7e1bc8fe8683482671f13e7e319bc0b9bf14ce00f554c9ba29d37097d60cc",
+   "postStateChecksum": "sha256:1413ff1d7dfe9d8ae9b8b2190df180e5575c2aae0d4148a1db3e06a422dddbb6",
+   "modelRequestHash": "sha256:db4a5a9bb748b7908308c11d0538ba8d849978e6d3d8e7acd166529fb1940429",
+   "modelResponseHash": "sha256:785d869bedf14b6db309098310131a3d18d8859ffb2c50a64e27b8793f94c8e0",
+   "prevHash": "sha256:dc21faaddf4d053289edb6fb04241ab81cbb7094a5c1e79be1f615aa18e1ad84",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-07-31T13:58:20.000Z",
+   "hash": "sha256:47435dd073484b19ff331e73a611cd568386f1ff4ee6ab755e0b54f9f5ab102e",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00286",
+   "worldId": "AG-1",
+   "sequence": 286,
+   "simTime": 105610,
+   "actor": "INH-007",
+   "type": "gather",
+   "description": "Gaure gathered 4 units of stone at tile (15,18) over 80 minutes, consuming 1.5 units of energy.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 4
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:1413ff1d7dfe9d8ae9b8b2190df180e5575c2aae0d4148a1db3e06a422dddbb6",
+   "postStateChecksum": "sha256:407aab1848258151d006b006b2e595b451658de218a0450859bf4400c6bf5a9c",
+   "modelRequestHash": "sha256:8c14c4856e1c73802945d7c4b304eb6eed2d68e83cfbefc9493e332faabe32bd",
+   "modelResponseHash": "sha256:654f67607276bec7fc305e6ffda304a3963d0cb523831ff1e92fdc9380ca1a61",
+   "prevHash": "sha256:47435dd073484b19ff331e73a611cd568386f1ff4ee6ab755e0b54f9f5ab102e",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-07-31T19:43:20.000Z",
+   "hash": "sha256:10ce4502de261e9d2ac1eb3b706f6878afbaf04841423dff7f2410b3e7b0d6db",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00287",
+   "worldId": "AG-1",
+   "sequence": 287,
+   "simTime": 105845,
+   "actor": "INH-004",
+   "type": "practise",
+   "description": "Dovie practised teaching for 149 minutes at tile (14,13). Recorded teaching proficiency increased by 0.015.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "skill": "teaching"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:407aab1848258151d006b006b2e595b451658de218a0450859bf4400c6bf5a9c",
+   "postStateChecksum": "sha256:81ee6d2d40d04526d6200f44fb7aad4d8df783c76f39ef5924d054ccbfe80731",
+   "modelRequestHash": "sha256:0dd4f26f27df2d1ccdb34bae5d2b40bfbd1f5ac15c0ef4473feaf606fabaf772",
+   "modelResponseHash": "sha256:c660f5a0e054ba2c114d09e4a215a385909cae565b89d9a6ba7eaaf87fa87a6b",
+   "prevHash": "sha256:10ce4502de261e9d2ac1eb3b706f6878afbaf04841423dff7f2410b3e7b0d6db",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-07-31T21:01:40.000Z",
+   "hash": "sha256:0dd89eeebbad4fe87540620866096d8207b729419eadb91d0627dad2bc8fde34",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00288",
+   "worldId": "AG-1",
+   "sequence": 288,
+   "simTime": 106215,
+   "actor": "INH-002",
+   "type": "gather",
+   "description": "Berrun gathered 2 units of food at tile (15,16) over 46 minutes, consuming 2.3 units of energy.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:81ee6d2d40d04526d6200f44fb7aad4d8df783c76f39ef5924d054ccbfe80731",
+   "postStateChecksum": "sha256:d84b2c925fbbff06685368a893ce5e53b6f8b8efce98ede71c1faeaa7b396abc",
+   "modelRequestHash": "sha256:ddd1fdabc2e9d6720d35886a68d1ad509e50c77f2754c213c7790ea340fbdbaa",
+   "modelResponseHash": "sha256:70e99ea0864da479788d43de3bf3bc536cc8f0c88c52de3dd98f4501a079b064",
+   "prevHash": "sha256:0dd89eeebbad4fe87540620866096d8207b729419eadb91d0627dad2bc8fde34",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-07-31T23:05:00.000Z",
+   "hash": "sha256:acabe84fbfac3aca2f7e4191d29e406cde409750a84bc38baebf9740b9dc7f62",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00289",
+   "worldId": "AG-1",
+   "sequence": 289,
+   "simTime": 107000,
+   "actor": "INH-006",
+   "type": "gather",
+   "description": "Fenne gathered 4 units of wood at tile (17,20) over 95 minutes, consuming 2.0 units of energy.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 4
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d84b2c925fbbff06685368a893ce5e53b6f8b8efce98ede71c1faeaa7b396abc",
+   "postStateChecksum": "sha256:19b448703a4a3dddb90726b26b0fbebf96540aa10394988825e754b00a30910f",
+   "modelRequestHash": "sha256:0dce3e57e7a1cf1dd858cc2b71d497c70171734c1bf7475f9a2aae652a9c1bc6",
+   "modelResponseHash": "sha256:fb089974210527788d04d0e9a4d15b44c67b2a5ad7c77f9833afa218fae7934f",
+   "prevHash": "sha256:acabe84fbfac3aca2f7e4191d29e406cde409750a84bc38baebf9740b9dc7f62",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-08-01T03:26:40.000Z",
+   "hash": "sha256:eb839a114ccaf935f42bb8a190ab118899cee08672dec28acb13302cd91a8945",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00290",
+   "worldId": "AG-1",
+   "sequence": 290,
+   "simTime": 107345,
+   "actor": "INH-009",
+   "type": "gather",
+   "description": "Iolen gathered 10 units of food at tile (13,12) over 60 minutes, consuming 1.4 units of energy.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 10
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:19b448703a4a3dddb90726b26b0fbebf96540aa10394988825e754b00a30910f",
+   "postStateChecksum": "sha256:043dfd6e87464e09e98d4ef7b92a32d4059658d844ac41e66dc9bf479e3c004e",
+   "modelRequestHash": "sha256:f731050b5c1883dbc1a48b1eafea1c2aa3a472fe96b9810dadb014df996ad44a",
+   "modelResponseHash": "sha256:b7a0fa78c435b4a68b88c5ad0d5852470a3c214e44bc4ec958fe85623459cd11",
+   "prevHash": "sha256:eb839a114ccaf935f42bb8a190ab118899cee08672dec28acb13302cd91a8945",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-08-01T05:21:40.000Z",
+   "hash": "sha256:f2fe1c2d982c396b8639097ea5257b5dd52bbeed76355d290ca59e1dffca79e6",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00291",
+   "worldId": "AG-1",
+   "sequence": 291,
+   "simTime": 107695,
+   "actor": "INH-008",
+   "type": "conversation.public",
+   "description": "Hallow and Iolen conversed at tile (16,16) for 74 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-008",
+    "INH-009"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:043dfd6e87464e09e98d4ef7b92a32d4059658d844ac41e66dc9bf479e3c004e",
+   "postStateChecksum": "sha256:8110044b9ffa401cd27551d7185d9afb3fa5929663e51eae9115332d274b7aca",
+   "modelRequestHash": "sha256:0a05ae2fcec4e15aff835f27ef1347aa13d97db46269d4c321946dba9274924e",
+   "modelResponseHash": "sha256:4e64671de4c187bd9daaa5b644a6ef21919c5fe0afed4fb269f7ba6ab2f722dd",
+   "prevHash": "sha256:f2fe1c2d982c396b8639097ea5257b5dd52bbeed76355d290ca59e1dffca79e6",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-01T07:18:20.000Z",
+   "hash": "sha256:856620b1cb7e8e089e596c989c8c14fc4577e54ee76e5336da8a0b92e5c05d1b",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00292",
+   "worldId": "AG-1",
+   "sequence": 292,
+   "simTime": 108525,
+   "actor": "INH-005",
+   "type": "gather",
+   "description": "Erish gathered 2 units of stone at tile (12,18) over 77 minutes, consuming 2.6 units of energy.",
+   "subjects": [
+    "INH-005"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:8110044b9ffa401cd27551d7185d9afb3fa5929663e51eae9115332d274b7aca",
+   "postStateChecksum": "sha256:9a21f67148eb26dad9c7d17f828f5aaf4d23202c7bfbbd4624c122cbd258adac",
+   "modelRequestHash": "sha256:01e247577e8e37cb56ce9f31b0dc121e6852157de593b8568b9ad4a0a3fc7cf3",
+   "modelResponseHash": "sha256:960604e48e021ec44e06422a9624978ae2a25a98a133aaf1238ee57d4c91e16d",
+   "prevHash": "sha256:856620b1cb7e8e089e596c989c8c14fc4577e54ee76e5336da8a0b92e5c05d1b",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-08-01T11:55:00.000Z",
+   "hash": "sha256:e6a2cdd7aca9c6f977ff3be5c85beb84ea4c67a8191689f0d802d087dc5d686e",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00293",
+   "worldId": "AG-1",
+   "sequence": 293,
+   "simTime": 108610,
+   "actor": "INH-004",
+   "type": "move",
+   "description": "Dovie moved from tile (14,13) to tile (14,14) over 37 minutes.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "fromX": 14,
+    "fromY": 13,
+    "toX": 14,
+    "toY": 14
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:9a21f67148eb26dad9c7d17f828f5aaf4d23202c7bfbbd4624c122cbd258adac",
+   "postStateChecksum": "sha256:149ff669da8e6b18966cec1414080e7f10261c43d8e864722797255b3b6c4df5",
+   "modelRequestHash": "sha256:960272b28369820eb483855f00ee498ceea364dfc70540eada7fb7c95649dfd0",
+   "modelResponseHash": "sha256:684d09f89019dcc60b6002a985c8a0b2da2844a37521e38e878177d4bf5ed264",
+   "prevHash": "sha256:e6a2cdd7aca9c6f977ff3be5c85beb84ea4c67a8191689f0d802d087dc5d686e",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-08-01T12:23:20.000Z",
+   "hash": "sha256:219b070411bb183ecf4bdeed6152fb009b3165205496246705b667ff4fff12f7",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 14
+   }
+  },
+  {
+   "id": "EV-00294",
+   "worldId": "AG-1",
+   "sequence": 294,
+   "simTime": 109110,
+   "actor": "INH-005",
+   "type": "gather",
+   "description": "Erish gathered 3 units of wood at tile (12,18) over 45 minutes, consuming 2.3 units of energy.",
+   "subjects": [
+    "INH-005"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 3
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:149ff669da8e6b18966cec1414080e7f10261c43d8e864722797255b3b6c4df5",
+   "postStateChecksum": "sha256:758edaaae9a01054dde66a7ae3b19c93bce5cd25b567937836375c46ba258a7a",
+   "modelRequestHash": "sha256:8183702098156118959d3010334005e3883cc2214e3b54379507c2b9eb9db731",
+   "modelResponseHash": "sha256:fb7c096bbe32a7c286f36e6ad8e6c23eb37b1a5d099cfe858c19bfe7c396bf39",
+   "prevHash": "sha256:219b070411bb183ecf4bdeed6152fb009b3165205496246705b667ff4fff12f7",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-08-01T15:10:00.000Z",
+   "hash": "sha256:7a490079bb9b0a1fbf88e8b15a0f0dbca4442ef81b6a853d384551c5af315296",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00295",
+   "worldId": "AG-1",
+   "sequence": 295,
+   "simTime": 110300,
+   "actor": "INH-005",
+   "type": "move",
+   "description": "Erish moved from tile (12,18) to tile (11,18) over 32 minutes.",
+   "subjects": [
+    "INH-005"
+   ],
+   "inputs": {
+    "fromX": 12,
+    "fromY": 18,
+    "toX": 11,
+    "toY": 18
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:758edaaae9a01054dde66a7ae3b19c93bce5cd25b567937836375c46ba258a7a",
+   "postStateChecksum": "sha256:25d1fdfcabcfbc606452e23e7ea292e7f786c1a1fe558fb37f9df0f26c40916c",
+   "modelRequestHash": "sha256:a4a73fd6dd7a6876e8739ba82af6b9da0d9cf940ff6d41e924dfe480ec7bdfaf",
+   "modelResponseHash": "sha256:08d0feb720f2407737d2674f72094e751e180e166b7f1adcd61f0c3fd386b3f7",
+   "prevHash": "sha256:7a490079bb9b0a1fbf88e8b15a0f0dbca4442ef81b6a853d384551c5af315296",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-08-01T21:46:40.000Z",
+   "hash": "sha256:fe88a4cd50995f83279345ca8103760176c734aafeffb85d2585357459d30664",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 11,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00296",
+   "worldId": "AG-1",
+   "sequence": 296,
+   "simTime": 110355,
+   "actor": "INH-002",
+   "type": "observe",
+   "description": "Berrun observed the tiles within 2 tiles of (15,16) and recorded 4 previously unrecorded features.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "radius": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:25d1fdfcabcfbc606452e23e7ea292e7f786c1a1fe558fb37f9df0f26c40916c",
+   "postStateChecksum": "sha256:41c7c8f8f061439f20982b5c2ab7e6823fe763a4564425b6d72a0c8a3b6254c9",
+   "modelRequestHash": "sha256:4216a667da8b8d790ae7d80f464d9ed5465c773c40c1630b5a9ee78dc33c2695",
+   "modelResponseHash": "sha256:0db3e58a43e2bafe27b237a0e01a1157cc2fb681a412c860963e1e1b5f82239f",
+   "prevHash": "sha256:fe88a4cd50995f83279345ca8103760176c734aafeffb85d2585357459d30664",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-08-01T22:05:00.000Z",
+   "hash": "sha256:35698481e2d3d7cff3fde072a1425effaef5494478d796fa3d667cb7baa90da8",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00297",
+   "worldId": "AG-1",
+   "sequence": 297,
+   "simTime": 110425,
+   "actor": "INH-008",
+   "type": "rest",
+   "description": "Hallow rested at tile (16,16) for 399 minutes. Recorded energy increased by 3.1 units.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:41c7c8f8f061439f20982b5c2ab7e6823fe763a4564425b6d72a0c8a3b6254c9",
+   "postStateChecksum": "sha256:6d01abcdc63ac497cd71f5f4555212fd381f528cc1f62f20ac8d52724e85e4d0",
+   "modelRequestHash": "sha256:83a16f597d09616d43f2bc67f97dbec3fd8a1eb71427fb5344ee4143990f78cd",
+   "modelResponseHash": "sha256:9ba52f9a8bebe242942eb022efb17861861b8d620695d140c77c1aeee7de6e96",
+   "prevHash": "sha256:35698481e2d3d7cff3fde072a1425effaef5494478d796fa3d667cb7baa90da8",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-01T22:28:20.000Z",
+   "hash": "sha256:e14779706d86cf393ad52912e5bd2d1b97ef254b35c9057ca70171ccdaa729bf",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00298",
+   "worldId": "AG-1",
+   "sequence": 298,
+   "simTime": 111430,
+   "actor": "INH-001",
+   "type": "move",
+   "description": "Aleth moved from tile (14,17) to tile (13,18) over 48 minutes.",
+   "subjects": [
+    "INH-001"
+   ],
+   "inputs": {
+    "fromX": 14,
+    "fromY": 17,
+    "toX": 13,
+    "toY": 18
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:6d01abcdc63ac497cd71f5f4555212fd381f528cc1f62f20ac8d52724e85e4d0",
+   "postStateChecksum": "sha256:db84af0a0211064b9dd2c1e29b64f8f9f55d375c4885c8165b0dd7f0c1d6c858",
+   "modelRequestHash": "sha256:19e9816e3882190838b63d4bffa397283dfaea8a61a1a893cad5fa5af1cf61c6",
+   "modelResponseHash": "sha256:0ae8e8cc4a2d18033707cc5c898dce0e1855af1589ab069ab4de537bc24fbc04",
+   "prevHash": "sha256:e14779706d86cf393ad52912e5bd2d1b97ef254b35c9057ca70171ccdaa729bf",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Aleth",
+   "realTime": "2026-08-02T04:03:20.000Z",
+   "hash": "sha256:2a6d51ab83d05de676ca53391a58b1e8e05055e16576083b09b5abf6f589cf37",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00299",
+   "worldId": "AG-1",
+   "sequence": 299,
+   "simTime": 111510,
+   "actor": "INH-004",
+   "type": "move",
+   "description": "Dovie moved from tile (14,13) to tile (14,13) over 54 minutes.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "fromX": 14,
+    "fromY": 13,
+    "toX": 14,
+    "toY": 13
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:db84af0a0211064b9dd2c1e29b64f8f9f55d375c4885c8165b0dd7f0c1d6c858",
+   "postStateChecksum": "sha256:d0b30b1be9fc8fce7d1bb7a447721da43b6893fc6268dea08d6cd2bc3fb2d0f8",
+   "modelRequestHash": "sha256:42f228bbd64356a189db2ef845161f96664efe78e27d8a679fb04f156d6cd9a3",
+   "modelResponseHash": "sha256:ddbcd320bfed331a50eb862b27e8b8cbed3a15b13ee58d046359e19c9a95d33a",
+   "prevHash": "sha256:2a6d51ab83d05de676ca53391a58b1e8e05055e16576083b09b5abf6f589cf37",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-08-02T04:30:00.000Z",
+   "hash": "sha256:6fc205b7ca7a4e3898f332f0653360c8795c87bc3be002ead9b2bfb0e24cd3d0",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00300",
+   "worldId": "AG-1",
+   "sequence": 300,
+   "simTime": 111860,
+   "actor": "INH-008",
+   "type": "move",
+   "description": "Hallow moved from tile (16,16) to tile (16,16) over 55 minutes.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "fromX": 16,
+    "fromY": 16,
+    "toX": 16,
+    "toY": 16
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d0b30b1be9fc8fce7d1bb7a447721da43b6893fc6268dea08d6cd2bc3fb2d0f8",
+   "postStateChecksum": "sha256:33613f62adcb4e02cdfa4a85aa8aa7ce4b04641b0807fa94174718a34918eab2",
+   "modelRequestHash": "sha256:64155ed6908d2f87b795d95dc2846c75c4abed5889e84d9d6632bddd2e532e72",
+   "modelResponseHash": "sha256:964b372d0fb04736ec4cfd97fc8fde98d7bb9aec9b3c9a1e20e394c06103ec85",
+   "prevHash": "sha256:6fc205b7ca7a4e3898f332f0653360c8795c87bc3be002ead9b2bfb0e24cd3d0",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-02T06:26:40.000Z",
+   "hash": "sha256:2a4f5dc42a41e3b4c170c8c45a0e8a6201dfdf822b7b79d18ce191692cde01c0",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00301",
+   "worldId": "AG-1",
+   "sequence": 301,
+   "simTime": 112765,
+   "actor": "INH-004",
+   "type": "gather",
+   "description": "Dovie gathered 6 units of food at tile (14,13) over 78 minutes, consuming 2.5 units of energy.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 6
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:33613f62adcb4e02cdfa4a85aa8aa7ce4b04641b0807fa94174718a34918eab2",
+   "postStateChecksum": "sha256:e30d64ce9d98b5feae26f0aec417a889fd47467261a99a010eaacc0aee1d5438",
+   "modelRequestHash": "sha256:141d62d1f3af15c88aa5414a01133ced40cc578b929495597155ecd97ef81642",
+   "modelResponseHash": "sha256:9ad9b9b298420ad919f5255fb0fb4a124af189aa9cb48008c3b709c17ac207d7",
+   "prevHash": "sha256:2a4f5dc42a41e3b4c170c8c45a0e8a6201dfdf822b7b79d18ce191692cde01c0",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-08-02T11:28:20.000Z",
+   "hash": "sha256:27175bf8ce8bf5a4565938c0739eabb5da5453bc88abf1f1c62973b0b4186d52",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00302",
+   "worldId": "AG-1",
+   "sequence": 302,
+   "simTime": 112850,
+   "actor": "INH-007",
+   "type": "move",
+   "description": "Gaure moved from tile (15,18) to tile (14,17) over 40 minutes.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 18,
+    "toX": 14,
+    "toY": 17
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:e30d64ce9d98b5feae26f0aec417a889fd47467261a99a010eaacc0aee1d5438",
+   "postStateChecksum": "sha256:56d85147e7cfdff9a5f121dd641a13382b0d72486d37774e43c269b558be2d99",
+   "modelRequestHash": "sha256:e85c7cb1683f7f2cdbef8919f875024ca6a8cf1a57ab265cbba0c7a6ed4b7fb1",
+   "modelResponseHash": "sha256:69a5c542dd9dd6c15e21c828511cb3d7f88eb8f33a94f83e7abb8bcde3343321",
+   "prevHash": "sha256:27175bf8ce8bf5a4565938c0739eabb5da5453bc88abf1f1c62973b0b4186d52",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-08-02T11:56:40.000Z",
+   "hash": "sha256:8f74336df1430ef1b0bdb0d26bc4125e2e752aeafcd90f085ac4487c1d795386",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 17
+   }
+  },
+  {
+   "id": "EV-00303",
+   "worldId": "AG-1",
+   "sequence": 303,
+   "simTime": 112885,
+   "actor": "INH-007",
+   "type": "observe",
+   "description": "Gaure observed the tiles within 2 tiles of (15,18) and recorded 1 previously unrecorded features.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "radius": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:56d85147e7cfdff9a5f121dd641a13382b0d72486d37774e43c269b558be2d99",
+   "postStateChecksum": "sha256:852351370e8283487d77b4dd0317d16685c859de0de119e1e2cfaab981e85541",
+   "modelRequestHash": "sha256:9fcfc313b2d2f5da0f5bc083e28e8eefa08937fcd6d986a187bd7d987081b42a",
+   "modelResponseHash": "sha256:0cd9a5e2bd03fcabc11c8839d859186099541e762e711ce24573cf8cb2867a19",
+   "prevHash": "sha256:8f74336df1430ef1b0bdb0d26bc4125e2e752aeafcd90f085ac4487c1d795386",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-08-02T12:08:20.000Z",
+   "hash": "sha256:d1775315acb384887af2d849e6a68b7bc80bcdb89997419b728c9c3572c57e20",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00304",
+   "worldId": "AG-1",
+   "sequence": 304,
+   "simTime": 114240,
+   "actor": "INH-012",
+   "type": "conversation.public",
+   "description": "Lume and Aleth conversed at tile (18,21) for 68 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-012",
+    "INH-001"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:852351370e8283487d77b4dd0317d16685c859de0de119e1e2cfaab981e85541",
+   "postStateChecksum": "sha256:404f5dddd5c155fe6eec7c270398f9407f455747d85a80ed2f70f27252777f1e",
+   "modelRequestHash": "sha256:90b01bf12cc11df9eb1ff61a2f7ccd7ffd833bb73c49a4d2c630373fbc00e88f",
+   "modelResponseHash": "sha256:ae3ad822a7db4fac75c8ebda7ce74433685228e083382229c5658c9daf2c07b0",
+   "prevHash": "sha256:d1775315acb384887af2d849e6a68b7bc80bcdb89997419b728c9c3572c57e20",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-08-02T19:40:00.000Z",
+   "hash": "sha256:21cbe1358ade9b7004ef6994ba4b8b488c4fc9c9448355a75ad2dddea07fd583",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 18,
+    "y": 21
+   }
+  },
+  {
+   "id": "EV-00305",
+   "worldId": "AG-1",
+   "sequence": 305,
+   "simTime": 114750,
+   "actor": "INH-012",
+   "type": "practise",
+   "description": "Lume practised accounting for 145 minutes at tile (18,21). Recorded accounting proficiency increased by 0.007.",
+   "subjects": [
+    "INH-012"
+   ],
+   "inputs": {
+    "skill": "accounting"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:404f5dddd5c155fe6eec7c270398f9407f455747d85a80ed2f70f27252777f1e",
+   "postStateChecksum": "sha256:0980090af823cc1e042066f675c41784a24583825e7d1d55709b2ac9ce892b6f",
+   "modelRequestHash": "sha256:fc921d24a55a8ed38d6ccece111762033be9b6fd5668d73107d53b884b1bc6e8",
+   "modelResponseHash": "sha256:d0f887cf79fb05024e45e4bde3637ce00db3a837000cc7fc189bf5b1fbb93fba",
+   "prevHash": "sha256:21cbe1358ade9b7004ef6994ba4b8b488c4fc9c9448355a75ad2dddea07fd583",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-08-02T22:30:00.000Z",
+   "hash": "sha256:9db0bb9a66d73a56fe979c56e1d5d3cd01b8d7c5ac9d704d333e82916a9a3aa6",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 18,
+    "y": 21
+   }
+  },
+  {
+   "id": "EV-00306",
+   "worldId": "AG-1",
+   "sequence": 306,
+   "simTime": 114865,
+   "actor": "INH-008",
+   "type": "gather",
+   "description": "Hallow gathered 6 units of water at tile (16,16) over 131 minutes, consuming 1.2 units of energy.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "resource": "water",
+    "quantity": 6
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:0980090af823cc1e042066f675c41784a24583825e7d1d55709b2ac9ce892b6f",
+   "postStateChecksum": "sha256:7525c134a1f06bac22081ba77333e16f1cce2d8bc4a9acbc04069337eed74c86",
+   "modelRequestHash": "sha256:2b43dd9ce9d1d6f15d341ab25934422668cc45f813fffa935461144399e4af61",
+   "modelResponseHash": "sha256:a2d3766a373952babeb9c64de9282f67f24181c6cb8220ec6d7c05e2fda676c1",
+   "prevHash": "sha256:9db0bb9a66d73a56fe979c56e1d5d3cd01b8d7c5ac9d704d333e82916a9a3aa6",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-02T23:08:20.000Z",
+   "hash": "sha256:4f898d4cf33ebe586c59237fd723764f4f54bbf78a19d64f7f2865973c2221b5",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00307",
+   "worldId": "AG-1",
+   "sequence": 307,
+   "simTime": 115710,
+   "actor": "INH-012",
+   "type": "move",
+   "description": "Lume moved from tile (18,21) to tile (19,20) over 28 minutes.",
+   "subjects": [
+    "INH-012"
+   ],
+   "inputs": {
+    "fromX": 18,
+    "fromY": 21,
+    "toX": 19,
+    "toY": 20
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:7525c134a1f06bac22081ba77333e16f1cce2d8bc4a9acbc04069337eed74c86",
+   "postStateChecksum": "sha256:9302cf7d99e1c3c4821e99e97549f4fb8c263666b9e77b50826e55659b78fbc3",
+   "modelRequestHash": "sha256:ac2735d527779aeca700a4c7a596244aa66c97b5ad9dbaa2117dda28dbf51fdd",
+   "modelResponseHash": "sha256:601c9f811d49bd95b3834d15c975c009afdb54204d9847bc9bd546be8163494c",
+   "prevHash": "sha256:4f898d4cf33ebe586c59237fd723764f4f54bbf78a19d64f7f2865973c2221b5",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-08-03T03:50:00.000Z",
+   "hash": "sha256:101effe8ec664905ba5e6a3bca2cc087ceb7444eb9f9dbcea29b01b22ebc209d",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 19,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00308",
+   "worldId": "AG-1",
+   "sequence": 308,
+   "simTime": 115940,
+   "actor": "INH-010",
+   "type": "move",
+   "description": "Jarn moved from tile (15,15) to tile (16,14) over 35 minutes.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 15,
+    "toX": 16,
+    "toY": 14
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:9302cf7d99e1c3c4821e99e97549f4fb8c263666b9e77b50826e55659b78fbc3",
+   "postStateChecksum": "sha256:d902fdefb73c3ab7209dcf9804a630cb80f4a5ad04c4ee27e550e2a99f68bfa3",
+   "modelRequestHash": "sha256:d0b3630517c31671bee339da67bb6bdfe2b2a68fd53da14c4a2be349319dc474",
+   "modelResponseHash": "sha256:e195c4703c07703da45c1da4b41135429a651441ca01745447d18b95c0937874",
+   "prevHash": "sha256:101effe8ec664905ba5e6a3bca2cc087ceb7444eb9f9dbcea29b01b22ebc209d",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-08-03T05:06:40.000Z",
+   "hash": "sha256:d52d109d9bee7fb8ad30f4bc5820c201561fec74a55e44be2a4600fe6d18a694",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 14
+   }
+  },
+  {
+   "id": "EV-00309",
+   "worldId": "AG-1",
+   "sequence": 309,
+   "simTime": 116035,
+   "actor": "INH-008",
+   "type": "move",
+   "description": "Hallow moved from tile (16,16) to tile (15,15) over 33 minutes.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "fromX": 16,
+    "fromY": 16,
+    "toX": 15,
+    "toY": 15
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d902fdefb73c3ab7209dcf9804a630cb80f4a5ad04c4ee27e550e2a99f68bfa3",
+   "postStateChecksum": "sha256:467c230057b4fb163f98b0c6a7d17554e4c8c5273abb6f1e3b61051e166e832a",
+   "modelRequestHash": "sha256:2d2e09754085eea8bfa21c094743a8cea9ed1a7be60a63e04972bc678f2b8219",
+   "modelResponseHash": "sha256:62e25a97868248a8c81555f0b727dc71af1d1fe02933385181444e88faa380bc",
+   "prevHash": "sha256:d52d109d9bee7fb8ad30f4bc5820c201561fec74a55e44be2a4600fe6d18a694",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-03T05:38:20.000Z",
+   "hash": "sha256:7b1576d5ab0acd5b0df62735466390b24a7875ec46805938fe037d835856ec0f",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00310",
+   "worldId": "AG-1",
+   "sequence": 310,
+   "simTime": 117085,
+   "actor": "INH-006",
+   "type": "move",
+   "description": "Fenne moved from tile (17,20) to tile (16,19) over 25 minutes.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "fromX": 17,
+    "fromY": 20,
+    "toX": 16,
+    "toY": 19
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:467c230057b4fb163f98b0c6a7d17554e4c8c5273abb6f1e3b61051e166e832a",
+   "postStateChecksum": "sha256:fb859c1d38f8f0ba657b9ceaaf33a51fb7a639c8133fefe6288dc785c698b89d",
+   "modelRequestHash": "sha256:1068ba5e11b489c7ed8ac28acb3d65405a4982017c037a9c614837b446017ab6",
+   "modelResponseHash": "sha256:b532729c41877e636271249bd3dfc63137aad1dffc867a639e4a3d147dbcdc49",
+   "prevHash": "sha256:7b1576d5ab0acd5b0df62735466390b24a7875ec46805938fe037d835856ec0f",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-08-03T11:28:20.000Z",
+   "hash": "sha256:fbe668c590682c19debf5cb2eafa00ea8d649af5f045da8e1d1db1d914cd58fb",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00311",
+   "worldId": "AG-1",
+   "sequence": 311,
+   "simTime": 117155,
+   "actor": "INH-007",
+   "type": "move",
+   "description": "Gaure moved from tile (15,18) to tile (14,18) over 51 minutes.",
+   "subjects": [
+    "INH-007"
+   ],
+   "inputs": {
+    "fromX": 15,
+    "fromY": 18,
+    "toX": 14,
+    "toY": 18
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:fb859c1d38f8f0ba657b9ceaaf33a51fb7a639c8133fefe6288dc785c698b89d",
+   "postStateChecksum": "sha256:4363b92ce2168a7869ad42ca32c7b9a623f65c064465e94f0283de10082644fa",
+   "modelRequestHash": "sha256:dd540e875e7d87934e6dc3df952f20c0764ece43f221c42b33be81a59b0ee958",
+   "modelResponseHash": "sha256:83426b62aee6f2722b0023bc97b3bc24d7984c4aa988be207e35eeff373382ef",
+   "prevHash": "sha256:fbe668c590682c19debf5cb2eafa00ea8d649af5f045da8e1d1db1d914cd58fb",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-08-03T11:51:40.000Z",
+   "hash": "sha256:e951cab9aec342141ac4c482960136ffa099d60bd19e47a0a76c737f7a161611",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00312",
+   "worldId": "AG-1",
+   "sequence": 312,
+   "simTime": 117320,
+   "actor": "INH-011",
+   "type": "move",
+   "description": "Kessa moved from tile (11,19) to tile (11,18) over 59 minutes.",
+   "subjects": [
+    "INH-011"
+   ],
+   "inputs": {
+    "fromX": 11,
+    "fromY": 19,
+    "toX": 11,
+    "toY": 18
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:4363b92ce2168a7869ad42ca32c7b9a623f65c064465e94f0283de10082644fa",
+   "postStateChecksum": "sha256:9edb22f0b4db73348959ff36d984dff1879196a180d719e5b1da1303e32c4152",
+   "modelRequestHash": "sha256:b7c5c7c2d44c70781c3c871602bf500a24da8520852887f64ec332e93602c5ec",
+   "modelResponseHash": "sha256:3a84d628d8a51bd152fdffb1d7928b4cf2332345af52e86d2222dbd29847940d",
+   "prevHash": "sha256:e951cab9aec342141ac4c482960136ffa099d60bd19e47a0a76c737f7a161611",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-08-03T12:46:40.000Z",
+   "hash": "sha256:ff70db9dde1ed73644faa8fae423ce6f4cac978c5f31008bdbae909ad9f242d1",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 11,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00313",
+   "worldId": "AG-1",
+   "sequence": 313,
+   "simTime": 118730,
+   "actor": "INH-009",
+   "type": "conversation.public",
+   "description": "Iolen and Lume conversed at tile (13,12) for 36 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-009",
+    "INH-012"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:9edb22f0b4db73348959ff36d984dff1879196a180d719e5b1da1303e32c4152",
+   "postStateChecksum": "sha256:0ac852b4f715ac2aa8775ca20bad0407a18df3ad7c8a404f7b7fc0806853ac35",
+   "modelRequestHash": "sha256:1880d235631244ec2eb738a930c25e69f87cd3390aa56f3669b97bc4ba276e9d",
+   "modelResponseHash": "sha256:615edd7af6955ecf8aa57ceb5cca48f921ae16170970ef7601eccbf67ae9de62",
+   "prevHash": "sha256:ff70db9dde1ed73644faa8fae423ce6f4cac978c5f31008bdbae909ad9f242d1",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-08-03T20:36:40.000Z",
+   "hash": "sha256:e14ad12d0259780b935854f1075d033220890205499e3299480692b077775c9f",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00314",
+   "worldId": "AG-1",
+   "sequence": 314,
+   "simTime": 119130,
+   "actor": "INH-009",
+   "type": "conversation.public",
+   "description": "Iolen and Jarn conversed at tile (13,12) for 73 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-009",
+    "INH-010"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:0ac852b4f715ac2aa8775ca20bad0407a18df3ad7c8a404f7b7fc0806853ac35",
+   "postStateChecksum": "sha256:cff26df1d0e3945690e06272dee88ff736f7935ab0d9de9d6222c912b1fe8149",
+   "modelRequestHash": "sha256:39f0458842e30267f53b7626b3f4968550759676dca95d8d29bd5ca489c3bb93",
+   "modelResponseHash": "sha256:b9de31ba8cd3361f30ae54bd9aa505cd29327901c51d5a10bcd77b8998bf561d",
+   "prevHash": "sha256:e14ad12d0259780b935854f1075d033220890205499e3299480692b077775c9f",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-08-03T22:50:00.000Z",
+   "hash": "sha256:b72eecc0b43549b225736fb8acca1f5e9524d115caaf8e276fe5d10171c2be02",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00315",
+   "worldId": "AG-1",
+   "sequence": 315,
+   "simTime": 119185,
+   "actor": "INH-011",
+   "type": "conversation.public",
+   "description": "Kessa and Iolen conversed at tile (11,19) for 38 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-011",
+    "INH-009"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:cff26df1d0e3945690e06272dee88ff736f7935ab0d9de9d6222c912b1fe8149",
+   "postStateChecksum": "sha256:609b63eb4fb2f092d3c142c4afe187fa52327d56d551284a7f62f4c6f684a1e4",
+   "modelRequestHash": "sha256:dfbe526158c0cda266e03c701f098ec4a8e0f628b04d23d711e56eac4ac01309",
+   "modelResponseHash": "sha256:828e1f76751ceec672d0d392cf44ca5d5223e581b78aa5bd02cf370d4a086e5a",
+   "prevHash": "sha256:b72eecc0b43549b225736fb8acca1f5e9524d115caaf8e276fe5d10171c2be02",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-08-03T23:08:20.000Z",
+   "hash": "sha256:84042b89254c25af9656bf76096b580fc338c3735cb122bf0b497466be01e7b4",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 11,
+    "y": 19
+   }
+  },
+  {
+   "id": "EV-00316",
+   "worldId": "AG-1",
+   "sequence": 316,
+   "simTime": 120070,
+   "actor": "INH-009",
+   "type": "move",
+   "description": "Iolen moved from tile (13,12) to tile (12,13) over 57 minutes.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "fromX": 13,
+    "fromY": 12,
+    "toX": 12,
+    "toY": 13
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:609b63eb4fb2f092d3c142c4afe187fa52327d56d551284a7f62f4c6f684a1e4",
+   "postStateChecksum": "sha256:bfce566986cb560259b528cd81e25605cc776c17feed8a1d6a315067bd6cca53",
+   "modelRequestHash": "sha256:c347db2095014428cb22699998c2710ecc118f5a766ce6f79a443be1e448f29f",
+   "modelResponseHash": "sha256:f9b5cdc6b33056d63ced4b74c9ba9b652c3170b29017acd2d869111a57c50a51",
+   "prevHash": "sha256:84042b89254c25af9656bf76096b580fc338c3735cb122bf0b497466be01e7b4",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-08-04T04:03:20.000Z",
+   "hash": "sha256:2461cef7c79452f8045a93f025cd8bae375d9854a4de0504f333a1d816405081",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00317",
+   "worldId": "AG-1",
+   "sequence": 317,
+   "simTime": 120555,
+   "actor": "INH-005",
+   "type": "conversation.public",
+   "description": "Erish and Lume conversed at tile (12,18) for 46 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-005",
+    "INH-012"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:bfce566986cb560259b528cd81e25605cc776c17feed8a1d6a315067bd6cca53",
+   "postStateChecksum": "sha256:4d9a199701448b8fcaa70af725b9415852f165b2393c7c0f9baa305b2d0fd35d",
+   "modelRequestHash": "sha256:32fb67253d213e575f0ffbd7bd8c2c5bfeb1aec07d756792208650529968695e",
+   "modelResponseHash": "sha256:82084cee37705eca85303cfe08bda8f05c2815fbc9cbebc54ba2e3dacf344469",
+   "prevHash": "sha256:2461cef7c79452f8045a93f025cd8bae375d9854a4de0504f333a1d816405081",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Erish",
+   "realTime": "2026-08-04T06:45:00.000Z",
+   "hash": "sha256:52ae8b142b5703cf430e54e902d3ab4104ff44f5954e304cc91dea11aab963ce",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 12,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00318",
+   "worldId": "AG-1",
+   "sequence": 318,
+   "simTime": 120635,
+   "actor": "INH-006",
+   "type": "gather",
+   "description": "Fenne gathered 8 units of food at tile (17,20) over 76 minutes, consuming 2.0 units of energy.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 8
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:4d9a199701448b8fcaa70af725b9415852f165b2393c7c0f9baa305b2d0fd35d",
+   "postStateChecksum": "sha256:fff001de714b415839625b844c38c8dedd489c13d56cac1e3ea4a80cac07c8d0",
+   "modelRequestHash": "sha256:16d8a6cd7182c2db0bf83d327082871d4cb6f3bcbc1c881d5378994725c67de5",
+   "modelResponseHash": "sha256:cf8cdcbfdb7b54e8dd389e7cee87e8ecc418b52780ae0c3bfaf878b488135bd9",
+   "prevHash": "sha256:52ae8b142b5703cf430e54e902d3ab4104ff44f5954e304cc91dea11aab963ce",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-08-04T07:11:40.000Z",
+   "hash": "sha256:5684ceaf99728eb76afda123f2345915c67549e34db441c106186a8b0b38c1af",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00319",
+   "worldId": "AG-1",
+   "sequence": 319,
+   "simTime": 121490,
+   "actor": "INH-007",
+   "type": "conversation.public",
+   "description": "Gaure and Kessa conversed at tile (15,18) for 53 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-007",
+    "INH-011"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:fff001de714b415839625b844c38c8dedd489c13d56cac1e3ea4a80cac07c8d0",
+   "postStateChecksum": "sha256:167577ca268a295222b1f0ce264d8a0a6d75c3a9c5cba776cfc5e7123b671a8d",
+   "modelRequestHash": "sha256:af4acc63835cdbeea8eef42fbaa2073f4f839be4a16949e8d8901707b2a5895d",
+   "modelResponseHash": "sha256:07ded0d9dcb3fdde6d146c1afa69d8d9bb5adb2f0297094edfaf44ec8f11ae6e",
+   "prevHash": "sha256:5684ceaf99728eb76afda123f2345915c67549e34db441c106186a8b0b38c1af",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-08-04T11:56:40.000Z",
+   "hash": "sha256:1f9fffc0c7b1c5723fc5733b57e08958a2bd58d456451b813fe01241fc6615c7",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00320",
+   "worldId": "AG-1",
+   "sequence": 320,
+   "simTime": 121765,
+   "actor": "INH-006",
+   "type": "gather",
+   "description": "Fenne gathered 5 units of wood at tile (17,20) over 115 minutes, consuming 3.0 units of energy.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 5
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:167577ca268a295222b1f0ce264d8a0a6d75c3a9c5cba776cfc5e7123b671a8d",
+   "postStateChecksum": "sha256:438bf26f0b332b6002257fd4133727a64f9e48dab5b7a02adca58cf97d2b4bc0",
+   "modelRequestHash": "sha256:9673d6b225cecca4965c3bab1611d90585aaf43d53eba6621c388b7577977930",
+   "modelResponseHash": "sha256:b5cbc976a1d03dd49c1c0764238a7da4d0689b310c0d3c28d1b861d8b9994909",
+   "prevHash": "sha256:1f9fffc0c7b1c5723fc5733b57e08958a2bd58d456451b813fe01241fc6615c7",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-08-04T13:28:20.000Z",
+   "hash": "sha256:abe5d2c8d6b284238767785a8c75a29d34a3a7605cbc1804e3a979f07e23448c",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00321",
+   "worldId": "AG-1",
+   "sequence": 321,
+   "simTime": 121935,
+   "actor": "INH-011",
+   "type": "move",
+   "description": "Kessa moved from tile (11,19) to tile (10,18) over 31 minutes.",
+   "subjects": [
+    "INH-011"
+   ],
+   "inputs": {
+    "fromX": 11,
+    "fromY": 19,
+    "toX": 10,
+    "toY": 18
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:438bf26f0b332b6002257fd4133727a64f9e48dab5b7a02adca58cf97d2b4bc0",
+   "postStateChecksum": "sha256:13cadc52cd221d3c63f64e9bbc4da077776917501d2c4ffcf5b70ed530a630b4",
+   "modelRequestHash": "sha256:7a32dbcb9c2c40fdd2be4c13dc7f948ec0af650c8963802fc18eac58b9328155",
+   "modelResponseHash": "sha256:8dec8ce1d42766fd23cb54d39b3c30d82b2704ca6daae759ce0b77648a583096",
+   "prevHash": "sha256:abe5d2c8d6b284238767785a8c75a29d34a3a7605cbc1804e3a979f07e23448c",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Kessa",
+   "realTime": "2026-08-04T14:25:00.000Z",
+   "hash": "sha256:e21a41034655282e5c1e1f017233da9aa4f89523e885bdaf1c4442c7d5f175ae",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 10,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00322",
+   "worldId": "AG-1",
+   "sequence": 322,
+   "simTime": 122985,
+   "actor": "INH-012",
+   "type": "conversation.public",
+   "description": "Lume and Kessa conversed at tile (18,21) for 43 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-012",
+    "INH-011"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:13cadc52cd221d3c63f64e9bbc4da077776917501d2c4ffcf5b70ed530a630b4",
+   "postStateChecksum": "sha256:d1cfd7c15344d911ca250368be2aa1d3bd253c728b18af2a19c7bd5536245f40",
+   "modelRequestHash": "sha256:36f2771e5d154cdb68de0021b6ec1bdd07a722746413e37be900ae3bf5a597de",
+   "modelResponseHash": "sha256:94f33ffa369945a787d9a93d94b19f767314bef7be8e2aba55c821ce33052124",
+   "prevHash": "sha256:e21a41034655282e5c1e1f017233da9aa4f89523e885bdaf1c4442c7d5f175ae",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Lume",
+   "realTime": "2026-08-04T20:15:00.000Z",
+   "hash": "sha256:d1c55ae41c7d813ad94c3de78e11f82e0fe536cef20529122e50849b88c64256",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 18,
+    "y": 21
+   }
+  },
+  {
+   "id": "EV-00323",
+   "worldId": "AG-1",
+   "sequence": 323,
+   "simTime": 123485,
+   "actor": "INH-002",
+   "type": "conversation.public",
+   "description": "Berrun and Gaure conversed at tile (15,16) for 35 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-002",
+    "INH-007"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:d1cfd7c15344d911ca250368be2aa1d3bd253c728b18af2a19c7bd5536245f40",
+   "postStateChecksum": "sha256:8a1115abf16067c2b9741c63971ac7755f4db771a4bb97d8d62c9d3e2b2bd049",
+   "modelRequestHash": "sha256:9862b156975e45d89fc329edbc0cbd59efedb6ea02dbb90f3c5a679c7c7929b0",
+   "modelResponseHash": "sha256:208b8d67bd8f25299c810e58f4f71cc8f9d3340e0a5f725ec2ca225ca04bfada",
+   "prevHash": "sha256:d1c55ae41c7d813ad94c3de78e11f82e0fe536cef20529122e50849b88c64256",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-08-04T23:01:40.000Z",
+   "hash": "sha256:fc8a2dff9f13b2ec9370c2d44a1478e365ca4cdd8c2c1ad051f64bb760d4f624",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00324",
+   "worldId": "AG-1",
+   "sequence": 324,
+   "simTime": 123490,
+   "actor": "INH-002",
+   "type": "gather",
+   "description": "Berrun gathered 5 units of stone at tile (15,16) over 73 minutes, consuming 1.1 units of energy.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 5
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:8a1115abf16067c2b9741c63971ac7755f4db771a4bb97d8d62c9d3e2b2bd049",
+   "postStateChecksum": "sha256:885d2edab5318527302070b47ad7bd8a957361655b6fdf6edb9dc3de368c149f",
+   "modelRequestHash": "sha256:6a3294e484feb5feb4f15425becf674f397036b3c09693594ecf3a33da50d8ad",
+   "modelResponseHash": "sha256:cadd2e2cf242463205fd541ec611a54a34f6cfc15ed6a6ae4e052e03aa2114c4",
+   "prevHash": "sha256:fc8a2dff9f13b2ec9370c2d44a1478e365ca4cdd8c2c1ad051f64bb760d4f624",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-08-04T23:03:20.000Z",
+   "hash": "sha256:4c19c13e8db6be5472fe5e420f000327655b60a4a2538ea216940e8c50b6b431",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00325",
+   "worldId": "AG-1",
+   "sequence": 325,
+   "simTime": 124730,
+   "actor": "INH-009",
+   "type": "gather",
+   "description": "Iolen gathered 7 units of food at tile (13,12) over 98 minutes, consuming 2.6 units of energy.",
+   "subjects": [
+    "INH-009"
+   ],
+   "inputs": {
+    "resource": "food",
+    "quantity": 7
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:885d2edab5318527302070b47ad7bd8a957361655b6fdf6edb9dc3de368c149f",
+   "postStateChecksum": "sha256:b684166f832dc325a1724f88ff5d207a08daed203dd6dbda0fb6aba5d6d68dcf",
+   "modelRequestHash": "sha256:a3d46e05b6207571cc61f7344c3df6d06156213f7c881839a0a482ab7ceb7859",
+   "modelResponseHash": "sha256:62eff72bd2ae87b487811b6a040dd6c4322761e5ed8165d78dbf1708d608972b",
+   "prevHash": "sha256:4c19c13e8db6be5472fe5e420f000327655b60a4a2538ea216940e8c50b6b431",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Iolen",
+   "realTime": "2026-08-05T05:56:40.000Z",
+   "hash": "sha256:1ed6ea66fd91ddfa0de4b3a844d3eff6c9e5ac387044bdfcda9f16491dec9234",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 13,
+    "y": 12
+   }
+  },
+  {
+   "id": "EV-00326",
+   "worldId": "AG-1",
+   "sequence": 326,
+   "simTime": 124765,
+   "actor": "INH-008",
+   "type": "rest",
+   "description": "Hallow rested at tile (16,16) for 194 minutes. Recorded energy increased by 2.5 units.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:b684166f832dc325a1724f88ff5d207a08daed203dd6dbda0fb6aba5d6d68dcf",
+   "postStateChecksum": "sha256:1723e085a0616f1472e6506c1e9a66493147be0f7c936a18fd48972c65551560",
+   "modelRequestHash": "sha256:71e5a1c743d9f9f8000eba90675db029f821a687f2c589f5ddf2b3eee5012556",
+   "modelResponseHash": "sha256:751c5f29721034e2906c33a9c75b5dc631f83f7716c22d001dfd5c6a2fd75ec7",
+   "prevHash": "sha256:1ed6ea66fd91ddfa0de4b3a844d3eff6c9e5ac387044bdfcda9f16491dec9234",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-05T06:08:20.000Z",
+   "hash": "sha256:c254b8f79da995eb4c360a1339bbcaa340809fc62780c7a4d2c47492538a45f8",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00327",
+   "worldId": "AG-1",
+   "sequence": 327,
+   "simTime": 124920,
+   "actor": "INH-002",
+   "type": "gather",
+   "description": "Berrun gathered 5 units of wood at tile (15,16) over 67 minutes, consuming 1.1 units of energy.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 5
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:1723e085a0616f1472e6506c1e9a66493147be0f7c936a18fd48972c65551560",
+   "postStateChecksum": "sha256:8840ac34d33aee170a35b11b5f255450d23cca9cda54f7a14651064bb1e154ef",
+   "modelRequestHash": "sha256:df548a4a1164cf0250565a46fcc1396bb5d7c1c23365c353f56140c23c64accd",
+   "modelResponseHash": "sha256:db6c54518a2072b4e4c2301cf674c9dbb909b0333a40f0675e5e1f11021daa46",
+   "prevHash": "sha256:c254b8f79da995eb4c360a1339bbcaa340809fc62780c7a4d2c47492538a45f8",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-08-05T07:00:00.000Z",
+   "hash": "sha256:0829564a93373f6d4e6fc0e42deb332c6dc1d752f9d1c530701ed2ca18764cef",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00328",
+   "worldId": "AG-1",
+   "sequence": 328,
+   "simTime": 126230,
+   "actor": "INH-007",
+   "type": "conversation.public",
+   "description": "Gaure and Lume conversed at tile (15,18) for 62 minutes. The exchange was recorded with public visibility. The time was consumed by both participants.",
+   "subjects": [
+    "INH-007",
+    "INH-012"
+   ],
+   "inputs": {
+    "participants": 2,
+    "visibility": "public"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:8840ac34d33aee170a35b11b5f255450d23cca9cda54f7a14651064bb1e154ef",
+   "postStateChecksum": "sha256:338b00ab695602257c05da0947f8823436bc9c9368fbc656ee0317938be5656d",
+   "modelRequestHash": "sha256:2d29933cacbfec61cf815b74d8962faa79ae6117c8535f6121e80f35da47eecb",
+   "modelResponseHash": "sha256:ab658c9afd67efba23a2666da06d3b3cca4b243310df366ebdb265d4f62bf079",
+   "prevHash": "sha256:0829564a93373f6d4e6fc0e42deb332c6dc1d752f9d1c530701ed2ca18764cef",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Gaure",
+   "realTime": "2026-08-05T14:16:40.000Z",
+   "hash": "sha256:efb19d28e6a29bdcfd6dacc2dff8c6094e2d7696c155b3c75f23a757ec0f9bb9",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 18
+   }
+  },
+  {
+   "id": "EV-00329",
+   "worldId": "AG-1",
+   "sequence": 329,
+   "simTime": 126290,
+   "actor": "INH-002",
+   "type": "gather",
+   "description": "Berrun gathered 9 units of stone at tile (15,16) over 113 minutes, consuming 1.2 units of energy.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {
+    "resource": "stone",
+    "quantity": 9
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:338b00ab695602257c05da0947f8823436bc9c9368fbc656ee0317938be5656d",
+   "postStateChecksum": "sha256:3604830727500a2930ae717743396370976ff505db5898a8d2b29c267c92254d",
+   "modelRequestHash": "sha256:b8bf01ceaccce06add947927d600ae4e2f1c08bf001e972f9d1e70487cf94276",
+   "modelResponseHash": "sha256:d821244db8885be6471d81b2aed2dfa1fc58e38ba952c0159f0bfbd427f4fb06",
+   "prevHash": "sha256:efb19d28e6a29bdcfd6dacc2dff8c6094e2d7696c155b3c75f23a757ec0f9bb9",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-08-05T14:36:40.000Z",
+   "hash": "sha256:27165a0a9ec4fe6db8c3eeca57e098f021ecc08bf62e2e14b71bafb2f2ad8ccf",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00330",
+   "worldId": "AG-1",
+   "sequence": 330,
+   "simTime": 126350,
+   "actor": "INH-010",
+   "type": "gather",
+   "description": "Jarn gathered 2 units of water at tile (15,15) over 92 minutes, consuming 2.7 units of energy.",
+   "subjects": [
+    "INH-010"
+   ],
+   "inputs": {
+    "resource": "water",
+    "quantity": 2
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:3604830727500a2930ae717743396370976ff505db5898a8d2b29c267c92254d",
+   "postStateChecksum": "sha256:8bf0115cb1a9783cdaeb45f6564cd5f4b795edc002fde823be974f82c24b3573",
+   "modelRequestHash": "sha256:90a857ef162ffcff7b4b06185c21cdd9a191cdd3ad052ec7b853ecbec364aabe",
+   "modelResponseHash": "sha256:370ce8ef5a8ea70a7b8102e53881e43caf86f40b8d298ea005a2337a13f7006a",
+   "prevHash": "sha256:27165a0a9ec4fe6db8c3eeca57e098f021ecc08bf62e2e14b71bafb2f2ad8ccf",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Jarn",
+   "realTime": "2026-08-05T14:56:40.000Z",
+   "hash": "sha256:6c38584fac074ca1d11fbcbd9a7204e4296fe1ab89c5612762b085faaa4c0b66",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 15
+   }
+  },
+  {
+   "id": "EV-00331",
+   "worldId": "AG-1",
+   "sequence": 331,
+   "simTime": 127205,
+   "actor": "INH-006",
+   "type": "practise",
+   "description": "Fenne practised research for 90 minutes at tile (17,20). Recorded research proficiency increased by 0.013.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "skill": "research"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:8bf0115cb1a9783cdaeb45f6564cd5f4b795edc002fde823be974f82c24b3573",
+   "postStateChecksum": "sha256:950fcfda13d298e750dc5cc100245ece14161c3cac13025116634ff3f2975bfc",
+   "modelRequestHash": "sha256:f9e685dd54eb60edafef6b7b04bf6968bf16a61a190bdadf5ab3ce45ffe4c206",
+   "modelResponseHash": "sha256:101fb13eb9f068dfe11f50f7a3c90bc8f1f5f812ef505879156783c18df3252d",
+   "prevHash": "sha256:6c38584fac074ca1d11fbcbd9a7204e4296fe1ab89c5612762b085faaa4c0b66",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-08-05T19:41:40.000Z",
+   "hash": "sha256:8086da4793e27e95fc00a681eb3ee68b0e9cfbdd56633e0532691150bebcb23f",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00332",
+   "worldId": "AG-1",
+   "sequence": 332,
+   "simTime": 127665,
+   "actor": "INH-008",
+   "type": "practise",
+   "description": "Hallow practised negotiation for 116 minutes at tile (16,16). Recorded negotiation proficiency increased by 0.008.",
+   "subjects": [
+    "INH-008"
+   ],
+   "inputs": {
+    "skill": "negotiation"
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:950fcfda13d298e750dc5cc100245ece14161c3cac13025116634ff3f2975bfc",
+   "postStateChecksum": "sha256:1673409abf403f5ff1b8ee01c1e6a0731f3cfcbd9a35ba7dfc6c66fb2b71d2e5",
+   "modelRequestHash": "sha256:be519821257292a8d411c3aa5c48ffbf60f62a9f5ff5dce84ee4507040e79968",
+   "modelResponseHash": "sha256:473c17d4fa5148290d0b2b1c73e39f3759ea1dc2a591ef476d430c67c392ff36",
+   "prevHash": "sha256:8086da4793e27e95fc00a681eb3ee68b0e9cfbdd56633e0532691150bebcb23f",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Hallow",
+   "realTime": "2026-08-05T22:15:00.000Z",
+   "hash": "sha256:6dd2c02c92f79384b66034b756df7afafefafdfd882a0dc8157ca4179cb59af0",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 16,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00333",
+   "worldId": "AG-1",
+   "sequence": 333,
+   "simTime": 127820,
+   "actor": "INH-006",
+   "type": "gather",
+   "description": "Fenne gathered 6 units of wood at tile (17,20) over 78 minutes, consuming 2.0 units of energy.",
+   "subjects": [
+    "INH-006"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 6
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:1673409abf403f5ff1b8ee01c1e6a0731f3cfcbd9a35ba7dfc6c66fb2b71d2e5",
+   "postStateChecksum": "sha256:2969c481be750bafc64df2b43dfdcd032e76fa25f1043576cae86e66b90b221a",
+   "modelRequestHash": "sha256:ea52d973814d96cb81981675a5ff849172a992df07bc322319c507469682d772",
+   "modelResponseHash": "sha256:2437e9430a9e07a8e491884b461e5fa08611d5615a4a74bbb3c3893ac94578f0",
+   "prevHash": "sha256:6dd2c02c92f79384b66034b756df7afafefafdfd882a0dc8157ca4179cb59af0",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Fenne",
+   "realTime": "2026-08-05T23:06:40.000Z",
+   "hash": "sha256:0c11e8786c87146272c3f6eaa30b432ed530d0db0202e0d19ace0fb10a0f819d",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 17,
+    "y": 20
+   }
+  },
+  {
+   "id": "EV-00334",
+   "worldId": "AG-1",
+   "sequence": 334,
+   "simTime": 128595,
+   "actor": "INH-002",
+   "type": "rest",
+   "description": "Berrun rested at tile (15,16) for 356 minutes. Recorded energy increased by 2.7 units.",
+   "subjects": [
+    "INH-002"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:2969c481be750bafc64df2b43dfdcd032e76fa25f1043576cae86e66b90b221a",
+   "postStateChecksum": "sha256:feae5fec4b04f9b20546e596ca4ae186e69f18a788997977fce8c18a35ceb55f",
+   "modelRequestHash": "sha256:7d2814b0dc8e81ae3220e53224713715750965bfb4657e9de187e9ca2c9fa64c",
+   "modelResponseHash": "sha256:4640c0a03165c959f61e4b0165a73d2a7b7aaa23e1a4f9055d530c6b611fde0f",
+   "prevHash": "sha256:0c11e8786c87146272c3f6eaa30b432ed530d0db0202e0d19ace0fb10a0f819d",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Berrun",
+   "realTime": "2026-08-06T03:25:00.000Z",
+   "hash": "sha256:ef5b4adb095b2b910c061ec08b7c9a22e4547e7cb39b49d46da50e595d1f4571",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 15,
+    "y": 16
+   }
+  },
+  {
+   "id": "EV-00335",
+   "worldId": "AG-1",
+   "sequence": 335,
+   "simTime": 128680,
    "actor": "INH-009",
    "type": "conversation.public",
    "description": "Iolen and Fenne conversed at tile (17,20) for 40 minutes. The exchange was recorded with public visibility.",
@@ -19245,21 +22908,86 @@
    },
    "resolution": "applied",
    "visibility": "public",
-   "preStateChecksum": "sha256:2fa083153efe4513db399273ace95f8decaa21d9b3aa5ae205ba0ba1a2acdfed",
-   "postStateChecksum": "sha256:dbefda6081f48c80d1dc0652e70ee5a0662f4b318ab064cd5564cbd584c598a8",
-   "modelRequestHash": "sha256:8d99d2b25cbb2bd56c3b8a58834b1688959ccb26688e0677ff1e528160fbcc14",
-   "modelResponseHash": "sha256:04506e4525e1f240e55bc87e31166c7d8f8a7469a56b0e42a2475c691e565d1a",
-   "prevHash": "sha256:a3a4fc2839aa9eadd712e9b00eb61ae89fad047cb5f79fb44d855185d51bc9b6",
+   "preStateChecksum": "sha256:feae5fec4b04f9b20546e596ca4ae186e69f18a788997977fce8c18a35ceb55f",
+   "postStateChecksum": "sha256:3cd6c683d0769d42bbcbc73b26edd2ecc5b453c53b99d7aec7db0aa32d73ad9b",
+   "modelRequestHash": "sha256:eb0f4b2b984df1c40cf5e3220f596e5fb0e85736e6d094588b429c00d925680a",
+   "modelResponseHash": "sha256:a5fc61b3d9f0b6e98269e873b0ea763bc7ab64e5b15e6390642e09b0b7115f5e",
+   "prevHash": "sha256:ef5b4adb095b2b910c061ec08b7c9a22e4547e7cb39b49d46da50e595d1f4571",
    "schemaVersion": "world-rules/1.4.0",
    "actorName": "Iolen",
-   "realTime": "2026-07-28T03:53:20.000Z",
-   "hash": "sha256:8bf69866518e41d74dd6dcf38e2a2fd303291830b1faa4515ba1ec82ab9b25d7",
+   "realTime": "2026-08-06T03:53:20.000Z",
+   "hash": "sha256:ea49683db2cfdb3bf7554c6a8cda0d3cfc29c31b67ea82c12299b2238489f78e",
    "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
    "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
    "claims": [],
    "location": {
     "x": 17,
     "y": 20
+   }
+  },
+  {
+   "id": "EV-00336",
+   "worldId": "AG-1",
+   "sequence": 336,
+   "simTime": 128945,
+   "actor": "INH-004",
+   "type": "gather",
+   "description": "Dovie gathered 4 units of wood at tile (14,13) over 118 minutes, consuming 1.1 units of energy.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {
+    "resource": "wood",
+    "quantity": 4
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:3cd6c683d0769d42bbcbc73b26edd2ecc5b453c53b99d7aec7db0aa32d73ad9b",
+   "postStateChecksum": "sha256:29f1fff14bf43fa78aca9baf7e70edba17d017b1fdcfab9e2665786e39e00157",
+   "modelRequestHash": "sha256:fd2147a8e31b8cddbeb6e42f7a993d1dcb781b179aecb99a6f268b9ede358865",
+   "modelResponseHash": "sha256:33a1302bfa5cb6168a49080b00792f1e4b187cfa5a8a031532042925af7ff5be",
+   "prevHash": "sha256:ea49683db2cfdb3bf7554c6a8cda0d3cfc29c31b67ea82c12299b2238489f78e",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-08-06T05:21:40.000Z",
+   "hash": "sha256:351b9e74fb48ec0c0584412e77a2954fbd51249134fe0e72a74317ee22706e0b",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
+   }
+  },
+  {
+   "id": "EV-00337",
+   "worldId": "AG-1",
+   "sequence": 337,
+   "simTime": 129120,
+   "actor": "INH-004",
+   "type": "rest",
+   "description": "Dovie rested at tile (14,13) for 234 minutes. Recorded energy increased by 3.8 units.",
+   "subjects": [
+    "INH-004"
+   ],
+   "inputs": {},
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "sha256:29f1fff14bf43fa78aca9baf7e70edba17d017b1fdcfab9e2665786e39e00157",
+   "postStateChecksum": "sha256:ce064ad112a06888c444048d7e1fe3a1f30127c44ddb6ae37978714929c3e40e",
+   "modelRequestHash": "sha256:51261ec20d13b02484b9cba89f0fcfe3697910de0b1466baee880053e73d02f5",
+   "modelResponseHash": "sha256:1bcf0e74cb4c9e5b77984f4f67933ca8fd5c289e5a0421073e194d585546e393",
+   "prevHash": "sha256:351b9e74fb48ec0c0584412e77a2954fbd51249134fe0e72a74317ee22706e0b",
+   "schemaVersion": "world-rules/1.4.0",
+   "actorName": "Dovie",
+   "realTime": "2026-08-06T06:20:00.000Z",
+   "hash": "sha256:d23b82e15a653f9e19eea49c74c787405de33fc95d95c1e9b0ca137077e39d8f",
+   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
+   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
+   "claims": [],
+   "location": {
+    "x": 14,
+    "y": 13
    }
   }
  ],
@@ -19692,7 +23420,7 @@
     },
     {
      "simTime": 85800,
-     "eventId": "EV-00230",
+     "eventId": "EV-00242",
      "kind": "sold",
      "description": "Transferred from Gaure to Jarn in exchange for 18 Ridge Marks. Both parties recorded consent."
     }
@@ -19728,7 +23456,7 @@
     "Lume"
    ],
    "createdAt": 82800,
-   "creationEventId": "EV-00227",
+   "creationEventId": "EV-00234",
    "ownerId": "ORG-002",
    "ownerName": "The Low Water Circle",
    "ownerKind": "organisation",
@@ -19737,13 +23465,13 @@
    "provenance": [
     {
      "simTime": 82800,
-     "eventId": "EV-00227",
+     "eventId": "EV-00234",
      "kind": "created",
      "description": "Lume created ART-006 at tile (18,21)."
     },
     {
      "simTime": 84150,
-     "eventId": "EV-00228",
+     "eventId": "EV-00237",
      "kind": "published",
      "description": "Published at tile (15,16). Berrun recorded an objection to its content at Day 60 00:00. The objection is stored alongside the artifact and did not alter it."
     }
@@ -19752,7 +23480,7 @@
     {
      "revision": 1,
      "simTime": 82800,
-     "eventId": "EV-00227",
+     "eventId": "EV-00234",
      "note": "Initial version."
     }
    ],
@@ -19773,7 +23501,7 @@
      "producedBy": "media service (ElevenLabs)",
      "producedAt": "2026-07-27T09:05:00.000Z",
      "sourceEventIds": [
-      "EV-00227"
+      "EV-00234"
      ],
      "durationSeconds": 148,
      "note": "A spoken summary of the fortnight, condensed from 41 canonical events by the media service. It is not an inhabitant's words and is not part of the canonical record."
@@ -19984,7 +23712,7 @@
    },
    {
     "id": "TRD-006",
-    "eventId": "EV-00226",
+    "eventId": "EV-00230",
     "simTime": 81245,
     "fromId": "INH-010",
     "fromName": "Jarn",
@@ -19997,7 +23725,7 @@
    },
    {
     "id": "TRD-007",
-    "eventId": "EV-00231",
+    "eventId": "EV-00247",
     "simTime": 87160,
     "fromId": "INH-004",
     "fromName": "Dovie",
@@ -20246,7 +23974,7 @@
   "generationCount": 3
  },
  "audit": {
-  "stateChecksum": "sha256:dbefda6081f48c80d1dc0652e70ee5a0662f4b318ab064cd5564cbd584c598a8",
+  "stateChecksum": "sha256:ce064ad112a06888c444048d7e1fe3a1f30127c44ddb6ae37978714929c3e40e",
   "sourceCommit": "9f4c2ab7d1e05836c4b9a27fd3e18c6501aa74be",
   "imageDigest": "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f",
   "schemaVersion": "world-rules/1.4.0",
@@ -20254,9 +23982,9 @@
   "lastReplay": {
    "startedAt": "2026-07-28T02:00:00.000Z",
    "finishedAt": "2026-07-28T02:11:43.000Z",
-   "reconstructedChecksum": "sha256:dbefda6081f48c80d1dc0652e70ee5a0662f4b318ab064cd5564cbd584c598a8",
+   "reconstructedChecksum": "sha256:ce064ad112a06888c444048d7e1fe3a1f30127c44ddb6ae37978714929c3e40e",
    "matchesProduction": true,
-   "eventsReplayed": 234
+   "eventsReplayed": 338
   },
   "anchors": [
    {

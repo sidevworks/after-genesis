@@ -202,7 +202,9 @@ export type GeometryPrimitive =
   | "particle_field"
   | "unknown_bounded_geometry"
   | "articulated_entity"
-  | "reference_marker";
+  | "constructed_structure"
+  | "reference_marker"
+  | (string & {});
 
 export interface SceneReference {
   refId: ReferenceId;

@@ -47,6 +47,7 @@ import { CinemaCaption } from "./caption";
 import { BroadcastOverlay } from "./broadcast-overlay";
 import { BroadcastTransport } from "./broadcast-transport";
 import { CinemaTransport } from "./transport";
+import { ElevenLabsVoicePlayer } from "../elevenlabs-voice-player";
 import { VitalsPanel } from "./vitals-panel";
 
 /** How often the interface catches up with the picture. 6Hz reads comfortably. */
@@ -193,6 +194,19 @@ export function CinemaViewport({
 
   const vitals = useMemo(() => buildVitals(observatorySource.getRun()), []);
   const [vitalsSeries, setVitalsSeries] = useState<VitalsSeries | null>(null);
+
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  useEffect(() => {
+    if (!isFullscreen) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" || event.key === "x" || event.key === "X") {
+        setIsFullscreen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isFullscreen]);
 
   const overrideOpening =
     chronicle.cutTicks[0] === undefined
@@ -423,8 +437,13 @@ export function CinemaViewport({
     subjectId === null ? "World record" : hud.subject?.displayName ?? subjectId;
 
   return (
-    <section className={`cinema${broadcast ? " cinema--broadcast" : ""}`} aria-labelledby="cinema-title">
-      <div className="cinema__frame">
+    <section
+      className={`cinema${broadcast ? " cinema--broadcast" : ""}${
+        isFullscreen ? " fixed inset-0 z-50 bg-abyss p-4 shadow-2xl flex flex-col justify-between" : ""
+      }`}
+      aria-labelledby="cinema-title"
+    >
+      <div className={`cinema__frame ${isFullscreen ? "h-[calc(100vh-8rem)] min-h-[30rem]" : "max-h-[30rem]"}`}>
         <div
           ref={mountRef}
           className="cinema__canvas"
@@ -447,24 +466,40 @@ export function CinemaViewport({
                 : `Jumped ${durationLabel(hud.skipped)} to the next recorded story beat`
             }
           />
-        ) : <div className="cinema__overlay cinema__overlay--top">
-          <div>
-            <p className="eyebrow">
-              Day {hud.day} · {hud.clock} · world tick {Math.floor(hud.tick).toLocaleString()}
-            </p>
-            <h2 id="cinema-title" className="cinema__title">
-              {subjectLabel}
-            </h2>
-          </div>
-          <div className="cinema__shot">
-            <span className="cinema__shot-kind">{hud.shotKind.replaceAll("_", " ")}</span>
-            <small>{hud.shotReason}</small>
-          </div>
-        </div>}
+        ) : (
+          <div className="cinema__overlay cinema__overlay--top">
+            <div>
+              <p className="eyebrow">
+                Day {hud.day} · {hud.clock} · world tick {Math.floor(hud.tick).toLocaleString()}
+              </p>
+              <h2 id="cinema-title" className="cinema__title">
+                {subjectLabel}
+              </h2>
+            </div>
 
-        {!broadcast ? <div className="cinema__side">
-          <VitalsPanel series={vitalsSeries} tick={hud.tick} />
-        </div> : null}
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setIsFullscreen((prev) => !prev)}
+                className="mono pointer-events-auto rounded border border-line-soft bg-abyss/80 px-2.5 py-1 text-xs text-ink hover:border-amber hover:text-amber"
+                title="Toggle Fullscreen View (Press ESC or X to exit)"
+              >
+                {isFullscreen ? "✕ Exit Fullscreen (ESC / X)" : "⛶ Fullscreen"}
+              </button>
+
+              <div className="cinema__shot hidden sm:block">
+                <span className="cinema__shot-kind">{hud.shotKind.replaceAll("_", " ")}</span>
+                <small>{hud.shotReason}</small>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {!broadcast ? (
+          <div className="cinema__side">
+            <VitalsPanel series={vitalsSeries} tick={hud.tick} />
+          </div>
+        ) : null}
 
         {!broadcast && hud.playing && hud.effectiveRate < hud.rate ? (
           <p className="cinema__process-speed" role="status">
@@ -502,6 +537,8 @@ export function CinemaViewport({
         onSkipIdleChange={setSkipIdle}
         onStepCut={stepCut}
       />}
+
+      <ElevenLabsVoicePlayer subject={hud.subject} isVideoPlaying={hud.playing} />
 
       <p className={broadcast ? "cinema__provenance cinema__provenance--broadcast" : "cinema__provenance"}>
         <strong>Canonical</strong> — position, activity, participants, duration, world clock,

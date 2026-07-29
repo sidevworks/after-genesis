@@ -327,6 +327,7 @@ const WORLD_PHYSICS = [
   "- Observation is local and information is incomplete.",
   "- Other inhabitants have independent judgement and may cooperate, refuse, conceal, imitate, teach, persuade or deceive.",
   "- Physical actions have physical consequences. Death is irreversible.",
+  "- Biological reproduction and lineage require a consensual relationship between a male inhabitant and a female inhabitant.",
   "- Canonical history is append-only. Past events cannot be rewritten.",
   "",
   "EVIDENCE AND INTERPRETATION",

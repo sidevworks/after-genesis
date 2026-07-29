@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Artifacts" };
 
 export default async function ArtifactsPage() {
   const artifacts = await worldSource.getArtifacts();
-  const generatedCount = artifacts.reduce((total, a) => total + a.generatedMedia.length, 0);
+  const generatedCount = artifacts.reduce((total, a) => total + (a.generatedMedia?.length ?? 0), 0);
 
   return (
     <div className="space-y-6">

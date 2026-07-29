@@ -327,6 +327,78 @@ export function buildReferenceRegistry(
     );
   }
 
+  const rawStructures = (run.structures ?? []) as Array<Record<string, unknown>>;
+  const sortedStructures = [...rawStructures].sort(
+    (left, right) =>
+      Number(left.creationTime ?? left.createdAt ?? left.builtAt ?? 0) -
+      Number(right.creationTime ?? right.createdAt ?? right.builtAt ?? 0) ||
+      compareText(String(left.id ?? ""), String(right.id ?? "")),
+  );
+  for (const [index, structure] of sortedStructures.entries()) {
+    const refId = formatReferenceId("OBJ", index + 1);
+    const loc = (structure.location ?? structure.at ?? { x: 0, y: 0 }) as { x: number; y: number };
+    const locationRef = locationByCoordinate.get(`${loc.x},${loc.y}`) ?? null;
+    const name = String(structure.displayName ?? structure.name ?? structure.id ?? `Structure ${index + 1}`);
+    const kind = String(structure.kind ?? structure.structureKind ?? "structure");
+    const simTime = Number(structure.creationTime ?? structure.createdAt ?? structure.builtAt ?? 0);
+    const structId = String(structure.id ?? `str_${index + 1}`);
+    byCanonicalKey.set(`structure:${structId}`, refId);
+    records.push(
+      baseRecord({
+        refId,
+        referenceClass: "OBJ",
+        canonicalType: `structure_${kind}`,
+        displayName: name,
+        simTime,
+        position: loc,
+        locationRef,
+        canonicalMetadata: {
+          canonicalId: structId,
+          kind,
+          condition: structure.condition ?? (typeof structure.integrity === "number" ? structure.integrity / 100 : 1.0),
+          capacity: structure.capacity ?? 1,
+          ownerId: structure.ownerId ?? structure.owner ?? null,
+        },
+        fallbackLevel: 3,
+      }),
+    );
+  }
+
+  const rawArtifacts = (run.artifacts ?? []) as Array<Record<string, unknown>>;
+  const sortedArtifacts = [...rawArtifacts].sort(
+    (left, right) =>
+      Number(left.createdAt ?? left.creationTime ?? 0) -
+      Number(right.createdAt ?? right.creationTime ?? 0) ||
+      compareText(String(left.id ?? ""), String(right.id ?? "")),
+  );
+  for (const [index, artifact] of sortedArtifacts.entries()) {
+    const refId = formatReferenceId("ASM", index + 1);
+    const loc = (artifact.location ?? artifact.at ?? null) as { x: number; y: number } | null;
+    const locationRef = loc ? locationByCoordinate.get(`${loc.x},${loc.y}`) ?? null : null;
+    const name = String(artifact.displayName ?? artifact.title ?? artifact.name ?? artifact.id ?? `Artifact ${index + 1}`);
+    const kind = String(artifact.kind ?? artifact.type ?? "artifact");
+    const simTime = Number(artifact.createdAt ?? artifact.creationTime ?? 0);
+    const artId = String(artifact.id ?? `art_${index + 1}`);
+    byCanonicalKey.set(`artifact:${artId}`, refId);
+    records.push(
+      baseRecord({
+        refId,
+        referenceClass: "ASM",
+        canonicalType: `artifact_${kind}`,
+        displayName: name,
+        simTime,
+        position: loc,
+        locationRef,
+        canonicalMetadata: {
+          canonicalId: artId,
+          kind,
+          creatorId: artifact.creatorId ?? artifact.authorId ?? null,
+        },
+        fallbackLevel: 4,
+      }),
+    );
+  }
+
   const sortedUnknowns = [...additionalReferences].sort(
     (left, right) =>
       left.firstObservedSequence - right.firstObservedSequence ||

@@ -49,12 +49,20 @@ function representationFor(record: ReferenceRecord): SceneReference["representat
       material: null,
     };
   }
-  if (record.referenceClass === "OBJ" || record.referenceClass === "ASM") {
+  if (record.referenceClass === "OBJ") {
     return {
-      kind: record.spatial.bounds ? "unknown_bounded_geometry" : "reference_marker",
+      kind: "constructed_structure",
       visualSeed: record.observatoryMetadata.visualSeed,
       componentRefs: record.composition.componentRefs,
-      material: null,
+      material: String(record.canonicalMetadata.kind ?? "structure"),
+    };
+  }
+  if (record.referenceClass === "ASM") {
+    return {
+      kind: "reference_marker",
+      visualSeed: record.observatoryMetadata.visualSeed,
+      componentRefs: record.composition.componentRefs,
+      material: String(record.canonicalMetadata.kind ?? "artifact"),
     };
   }
   return {

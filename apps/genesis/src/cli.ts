@@ -34,6 +34,10 @@ import {
   executeTurn,
   type CognitionService,
 } from "@after-genesis/runtime";
+import {
+  bootstrapStagingWorld,
+  teardownStagingWorld,
+} from "./staging-bootstrap.js";
 
 const DEFAULT_OUTPUT = ".worlds/vertical-slice";
 const DEFAULT_WORLD_ID = "after-genesis-demo";
@@ -41,20 +45,26 @@ const DEFAULT_SEED = "after-genesis-public-demo-seed-v1";
 const PROVENANCE = { sourceCommit: "local-uncommitted", deployedDigest: "local" };
 
 interface ParsedArgs {
-  readonly command: "demo" | "replay";
+  readonly command: "demo" | "replay" | "bootstrap-staging" | "teardown-staging";
   readonly output: string;
   readonly turns: number;
   readonly provider: "offline" | "gemini";
   readonly resume: boolean;
   readonly maxSpendUsd: string | null;
+  readonly worldId: string;
 }
 
 function parseArgs(argv: readonly string[]): ParsedArgs {
   const command = argv[0];
-  if (command !== "demo" && command !== "replay") {
+  if (
+    command !== "demo" &&
+    command !== "replay" &&
+    command !== "bootstrap-staging" &&
+    command !== "teardown-staging"
+  ) {
     throw new Error(
-      "usage: npm run world -- <demo|replay> [--output <directory>] " +
-        "[--turns <n>] [--provider <offline|gemini>] [--resume] [--max-spend-usd <amount>]",
+      "usage: npm run world -- <demo|replay|bootstrap-staging|teardown-staging> [--output <directory>] " +
+        "[--world-id <id>] [--turns <n>] [--provider <offline|gemini>] [--resume] [--max-spend-usd <amount>]",
     );
   }
   let output = DEFAULT_OUTPUT;
@@ -62,12 +72,19 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   let provider: "offline" | "gemini" = "offline";
   let resume = false;
   let maxSpendUsd: string | null = null;
+  let worldId = "staging-test-fixture";
   for (let i = 1; i < argv.length; i++) {
     const arg = argv[i];
     if (arg === "--output") {
       const value = argv[++i];
       if (value === undefined) throw new Error("--output requires a directory");
       output = value;
+    } else if (arg === "--world-id") {
+      const value = argv[++i];
+      if (value === undefined || value.trim().length === 0) {
+        throw new Error("--world-id requires a non-empty string");
+      }
+      worldId = value.trim();
     } else if (arg === "--turns") {
       const value = Number(argv[++i]);
       if (!Number.isSafeInteger(value) || value < 1 || value > 10_000) {
@@ -92,7 +109,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       throw new Error(`unknown argument: ${arg}`);
     }
   }
-  return { command, output: resolve(output), turns, provider, resume, maxSpendUsd };
+  return { command, output: resolve(output), turns, provider, resume, maxSpendUsd, worldId };
 }
 
 function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
@@ -622,13 +639,34 @@ async function runReplay(args: ParsedArgs): Promise<void> {
   if (!report.ok) process.exitCode = 1;
 }
 
+async function runBootstrapStaging(args: ParsedArgs): Promise<void> {
+  const result = await bootstrapStagingWorld({
+    worldId: args.worldId,
+    outputDir: args.output,
+  });
+  process.stdout.write(
+    `[staging-bootstrap] Bootstrapped staging world "${result.worldId}"\n` +
+      `  Seed: ${result.seed}\n` +
+      `  Founder: ${result.founderName} (${result.founderId})\n` +
+      `  Checksum: ${result.stateChecksum}\n` +
+      `  Output: ${result.outputDir}\n`,
+  );
+}
+
+async function runTeardownStaging(args: ParsedArgs): Promise<void> {
+  await teardownStagingWorld(args.worldId, args.output);
+  process.stdout.write(`[staging-teardown] Purged staging world "${args.worldId}" from ${args.output}\n`);
+}
+
 async function main(): Promise<void> {
   // Local developer convenience only. Node's built-in loader does not override
   // variables already injected by a shell, CI, or secret manager.
   if (existsSync(".env")) process.loadEnvFile(".env");
   const args = parseArgs(process.argv.slice(2));
   if (args.command === "demo") await runDemo(args);
-  else await runReplay(args);
+  else if (args.command === "replay") await runReplay(args);
+  else if (args.command === "bootstrap-staging") await runBootstrapStaging(args);
+  else if (args.command === "teardown-staging") await runTeardownStaging(args);
 }
 
 main().catch((error: unknown) => {

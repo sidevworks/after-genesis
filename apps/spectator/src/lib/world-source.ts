@@ -31,6 +31,7 @@
  */
 
 import { FixtureWorldSource } from "./fixture-world-source";
+import { FirestoreWorldSource } from "./firestore-world-source";
 import type {
   Artifact,
   AuditStatus,
@@ -91,7 +92,37 @@ export interface WorldSource {
  * The bound implementation.
  *
  * ─────────────────────────────────────────────────────────────────────────────
- * SWAP POINT — change this one line to move from fixture data to production.
+ * SWAP POINT — set NEXT_PUBLIC_WORLD_SOURCE=firestore to read from Firestore.
+ * Defaults to "fixture" for local offline rendering and development.
  * ─────────────────────────────────────────────────────────────────────────────
  */
-export const worldSource: WorldSource = new FixtureWorldSource();
+function createWorldSource(): WorldSource {
+  const sourceMode = process.env.NEXT_PUBLIC_WORLD_SOURCE ?? "fixture";
+
+  if (sourceMode === "firestore") {
+    const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
+    const worldId = process.env.NEXT_PUBLIC_WORLD_ID;
+
+    if (!apiKey || !projectId || !worldId) {
+      throw new Error(
+        "Firestore world source requires NEXT_PUBLIC_FIREBASE_API_KEY, " +
+          "NEXT_PUBLIC_FIREBASE_PROJECT_ID, and NEXT_PUBLIC_WORLD_ID environment variables.",
+      );
+    }
+
+    return new FirestoreWorldSource({
+      firebaseConfig: {
+        apiKey,
+        authDomain: `${projectId}.firebaseapp.com`,
+        projectId,
+      },
+      worldId,
+    });
+  }
+
+  return new FixtureWorldSource();
+}
+
+export const worldSource: WorldSource = createWorldSource();
+

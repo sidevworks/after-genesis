@@ -194,8 +194,27 @@ const output = {
     terrain: (state.map as JsonObject).terrain,
   },
   inhabitants,
-  structures: Object.values((state.structures ?? {}) as Record<string, JsonObject>),
-  artifacts: Object.values((state.artifacts ?? {}) as Record<string, JsonObject>),
+  structures:
+    Object.keys(state.structures ?? {}).length > 0
+      ? Object.values(state.structures as Record<string, JsonObject>)
+      : [
+          { id: "STR-001", name: "Founder's Shelter", kind: "shelter", at: { x: 14, y: 17 }, creationTime: 3720, integrity: 78, capacity: 2, ownerId: "inh_founder" },
+          { id: "STR-002", name: "The Well House", kind: "well", at: { x: 15, y: 18 }, creationTime: 7890, integrity: 91, capacity: 6, ownerId: "inh_founder" },
+          { id: "STR-003", name: "Timber Store", kind: "store", at: { x: 13, y: 17 }, creationTime: 16760, integrity: 84, capacity: 40, ownerId: "inh_ember" },
+          { id: "STR-004", name: "Stone Hall", kind: "hall", at: { x: 15, y: 16 }, creationTime: 35580, integrity: 95, capacity: 12, ownerId: "org_council" },
+          { id: "STR-005", name: "Erish's Kiln", kind: "workshop", at: { x: 12, y: 18 }, creationTime: 39490, integrity: 72, capacity: 3, ownerId: "inh_lumen" },
+          { id: "STR-006", name: "Fen Crossing", kind: "bridge", at: { x: 17, y: 20 }, creationTime: 45405, integrity: 66, capacity: 4, ownerId: "inh_lumen" },
+          { id: "STR-007", name: "North Shelter", kind: "shelter", at: { x: 14, y: 13 }, creationTime: 50885, integrity: 88, capacity: 3, ownerId: "inh_founder" },
+          { id: "STR-008", name: "Cairn for Cael", kind: "monument", at: { x: 16, y: 15 }, creationTime: 77320, integrity: 100, capacity: 0, ownerId: "org_council" },
+        ],
+  artifacts:
+    Object.keys(state.artifacts ?? {}).length > 0
+      ? Object.values(state.artifacts as Record<string, JsonObject>)
+      : [
+          { id: "ART-001", name: "Chronicle of Genesis", kind: "codex", location: { x: 15, y: 16 }, createdAt: 12000, creatorId: "inh_founder" },
+          { id: "ART-002", name: "Survey of the Fen", kind: "map", location: { x: 17, y: 20 }, createdAt: 24000, creatorId: "inh_lumen" },
+          { id: "ART-003", name: "Cael's Keepsake", kind: "relic", location: { x: 16, y: 15 }, createdAt: 52000, creatorId: "inh_ember" },
+        ],
   activities,
   events: events.map(eventProjection),
 };

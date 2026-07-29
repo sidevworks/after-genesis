@@ -888,6 +888,10 @@ a {
   .cinema {
     display: grid;
     gap: 0.75rem;
+    margin-left: auto;
+    margin-right: auto;
+    max-width: 84rem;
+    width: 100%;
   }
 
   .cinema__frame {
@@ -898,6 +902,9 @@ a {
     background: #05090d;
     aspect-ratio: 21 / 9;
     min-height: 24rem;
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
   }
 
   .cinema__canvas {

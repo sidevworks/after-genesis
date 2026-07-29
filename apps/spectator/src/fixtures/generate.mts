@@ -55,7 +55,7 @@ const IMAGE_DIGEST =
 const WIDTH = 32;
 const HEIGHT = 32;
 const MIN_PER_DAY = 1440;
-const NOW = 62 * MIN_PER_DAY + 14 * 60 + 20; // Day 63 14:20
+const NOW = 89 * MIN_PER_DAY + 14 * 60 + 20; // Day 90 14:20
 const GENESIS_REAL_MS = Date.parse("2026-07-07T09:00:00.000Z");
 const REAL_SECONDS_PER_SIM_MINUTE = 20;
 
@@ -990,7 +990,7 @@ add({
 });
 
 add({
-  simTime: at(63, 8, 40),
+  simTime: at(90, 8, 40),
   type: "conversation.public",
   actor: "INH-009",
   description: "Iolen and Fenne conversed at tile (17,20) for 40 minutes. The exchange was recorded with public visibility.",
@@ -1020,9 +1020,9 @@ function livingAt(t: number): Person[] {
 }
 
 let fillerCount = 0;
-const FILLER_TARGET = 132;
+const FILLER_TARGET = 250;
 
-for (let day = 1; day <= 63 && fillerCount < FILLER_TARGET; day += 1) {
+for (let day = 1; day <= 90 && fillerCount < FILLER_TARGET; day += 1) {
   const perDay = day < 10 ? 1 : day < 25 ? 2 : 3;
   for (let k = 0; k < perDay && fillerCount < FILLER_TARGET; k += 1) {
     const hour = 6 + Math.floor(rng() * 13);

@@ -43,7 +43,7 @@ export default async function InhabitantPage({
 
   const deceased = inhabitant.status === "deceased";
   const claimsAbout = events.events.flatMap((e) =>
-    e.claims.filter((c) => c.byId === inhabitant.id).map((c) => ({ claim: c, event: e })),
+    (e.claims ?? []).filter((c) => c.byId === inhabitant.id).map((c) => ({ claim: c, event: e })),
   );
 
   return (
@@ -68,7 +68,7 @@ export default async function InhabitantPage({
             </h1>
             <p className="mono mt-2 text-xs text-dim">
               born {formatSimTime(inhabitant.birthSimTime)}
-              {inhabitant.parentIds.length > 0 && (
+              {(inhabitant.parentIds?.length ?? 0) > 0 && (
                 <>
                   {" "}
                   · created by{" "}
@@ -114,7 +114,7 @@ export default async function InhabitantPage({
               {
                 key: "Present",
                 value:
-                  inhabitant.death.witnessIds.length === 0
+                  (inhabitant.death.witnessIds?.length ?? 0) === 0
                     ? "No inhabitant recorded at the location."
                     : inhabitant.death.witnessIds.map((w, index) => (
                         <span key={w}>
@@ -271,7 +271,7 @@ export default async function InhabitantPage({
           <div className="hairline px-4 py-3.5">
             <p className="eyebrow">Goals</p>
             <p className="mt-1.5 text-sm text-muted">
-              {inhabitant.disclosedGoals.length > 0
+              {(inhabitant.disclosedGoals?.length ?? 0) > 0
                 ? inhabitant.disclosedGoals.join("; ")
                 : "None disclosed through a recorded action."}
             </p>
@@ -286,7 +286,7 @@ export default async function InhabitantPage({
 
         {/* Skills */}
         <Panel eyebrow="Skills" title="Recorded proficiency">
-          {inhabitant.skills.length === 0 ? (
+          {(inhabitant.skills?.length ?? 0) === 0 ? (
             <Empty>No skill has been recorded for this inhabitant.</Empty>
           ) : (
             <div className="space-y-3 px-4 py-4">
@@ -335,7 +335,7 @@ export default async function InhabitantPage({
               {
                 key: "Structures owned",
                 value:
-                  inhabitant.property.structureIds.length === 0
+                  (inhabitant.property?.structureIds?.length ?? 0) === 0
                     ? "None"
                     : inhabitant.property.structureIds.join(", "),
                 mono: true,
@@ -343,7 +343,7 @@ export default async function InhabitantPage({
               {
                 key: "Land-use rights",
                 value:
-                  inhabitant.property.landTiles.length === 0
+                  (inhabitant.property?.landTiles?.length ?? 0) === 0
                     ? "None recorded"
                     : inhabitant.property.landTiles.map((t) => `(${t.x},${t.y})`).join(" "),
                 mono: true,
@@ -351,7 +351,7 @@ export default async function InhabitantPage({
               {
                 key: "Currency balances",
                 value:
-                  inhabitant.balances.length === 0 ? (
+                  (inhabitant.balances?.length ?? 0) === 0 ? (
                     <span className="text-dim">
                       Holds no unit of account. Not every inhabitant uses one.
                     </span>
@@ -360,7 +360,7 @@ export default async function InhabitantPage({
                       .map((b) => `${b.amount} ${b.currencySymbol}`)
                       .join(" · ")
                   ),
-                mono: inhabitant.balances.length > 0,
+                mono: (inhabitant.balances?.length ?? 0) > 0,
               },
             ]}
           />
@@ -369,10 +369,10 @@ export default async function InhabitantPage({
         {/* Relationships */}
         <Panel
           eyebrow="Relationships"
-          title={`${inhabitant.relationships.length} recorded`}
+          title={`${inhabitant.relationships?.length ?? 0} recorded`}
           aside="valence is derived from recorded interactions"
         >
-          {inhabitant.relationships.length === 0 ? (
+          {(inhabitant.relationships?.length ?? 0) === 0 ? (
             <Empty>No interaction with another inhabitant has been recorded.</Empty>
           ) : (
             <ul className="divide-y divide-line-soft">
@@ -424,7 +424,7 @@ export default async function InhabitantPage({
 
           <div className="hairline px-4 py-3.5">
             <p className="eyebrow mb-2">Organisation memberships</p>
-            {inhabitant.memberships.length === 0 ? (
+            {(inhabitant.memberships?.length ?? 0) === 0 ? (
               <p className="text-sm text-dim">
                 Belongs to no organisation. Membership is voluntary and declared.
               </p>
@@ -443,8 +443,8 @@ export default async function InhabitantPage({
                       </span>
                       {org && (
                         <p className="mono text-[0.65rem] text-dim">
-                          {org.kind} · {org.recognition.recognisedByIds.length} inhabitants have
-                          acted as though it is legitimate, {org.recognition.rejectedByIds.length}{" "}
+                          {org.kind} · {org.recognition?.recognisedByIds?.length ?? 0} inhabitants have
+                          acted as though it is legitimate, {org.recognition?.rejectedByIds?.length ?? 0}{" "}
                           have acted against it
                         </p>
                       )}
@@ -457,7 +457,7 @@ export default async function InhabitantPage({
 
           <div className="hairline px-4 py-3.5">
             <p className="eyebrow mb-2">Contracts and obligations</p>
-            {inhabitant.contracts.length === 0 ? (
+            {(inhabitant.contracts?.length ?? 0) === 0 ? (
               <p className="text-sm text-dim">No contract recorded.</p>
             ) : (
               <ul className="space-y-2.5">
@@ -486,7 +486,7 @@ export default async function InhabitantPage({
         <Panel eyebrow="Health" title="Conditions and recorded history">
           <div className="px-4 py-3.5">
             <p className="eyebrow mb-2">Conditions</p>
-            {inhabitant.health.conditions.length === 0 ? (
+            {(inhabitant.health?.conditions?.length ?? 0) === 0 ? (
               <p className="text-sm text-dim">No condition recorded.</p>
             ) : (
               <ul className="space-y-2">
@@ -507,7 +507,7 @@ export default async function InhabitantPage({
           </div>
           <div className="hairline px-4 py-3.5">
             <p className="eyebrow mb-2">History</p>
-            {inhabitant.health.history.length === 0 ? (
+            {(inhabitant.health?.history?.length ?? 0) === 0 ? (
               <p className="text-sm text-dim">No health observation has been recorded.</p>
             ) : (
               <ol className="space-y-3">
@@ -537,7 +537,7 @@ export default async function InhabitantPage({
         title="Public memories and reflections"
         aside="beliefs, not canonical facts"
       >
-        {inhabitant.publicMemories.length === 0 ? (
+        {(inhabitant.publicMemories?.length ?? 0) === 0 ? (
           <Empty>
             This inhabitant has disclosed no memory publicly. Private memories are not published
             {deceased ? "" : " while it lives"}.

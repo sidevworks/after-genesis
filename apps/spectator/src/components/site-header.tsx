@@ -2,7 +2,10 @@ import Link from "next/link";
 import { worldSource } from "@/lib/world-source";
 import { observatorySource } from "@/lib/observatory-source";
 import { HeaderWorldStatus } from "./header-world-status";
-import { NavLinks } from "./nav-links";
+import { NavGroups } from "./nav-groups";
+import { TierBadge } from "./tier-badge";
+import { TierProvider } from "./tier-context";
+import { UpgradeModal } from "./upgrade-modal";
 
 export const NAV = [
   { href: "/", label: "Overview" },
@@ -24,32 +27,40 @@ export async function SiteHeader() {
   const observatory = observatorySource.getRun();
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-abyss/92 backdrop-blur-md">
-      <div className="mx-auto flex max-w-[92rem] flex-wrap items-center gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6">
-        <Link href="/" className="flex items-baseline gap-2.5">
-          <span className="text-sm font-medium tracking-tight text-ink">After Genesis</span>
-        </Link>
+    <TierProvider>
+      <header className="sticky top-0 z-40 border-b border-line bg-abyss/92 backdrop-blur-md">
+        <div className="mx-auto flex max-w-[96rem] flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-2.5 sm:px-6">
+          <div className="flex items-center gap-4">
+            <Link href="/" className="flex items-baseline gap-2.5">
+              <span className="text-sm font-medium tracking-tight text-ink">After Genesis</span>
+            </Link>
 
-        <HeaderWorldStatus
-          archive={{
-            worldId: summary.worldId,
-            simTime: summary.simTime,
-            living: summary.population.living,
-            total: summary.population.total,
-            status: summary.status,
-          }}
-          observatory={{
-            worldId: "W001",
-            simTime: observatory.world.simTime,
-            living: observatory.inhabitants.filter((inhabitant) => inhabitant.status === "alive")
-              .length,
-            total: observatory.inhabitants.length,
-            status: "completed",
-          }}
-        />
+            <HeaderWorldStatus
+              archive={{
+                worldId: summary.worldId,
+                simTime: summary.simTime,
+                living: summary.population.living,
+                total: summary.population.total,
+                status: summary.status,
+              }}
+              observatory={{
+                worldId: "W001",
+                simTime: observatory.world.simTime,
+                living: observatory.inhabitants.filter((inhabitant) => inhabitant.status === "alive")
+                  .length,
+                total: observatory.inhabitants.length,
+                status: "completed",
+              }}
+            />
+          </div>
 
-        <NavLinks items={NAV.map((n) => ({ ...n }))} />
-      </div>
-    </header>
+          <NavGroups />
+
+          <TierBadge />
+        </div>
+      </header>
+
+      <UpgradeModal />
+    </TierProvider>
   );
 }

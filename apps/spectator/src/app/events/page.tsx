@@ -12,7 +12,7 @@ export default async function EventsPage() {
     worldSource.getWorldSummary(),
   ]);
 
-  const claimCount = page.events.reduce((total, event) => total + event.claims.length, 0);
+  const claimCount = page.events.reduce((total, event) => total + (event.claims?.length ?? 0), 0);
 
   return (
     <div className="space-y-6">

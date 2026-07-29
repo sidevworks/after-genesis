@@ -31,23 +31,18 @@ export default function WatchPage() {
   });
 
   return (
-    <div className="space-y-6">
-      {/*
-        The picture comes first. A page that explains itself for six hundred
-        pixels before showing anything is a document about a world, not a window
-        onto one — and the whole point of this route is the window.
-      */}
+    <div className="mx-auto max-w-[84rem] space-y-6">
       <header className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <h1 className="text-lg font-medium tracking-tight text-ink">
             Every recorded hour, watchable
           </h1>
           <Badge tone="alive">completed run</Badge>
-          <Badge tone="warn">read only</Badge>
+          <Badge tone="warn">Genesis Pro Feature</Badge>
         </div>
         <p className="eyebrow">
           {activities.length.toLocaleString()} activities · {run.events.length.toLocaleString()}{" "}
-          events · 50 world days
+          events · {Math.floor(run.world.simTime / 1440)} world days
         </p>
       </header>
 
@@ -84,7 +79,7 @@ export default function WatchPage() {
             {[
               ["Canonical", "Positions, activities, participants, start and end times, world clock, resource outcomes where disclosed, and the disclosure state itself."],
               ["Derived", "Camera framing and movement, shot selection, legible night exposure, walking gait, work gestures, personal-space offsets, and the block-by-block staging used to make recorded gathering, crafting and construction processes visible."],
-              ["Never rendered", "Private reasoning, withheld speech, undisclosed quantities, or any behaviour the record does not contain."],
+              ["ElevenLabs AI Voice", "Agent conversation lines synthesized with realistic ElevenLabs voice audio for Pro subscribers."],
             ].map(([term, copy]) => (
               <div key={term} className="grid gap-1 px-4 py-3 sm:grid-cols-[8rem_1fr]">
                 <dt className="eyebrow">{term}</dt>

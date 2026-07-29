@@ -31,7 +31,7 @@ export function LineageTree({ lineage }: { lineage: Lineage }) {
   });
 
   const edges = lineage.nodes.flatMap((node) =>
-    node.parentIds.flatMap((parentId) => {
+    (node.parentIds ?? []).flatMap((parentId) => {
       const from = position.get(parentId);
       const to = position.get(node.id);
       if (!from || !to) return [];

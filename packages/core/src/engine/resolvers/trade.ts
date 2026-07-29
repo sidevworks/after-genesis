@@ -480,6 +480,7 @@ export const acceptTradeResolver: Resolver = (ctx, payload): ResolutionResult =>
     state: next,
     sequence: ctx.sequence,
     activityState: ACCEPT.activity,
+    actionType: ACCEPT.type,
     // Only the acceptor's time is taken here. The offerer already spent its own
     // turn making the offer, and dragging it into this activity would overwrite
     // whatever it is doing now and put it in two activities at once (§11J).
@@ -746,7 +747,7 @@ export const transferPropertyResolver: Resolver = (ctx, payload): ResolutionResu
         visibility:
           toInhabitant !== null
             ? { kind: "participants", participants: sortedUnique([ctx.actor.id, toInhabitant]) }
-            : { kind: "organisation", organisation: recipient },
+            : { kind: "organisation", organisationId: recipient },
       },
     ],
   };

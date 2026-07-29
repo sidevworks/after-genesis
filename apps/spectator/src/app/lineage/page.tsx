@@ -45,7 +45,7 @@ export default async function LineagePage() {
                     {node.name}
                   </Link>
                   <p className="mono text-xs text-dim">
-                    {node.id} · instantiated at Genesis · {node.childIds.length} direct descendants
+                    {node.id} · instantiated at Genesis · {node.childIds?.length ?? 0} direct descendants
                   </p>
                   <p className="mt-1 text-xs leading-relaxed text-dim">
                     Instantiated by the Genesis procedure, not by an inhabitant. Every later
@@ -74,7 +74,7 @@ export default async function LineagePage() {
                       ` · lived ${Math.floor((node.deathSimTime - node.birthSimTime) / 1440)} days`}
                   </p>
                   <p className="mono text-xs text-dim">
-                    {node.childIds.length} descendants, all of whom remain
+                    {node.childIds?.length ?? 0} descendants, all of whom remain
                   </p>
                 </li>
               ))}

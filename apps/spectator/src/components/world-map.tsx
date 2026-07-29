@@ -27,16 +27,21 @@ function StructureGlyph({ structure }: { structure: Structure }) {
   const { x, y } = structure.at;
   const cx = x + 0.5;
   const cy = y + 0.5;
-  if (structure.kind === "monument") {
+
+  if (structure.kind === "monument" || structure.kind === "cairn") {
     return (
-      <polygon
-        points={`${cx},${cy - 0.3} ${cx + 0.3},${cy} ${cx},${cy + 0.3} ${cx - 0.3},${cy}`}
-        fill="#0b1016"
-        stroke="var(--color-amber)"
-        strokeWidth={0.08}
-      />
+      <g>
+        <polygon
+          points={`${cx},${cy - 0.35} ${cx + 0.32},${cy} ${cx},${cy + 0.35} ${cx - 0.32},${cy}`}
+          fill="#0b1016"
+          stroke="var(--color-amber)"
+          strokeWidth={0.08}
+        />
+        <circle cx={cx} cy={cy} r={0.08} fill="var(--color-amber)" />
+      </g>
     );
   }
+
   if (structure.kind === "bridge") {
     return (
       <g stroke="var(--color-amber)" strokeWidth={0.1} fill="none">
@@ -46,25 +51,81 @@ function StructureGlyph({ structure }: { structure: Structure }) {
       </g>
     );
   }
+
   if (structure.kind === "well") {
     return (
       <g fill="none" stroke="var(--color-amber)" strokeWidth={0.09}>
-        <circle cx={cx} cy={cy} r={0.26} />
-        <circle cx={cx} cy={cy} r={0.08} fill="var(--color-amber)" stroke="none" />
+        <circle cx={cx} cy={cy} r={0.28} />
+        <circle cx={cx} cy={cy} r={0.12} fill="var(--color-amber)" stroke="none" />
       </g>
     );
   }
+
+  if (structure.kind === "shelter" || structure.kind === "house") {
+    return (
+      <g fill="#0b1016" stroke="var(--color-amber)" strokeWidth={0.07}>
+        <path d={`M ${x + 0.2},${y + 0.75} L ${cx},${y + 0.25} L ${x + 0.8},${y + 0.75} Z`} />
+        <rect x={x + 0.42} y={y + 0.55} width={0.16} height={0.2} fill="var(--color-amber)" stroke="none" />
+      </g>
+    );
+  }
+
+  if (structure.kind === "store" || structure.kind === "stockpile" || structure.kind === "granary") {
+    return (
+      <g fill="#0b1016" stroke="var(--color-amber)" strokeWidth={0.07}>
+        <rect x={x + 0.2} y={y + 0.2} width={0.6} height={0.6} rx={0.06} />
+        <line x1={x + 0.2} y1={y + 0.2} x2={x + 0.8} y2={y + 0.8} strokeWidth={0.05} />
+        <line x1={x + 0.8} y1={y + 0.2} x2={x + 0.2} y2={y + 0.8} strokeWidth={0.05} />
+      </g>
+    );
+  }
+
+  if (structure.kind === "hall" || structure.kind === "assembly") {
+    return (
+      <g fill="#0b1016" stroke="var(--color-amber)" strokeWidth={0.07}>
+        <polygon points={`${x + 0.15},${y + 0.4} ${cx},${y + 0.2} ${x + 0.85},${y + 0.4}`} />
+        <rect x={x + 0.18} y={y + 0.4} width={0.64} height={0.4} rx={0.04} />
+        <line x1={x + 0.32} y1={y + 0.4} x2={x + 0.32} y2={y + 0.8} strokeWidth={0.06} />
+        <line x1={cx} y1={y + 0.4} x2={cx} y2={y + 0.8} strokeWidth={0.06} />
+        <line x1={x + 0.68} y1={y + 0.4} x2={x + 0.68} y2={y + 0.8} strokeWidth={0.06} />
+      </g>
+    );
+  }
+
+  if (structure.kind === "workshop" || structure.kind === "smithy" || structure.kind === "forge") {
+    return (
+      <g fill="#0b1016" stroke="var(--color-amber)" strokeWidth={0.07}>
+        <rect x={x + 0.2} y={y + 0.3} width={0.6} height={0.5} rx={0.06} />
+        <rect x={x + 0.6} y={y + 0.15} width={0.14} height={0.25} fill="var(--color-amber)" stroke="none" />
+        <circle cx={x + 0.67} cy={y + 0.1} r={0.04} fill="var(--color-amber)" stroke="none" />
+      </g>
+    );
+  }
+
+  if (structure.kind === "enclosure" || structure.kind === "wall" || structure.kind === "palisade") {
+    return (
+      <g fill="none" stroke="var(--color-amber)" strokeWidth={0.08} strokeDasharray="0.12 0.08">
+        <rect x={x + 0.15} y={y + 0.15} width={0.7} height={0.7} rx={0.04} />
+      </g>
+    );
+  }
+
+  if (structure.kind === "farm" || structure.kind === "field") {
+    return (
+      <g fill="none" stroke="var(--color-amber)" strokeWidth={0.06}>
+        <rect x={x + 0.15} y={y + 0.15} width={0.7} height={0.7} strokeWidth={0.07} />
+        <line x1={x + 0.25} y1={y + 0.35} x2={x + 0.75} y2={y + 0.35} />
+        <line x1={x + 0.25} y1={y + 0.5} x2={x + 0.75} y2={y + 0.5} />
+        <line x1={x + 0.25} y1={y + 0.65} x2={x + 0.75} y2={y + 0.65} />
+      </g>
+    );
+  }
+
   return (
-    <rect
-      x={x + 0.2}
-      y={y + 0.2}
-      width={0.6}
-      height={0.6}
-      rx={0.08}
-      fill="#0b1016"
-      stroke="var(--color-amber)"
-      strokeWidth={0.08}
-    />
+    <g fill="#0b1016" stroke="var(--color-amber)" strokeWidth={0.08}>
+      <rect x={x + 0.2} y={y + 0.2} width={0.6} height={0.6} rx={0.08} />
+      <line x1={x + 0.2} y1={y + 0.35} x2={x + 0.8} y2={y + 0.35} strokeWidth={0.05} />
+    </g>
   );
 }
 

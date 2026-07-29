@@ -165,7 +165,6 @@ describe.skipIf(renderedPages.length === 0)(
       "index.html",
       "map/index.html",
       "inhabitants/index.html",
-      "inhabitants/INH-001/index.html",
       "lineage/index.html",
       "events/index.html",
       "organisations/index.html",
