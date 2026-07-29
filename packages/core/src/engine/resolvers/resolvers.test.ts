@@ -31,6 +31,7 @@ import {
   runAction,
   type ResolutionResult,
 } from "./index.js";
+import { settleConsideration } from "./trade.js";
 
 const MIDDAY = simTime(12 * 60);
 
@@ -235,6 +236,54 @@ describe("neutral artifacts and transfer", () => {
     expect(transferred.state.artifacts[artifact!.id]?.owner).toBe("inh_receiver");
     expect(transferred.state.inhabitants.inh_receiver?.inventory.food).toBe(2);
     expectClean(transferred.state);
+  });
+
+  it("rejects transfers that would overfill the recipient's pack", () => {
+    const base = world();
+    const founder = founderOf(base);
+    const full = addTestInhabitant(base, {
+      id: "inh_receiver",
+      location: founder.location,
+      inventory: { wood: base.rules.carryCapacity },
+    });
+
+    for (const type of ["transfer", "transfer_property"] as const) {
+      const result = act(full, type, {
+        toInhabitantId: "inh_receiver",
+        resources: { food: 1 },
+        artifactIds: [],
+      });
+      expect(result.outcome).toMatchObject({
+        status: "rejected",
+        code: "INSUFFICIENT_RESOURCES",
+      });
+      expect(result.state.inhabitants.inh_receiver?.inventory.wood).toBe(
+        full.rules.carryCapacity,
+      );
+      expect(result.state.inhabitants.inh_receiver?.inventory.food ?? 0).toBe(0);
+      expectClean(result.state);
+    }
+  });
+
+  it("rejects trade settlement atomically when the recipient's pack is full", () => {
+    const base = world();
+    const founder = founderOf(base);
+    const full = addTestInhabitant(base, {
+      id: "inh_receiver",
+      location: founder.location,
+      inventory: { wood: base.rules.carryCapacity },
+    });
+    const settled = settleConsideration(full, "inh_founder", "inh_receiver", {
+      resources: { food: 1 },
+      artifactIds: [],
+      structureIds: [],
+      currency: [],
+      labourMinutes: 0,
+    });
+
+    expect(settled.ok).toBe(false);
+    expect(full.inhabitants.inh_founder?.inventory.food).toBe(10);
+    expect(full.inhabitants.inh_receiver?.inventory.food ?? 0).toBe(0);
   });
 });
 

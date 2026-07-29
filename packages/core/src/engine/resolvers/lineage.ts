@@ -74,7 +74,6 @@ import {
   advanceNeeds,
   beginActivity,
   reachableHoldings,
-  spend,
   spendFromHandAndStores,
 } from "./effects.js";
 import { reject, type DerivedEvent, type ResolutionResult, type Resolver } from "./types.js";
@@ -271,15 +270,22 @@ function endowmentBonus(
   committed: ResourceBundle,
   cost: ResourceBundle,
   remaining: ResourceBundle,
+  carryCapacity: number,
 ): ResourceBundle {
   const out: ResourceBundle = {};
+  let room = carryCapacity;
+  for (const kind of MATERIAL_KINDS) room -= CHILD_ENDOWMENT[kind] ?? 0;
+  room = Math.max(0, room);
   for (const kind of MATERIAL_KINDS) {
     const cap = ENDOWMENT_BONUS_CAP[kind] ?? 0;
     if (cap === 0) continue;
     const surplus = (committed[kind] ?? 0) - (cost[kind] ?? 0);
     const affordable = remaining[kind] ?? 0;
-    const amount = Math.min(surplus, cap, affordable);
-    if (amount > 0) out[kind] = amount;
+    const amount = Math.min(surplus, cap, affordable, room);
+    if (amount > 0) {
+      out[kind] = amount;
+      room -= amount;
+    }
   }
   return out;
 }
@@ -527,6 +533,7 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
     input.resourcesCommitted,
     cost,
     reachableHoldings(stateAfterDraw, afterCost),
+    state.rules.carryCapacity,
   );
   const bonusDrawn = spendFromHandAndStores(stateAfterDraw, afterCost, bonus);
   /* c8 ignore next 3 */

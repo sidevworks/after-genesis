@@ -28,7 +28,6 @@ import {
   recordCreated,
   totalHeldResources,
   updateInhabitant,
-  type ResourceBundleLike,
   type WorldState,
 } from "./state.js";
 import { founderOf, makeTestWorld, standOn } from "./test-support.js";

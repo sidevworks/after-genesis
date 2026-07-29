@@ -70,7 +70,14 @@ import {
   type Undertaking,
   type WorldState,
 } from "../state.js";
-import { advanceNeeds, beginActivity, practise, receive, spend } from "./effects.js";
+import {
+  advanceNeeds,
+  beginActivity,
+  carriedTotal,
+  practise,
+  receive,
+  spend,
+} from "./effects.js";
 import {
   ExchangeRejection,
   moveUnits,
@@ -179,8 +186,15 @@ export function settleConsideration(
       `${fromId} does not hold everything promised`,
     );
   }
+  const received = receive(to, what.resources);
+  if (carriedTotal(received.inventory) > state.rules.carryCapacity) {
+    return settlementFailed(
+      RejectionCode.InsufficientResources,
+      `${toId} cannot carry everything promised`,
+    );
+  }
   next = updateInhabitant(next, fromId, () => spent);
-  next = updateInhabitant(next, toId, (current) => receive(current, what.resources));
+  next = updateInhabitant(next, toId, () => received);
 
   for (const artifactId of what.artifactIds) {
     const artifact = next.artifacts[artifactId];

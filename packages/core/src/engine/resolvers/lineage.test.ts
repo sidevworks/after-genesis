@@ -549,6 +549,25 @@ describe("conservation and cost", () => {
     expectClean(result.state, before.sequence + 1);
   });
 
+  it("caps the combined endowment at the newborn's carrying capacity", () => {
+    const before = world();
+    const cost = creationCost(livingInhabitants(before).length);
+    const result = createInhabitantResolver(creationContext(before), {
+      proposedName: "Second",
+      resourcesCommitted: {
+        food: (cost.food ?? 0) + 500,
+        water: (cost.water ?? 0) + 500,
+        wood: cost.wood,
+        stone: cost.stone,
+      },
+    });
+    const child = newborn(before, result.state);
+    expect((child.inventory.food ?? 0) + (child.inventory.water ?? 0)).toBe(
+      before.rules.carryCapacity,
+    );
+    expectClean(result.state, before.sequence + 1);
+  });
+
   it("rejects a commitment below the required cost without charging", () => {
     const before = world();
     const result = createInhabitantResolver(creationContext(before), {

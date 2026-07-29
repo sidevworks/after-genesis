@@ -20,7 +20,7 @@ import {
   recordDestroyed,
   updateInhabitant,
 } from "../state.js";
-import { advanceNeeds, beginActivity, receive, spend } from "./effects.js";
+import { advanceNeeds, beginActivity, carriedTotal, receive, spend } from "./effects.js";
 import { RejectionCode, reject, type ResolutionResult, type Resolver } from "./types.js";
 
 const CREATE = getActionSpec("create_artifact");
@@ -261,12 +261,20 @@ export const transferResolver: Resolver = (ctx, payload): ResolutionResult => {
   if (sender === null) {
     return reject(ctx, RejectionCode.InsufficientResources, "insufficient held resources");
   }
+  const received = receive(recipient, input.resources);
+  if (carriedTotal(received.inventory) > ctx.state.rules.carryCapacity) {
+    return reject(
+      ctx,
+      RejectionCode.InsufficientResources,
+      "the recipient cannot carry those resources",
+    );
+  }
 
   let next = updateInhabitant(ctx.state, ctx.actor.id, () => ({
     ...sender,
     needs: advanceNeeds(sender.needs, TRANSFER.baseDuration, ctx.state.rules),
   }));
-  next = updateInhabitant(next, recipient.id, (current) => receive(current, input.resources));
+  next = updateInhabitant(next, recipient.id, () => received);
   for (const artifactId of input.artifactIds) {
     const artifact = next.artifacts[artifactId]!;
     next = putArtifact(next, {
