@@ -48,7 +48,7 @@ export function DevWorldControls() {
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState("1");
   const [speed, setSpeed] = useState("instant");
-  const [provider, setProvider] = useState<"gemini" | "offline">("gemini");
+  const [provider, setProvider] = useState<"gemini" | "offline">("offline");
   const liveRefreshRef = useRef(false);
   const lastChainHeadRef = useRef<string | null>(null);
 
@@ -58,6 +58,7 @@ export function DevWorldControls() {
       if (!response.ok) throw new Error(`controller returned ${response.status}`);
       const body = (await response.json()) as DevStatus;
       setStatus(body);
+      setProvider(body.provider);
       setError(null);
       const chainHead = body.summary?.chainHead ?? null;
       if (liveRefreshRef.current && chainHead !== null && chainHead !== lastChainHeadRef.current) {
@@ -109,6 +110,7 @@ export function DevWorldControls() {
   }, [enabled, router, status?.running]);
 
   if (!enabled) return null;
+  const worldUnavailable = status?.summary == null;
 
   return (
     <section className="border-b border-line bg-panel/65 px-4 py-2 sm:px-6">
@@ -144,7 +146,7 @@ export function DevWorldControls() {
         </button>
         <button
           type="button"
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onClick={() =>
             void post(`/advance?days=1&speed=realtime&provider=${provider}`)
           }
@@ -154,7 +156,7 @@ export function DevWorldControls() {
         </button>
         <button
           type="button"
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onClick={() => void post(`/advance?days=1&speed=fast&provider=${provider}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -162,7 +164,7 @@ export function DevWorldControls() {
         </button>
         <button
           type="button"
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onClick={() => void post(`/advance?days=1&speed=max&provider=${provider}`)}
           className="rounded border border-amber-dim bg-amber/10 px-2.5 py-1 text-amber hover:bg-amber/20 disabled:opacity-45"
         >
@@ -170,7 +172,7 @@ export function DevWorldControls() {
         </button>
         <button
           type="button"
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onClick={() => void post(`/advance?days=1&speed=turbo&provider=${provider}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -178,7 +180,7 @@ export function DevWorldControls() {
         </button>
         <button
           type="button"
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onClick={() =>
             void post(`/advance?days=1&speed=instant&provider=${provider}`)
           }
@@ -193,7 +195,7 @@ export function DevWorldControls() {
             min={1}
             max={365000}
             value={days}
-            disabled={status?.running}
+            disabled={status?.running || worldUnavailable}
             onChange={(event) => setDays(event.currentTarget.value)}
             className="w-20 rounded border border-line bg-panel-2 px-2 py-1 text-ink disabled:opacity-45"
           />
@@ -201,7 +203,7 @@ export function DevWorldControls() {
         </label>
         <select
           value={speed}
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onChange={(event) => setSpeed(event.currentTarget.value)}
           className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
         >
@@ -213,7 +215,7 @@ export function DevWorldControls() {
         </select>
         <button
           type="button"
-          disabled={status?.running}
+          disabled={status?.running || worldUnavailable}
           onClick={runCustom}
           className="rounded border border-amber-dim bg-amber/10 px-2.5 py-1 text-amber hover:bg-amber/20 disabled:opacity-45"
         >
@@ -225,7 +227,7 @@ export function DevWorldControls() {
           <button
             key={daysToRun}
             type="button"
-            disabled={status?.running}
+            disabled={status?.running || worldUnavailable}
             onClick={() => fastForward(daysToRun)}
             className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
           >
