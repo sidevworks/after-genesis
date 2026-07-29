@@ -84502,8 +84502,8 @@
   "schemaVersion": "world-rules/1.4.0",
   "genesisSeed": "after-genesis-public-demo-seed-v1",
   "lastReplay": {
-   "startedAt": "2026-07-29T22:30:40.733Z",
-   "finishedAt": "2026-07-29T22:30:40.733Z",
+   "startedAt": "2026-01-01T00:33:20.000Z",
+   "finishedAt": "2026-01-01T00:33:20.000Z",
    "reconstructedChecksum": "66fdb8dac18431da7fd6eb811b45ee602317c7a0d2cf8ce02c5a611397a80a14",
    "matchesProduction": true,
    "eventsReplayed": 2001

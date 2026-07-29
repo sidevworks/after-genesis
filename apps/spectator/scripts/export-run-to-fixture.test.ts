@@ -232,8 +232,8 @@ describe("Export simulation run to Spectator fixture", () => {
       schemaVersion: "world-rules/1.4.0",
       genesisSeed: state.seed,
       lastReplay: {
-        startedAt: new Date().toISOString(),
-        finishedAt: new Date().toISOString(),
+        startedAt: lastEvent.realTimestamp,
+        finishedAt: lastEvent.realTimestamp,
         reconstructedChecksum: replay.finalChecksum!,
         matchesProduction: true,
         eventsReplayed: events.length,

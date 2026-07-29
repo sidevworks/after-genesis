@@ -15,7 +15,7 @@
     "build": "tsc --build",
     "typecheck": "tsc --build --force",
     "test": "vitest run",
-    "test:emulators": "firebase emulators:exec --only firestore --project demo-after-genesis \"vitest run packages/persistence/src/firestore/*.emulator.test.ts\"",
+    "test:emulators": "firebase emulators:exec --only firestore --project demo-after-genesis \"vitest run --no-file-parallelism packages/persistence/src/firestore/*.emulator.test.ts\"",
     "test:watch": "vitest",
     "lint": "tsc --build --force",
     "verify": "tsx packages/audit/src/cli.ts",
