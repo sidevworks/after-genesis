@@ -15,7 +15,7 @@
  *
  * ## Usage
  *
- *     node --experimental-strip-types scripts/render-voice.mts [--reel=physical|month|all]
+ *     node --experimental-strip-types scripts/render-voice.mts [--reel=month|all]
  *                                                              [--limit=N] [--dry-run]
  *
  * `--dry-run` prints what would be synthesized and its estimated cost without
@@ -47,10 +47,9 @@ import {
 } from "@after-genesis/media";
 import { GeminiProvider } from "@after-genesis/cognition";
 import { buildChronicle } from "../src/lib/cinema/chronicle.ts";
-import { physicalDemoRun } from "../src/lib/cinema/physical-demo.ts";
 import { speakerLookupFor } from "../src/lib/cinema/speakers.ts";
 import { selectVoiceLines } from "../src/lib/cinema/voice-lines.ts";
-import observatoryRun from "../src/fixtures/observatory-run.json" with { type: "json" };
+import observatoryRun from "../src/fixtures/pre-genesis-run.json" with { type: "json" };
 import type { ObservatoryRun } from "../src/lib/observatory-types.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -157,11 +156,15 @@ interface Reel {
   readonly run: ObservatoryRun;
 }
 
+/**
+ * The reels this renderer can produce.
+ *
+ * One reel, rendered from the world the app is currently showing. A second
+ * reel once existed, built from a retained demo run; it was removed with that
+ * run, because audio derived from a previous world is not this world's voice.
+ */
 function reels(): readonly Reel[] {
-  const all: Reel[] = [
-    { name: "physical", run: physicalDemoRun as ObservatoryRun },
-    { name: "month", run: observatoryRun as unknown as ObservatoryRun },
-  ];
+  const all: Reel[] = [{ name: "month", run: observatoryRun as unknown as ObservatoryRun }];
   return reel === "all" ? all : all.filter((entry) => entry.name === reel);
 }
 

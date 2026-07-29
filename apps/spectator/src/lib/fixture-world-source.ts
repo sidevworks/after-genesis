@@ -12,7 +12,7 @@
  * Regenerate the fixture with `npm run fixtures:generate`.
  */
 
-import fixture from "../fixtures/world.json";
+import preGenesis from "../fixtures/pre-genesis.json";
 import { readFile } from "node:fs/promises";
 import { liveWorldPath } from "./dev-world-paths";
 import { verifyEventChain } from "./event-hash";
@@ -44,7 +44,18 @@ interface WorldFixture {
   audit: Omit<AuditStatus, "chain">;
 }
 
-const world = fixture as unknown as WorldFixture;
+/**
+ * What this application serves when it has no running world to read.
+ *
+ * A map generated from the published Genesis seed, and nothing else: no
+ * inhabitants, no events, no history. Before Genesis that is the truth, and
+ * after Genesis the live source supplies the world instead.
+ *
+ * Deliberately not a recorded run. Serving one would mean the public site
+ * showed a civilisation that a previous throwaway world happened to produce,
+ * presented as though it were this world's history.
+ */
+const world = preGenesis as unknown as WorldFixture;
 
 const DEFAULT_LIMIT = 50;
 

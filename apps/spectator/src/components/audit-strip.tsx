@@ -52,7 +52,7 @@ export async function AuditStrip() {
       <div className="px-4 py-3">
         <p className="eyebrow">Source commit</p>
         <p className="mono text-sm text-muted" title={summary.sourceCommit}>
-          {summary.sourceCommit.slice(0, 12)}
+          {shortHash(summary.sourceCommit, 12)}
         </p>
       </div>
 

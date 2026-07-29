@@ -6,8 +6,18 @@
 import { describe, expect, it } from "vitest";
 import { FixtureWorldSource } from "./fixture-world-source";
 import { hashEvent, verifyEventChain } from "./event-hash";
+import recordedRun from "../fixtures/world.json";
 
-const source = new FixtureWorldSource();
+/**
+ * A recorded run, named explicitly as test input.
+ *
+ * The source's own default is the pre-Genesis world — a map and no history —
+ * because that is what the application serves when no world is running. These
+ * checks need a world with a history to verify, so they supply one rather than
+ * relying on the default, which also keeps the recorded run out of anything
+ * the application ships.
+ */
+const source = new FixtureWorldSource(recordedRun as never);
 
 describe("the committed event log is a real hash chain", () => {
   it("verifies from Genesis to the head", async () => {

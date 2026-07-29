@@ -22,7 +22,13 @@ export function formatDuration(minutes: number): string {
   return days > 0 ? `${days}d ${hh}:${mm}` : `${hh}:${mm}`;
 }
 
-export function shortHash(hash: string, length = 12): string {
+/**
+ * Before Genesis there is no chain, no state and therefore no hash. Callers
+ * render whatever the world actually has, so absence has to survive formatting
+ * rather than crash it — and it must not be dressed up as a value that exists.
+ */
+export function shortHash(hash: string | null | undefined, length = 12): string {
+  if (hash === null || hash === undefined || hash.length === 0) return "—";
   const bare = hash.startsWith("sha256:") ? hash.slice(7) : hash;
   return bare.slice(0, length);
 }

@@ -22,8 +22,8 @@ import { resolve } from "node:path";
 /** Untracked. See .gitignore — nothing here is canonical or committed. */
 export const DEV_WORLD_DIR = ".dev-world";
 
-const COMMITTED_WORLD = "src/fixtures/world.json";
-const COMMITTED_OBSERVATORY = "src/fixtures/observatory-run.json";
+const COMMITTED_WORLD = "src/fixtures/pre-genesis.json";
+const COMMITTED_OBSERVATORY = "src/fixtures/pre-genesis-run.json";
 
 /**
  * Next, Vitest and the dev controller run from different working directories,

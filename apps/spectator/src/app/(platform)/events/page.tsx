@@ -29,13 +29,20 @@ export default async function EventsPage() {
         }
       />
 
+      {/*
+        An illustration, not a record. The names are placeholders and describe
+        nothing that happened in this world — the point is the relationship
+        between the two columns (claude.md §11G): the engine states what was
+        observable, and an organisation's characterisation of it sits beside
+        that, attributed and subordinate, never replacing it.
+      */}
       <section className="panel px-4 py-3.5" aria-label="How to read this log">
-        <p className="eyebrow mb-2">How to read this log</p>
+        <p className="eyebrow mb-2">How to read this log — an illustration</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <p className="canonical text-sm">
-              Berrun, Dovie and Jarn confined Iolen inside Stone Hall (STR-004) at tile (15,16)
-              from Day 42 09:00.
+              Three inhabitants confined a fourth inside a structure at tile (15,16) from Day 42
+              09:00 until Day 47 09:00.
             </p>
             <p className="mono mt-1 text-[0.65rem] text-dim">
               canonical — what the engine recorded as observable
@@ -43,7 +50,7 @@ export default async function EventsPage() {
           </div>
           <div>
             <blockquote className="claim rounded-r-sm py-2 pr-3 pl-3 text-sm italic">
-              &ldquo;Agent 12 was lawfully imprisoned.&rdquo;
+              &ldquo;The prisoner was lawfully detained.&rdquo;
             </blockquote>
             <p className="mono mt-1 text-[0.65rem] text-claim-dim">
               claim — an organisation&rsquo;s characterisation, stored alongside and subordinate to

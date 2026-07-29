@@ -1,4 +1,4 @@
-import runFixture from "../fixtures/observatory-run.json";
+import runFixture from "../fixtures/pre-genesis-run.json";
 import { buildReferenceRegistry, resolveReference, searchReferences } from "./reference-registry";
 import { buildSceneDescription } from "./scene-adapter";
 import type {

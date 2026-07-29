@@ -81,7 +81,7 @@ export function EventsBrowser({
                 setSearch(e.target.value);
                 setVisible(40);
               }}
-              placeholder="confined, Stone Hall, sha256:…"
+              placeholder="confined, storehouse, sha256:…"
               className={inputClass}
             />
           </div>

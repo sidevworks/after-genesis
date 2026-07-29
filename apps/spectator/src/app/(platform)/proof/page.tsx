@@ -19,7 +19,9 @@ const REPO_PROMPT_URL =
 
 export default async function ProofPage() {
   const audit = await worldSource.getAuditStatus();
-  const verified = audit.chain.verified && audit.lastReplay.matchesProduction;
+  // A world with no history has nothing to have verified. Absence of a replay
+  // is not a passing replay, so it does not count as verified.
+  const verified = audit.chain.verified && (audit.lastReplay?.matchesProduction ?? false);
 
   return (
     <div className="space-y-6">

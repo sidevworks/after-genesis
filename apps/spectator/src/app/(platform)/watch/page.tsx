@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import type { ChannelSubject } from "@/components/cinema/cinema-channel";
 import { WatchExperience } from "@/components/cinema/watch-experience";
 import { Badge, Panel } from "@/components/ui";
-import runFixture from "@/fixtures/observatory-run.json";
+import runFixture from "@/fixtures/pre-genesis-run.json";
 import { liveObservatoryPath } from "@/lib/dev-world-paths";
 import { buildReferenceRegistry } from "@/lib/reference-registry";
 import type { ObservatoryRun } from "@/lib/observatory-types";

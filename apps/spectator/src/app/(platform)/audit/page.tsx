@@ -49,7 +49,7 @@ export default async function AuditPage() {
         />
         <Stat
           label="Source commit"
-          value={audit.sourceCommit.slice(0, 12)}
+          value={shortHash(audit.sourceCommit, 12)}
           sub={`image ${shortHash(audit.imageDigest, 12)}`}
         />
       </div>
@@ -94,22 +94,28 @@ export default async function AuditPage() {
         <Panel eyebrow="Replay" title="Most recent full reconstruction">
           <KeyValue
             rows={[
-              { key: "Started", value: formatRealTime(audit.lastReplay.startedAt), mono: true },
-              { key: "Finished", value: formatRealTime(audit.lastReplay.finishedAt), mono: true },
-              { key: "Events replayed", value: audit.lastReplay.eventsReplayed, mono: true },
-              {
-                key: "Reconstructed checksum",
-                value: audit.lastReplay.reconstructedChecksum,
-                mono: true,
-              },
-              {
-                key: "Matches production",
-                value: (
-                  <Badge tone={audit.lastReplay.matchesProduction ? "alive" : "warn"}>
-                    {audit.lastReplay.matchesProduction ? "match" : "divergence"}
-                  </Badge>
-                ),
-              },
+              // A world with no history has never been replayed. Saying so is
+              // the honest reading; a zeroed row would imply a run that happened.
+              ...(audit.lastReplay === null
+                ? [{ key: "Replayed", value: "never — this world has no history yet", mono: false }]
+                : [
+                    { key: "Started", value: formatRealTime(audit.lastReplay.startedAt), mono: true },
+                    { key: "Finished", value: formatRealTime(audit.lastReplay.finishedAt), mono: true },
+                    { key: "Events replayed", value: audit.lastReplay.eventsReplayed, mono: true },
+                    {
+                      key: "Reconstructed checksum",
+                      value: audit.lastReplay.reconstructedChecksum,
+                      mono: true,
+                    },
+                    {
+                      key: "Matches production",
+                      value: (
+                        <Badge tone={audit.lastReplay.matchesProduction ? "alive" : "warn"}>
+                          {audit.lastReplay.matchesProduction ? "match" : "divergence"}
+                        </Badge>
+                      ),
+                    },
+                  ]),
               { key: "Schema version", value: audit.schemaVersion, mono: true },
               { key: "Chain recomputed at", value: formatRealTime(audit.chain.computedAt), mono: true },
             ]}
@@ -182,7 +188,7 @@ export default async function AuditPage() {
           </p>
           <p className="mono text-xs text-dim">
             world {summary.worldId} · schema {summary.schemaVersion} · commit{" "}
-            {summary.sourceCommit.slice(0, 12)} · image {shortHash(summary.imageDigest, 12)}
+            {shortHash(summary.sourceCommit, 12)} · image {shortHash(summary.imageDigest, 12)}
           </p>
         </div>
       </Panel>

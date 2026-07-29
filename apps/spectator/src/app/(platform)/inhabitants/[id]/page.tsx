@@ -12,8 +12,19 @@ import {
   titleCase,
 } from "@/lib/format";
 
+/**
+ * One page per inhabitant, and none at all before there are any.
+ *
+ * A static export with an empty parameter list is rejected by the framework, so
+ * an unpopulated world needs a route to exist for. `PLACEHOLDER_ID` renders the
+ * same not-found page any unknown id renders, and disappears from the export as
+ * soon as a single inhabitant exists. It is never linked to.
+ */
+const PLACEHOLDER_ID = "none";
+
 export async function generateStaticParams() {
   const inhabitants = await worldSource.getInhabitants();
+  if (inhabitants.length === 0) return [{ id: PLACEHOLDER_ID }];
   return inhabitants.map((i) => ({ id: i.id }));
 }
 
