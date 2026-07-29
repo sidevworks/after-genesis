@@ -237,7 +237,9 @@ export function DevWorldControls() {
             ? latestLine(status.lastOutput) ?? "processing..."
             : status?.summary
               ? `${dayOf(status.summary.simTime)} · ${status.summary.eventCount} events · pop ${status.summary.living}/${status.summary.total}`
-              : "controller offline"}
+              : status
+                ? "controller online · awaiting Genesis"
+                : "controller offline"}
         </span>
         {provider === "offline" && (
           <span className="text-warn">No autonomous reasoning in this mode</span>
