@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ActorSample, ChronicleSegment } from "../cinema/types";
-import { constructionBlockCount, processVisualFor } from "./processes";
+import {
+  constructionBlockCount,
+  constructionPhase,
+  processVisualFor,
+} from "./processes";
 
 function actor(overrides: Partial<ActorSample> = {}): ActorSample {
   const segment: ChronicleSegment = {
@@ -34,6 +38,14 @@ describe("physical process projection", () => {
     expect(constructionBlockCount(-1, 18)).toBe(1);
     expect(constructionBlockCount(0.5, 18)).toBe(9);
     expect(constructionBlockCount(2, 18)).toBe(18);
+  });
+
+  it("maps build progress to deterministic site phases", () => {
+    expect(constructionPhase(-1)).toBe("survey");
+    expect(constructionPhase(0.12)).toBe("foundation");
+    expect(constructionPhase(0.5)).toBe("framing");
+    expect(constructionPhase(0.9)).toBe("roofing");
+    expect(constructionPhase(1)).toBe("complete");
   });
 
   it("uses a disclosed gather focus as the resource source", () => {

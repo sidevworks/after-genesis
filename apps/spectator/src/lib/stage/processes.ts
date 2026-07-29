@@ -17,6 +17,12 @@ import type { ActorSample, Chronicle, ChronicleSegment } from "../cinema/types";
 import { hashString } from "./palette";
 
 export type ProcessKind = "construction" | "gathering" | "crafting";
+export type ConstructionPhase =
+  | "survey"
+  | "foundation"
+  | "framing"
+  | "roofing"
+  | "complete";
 
 export interface ProcessVisual {
   readonly key: string;
@@ -67,9 +73,20 @@ export function constructionBlockCount(progress: number, total = 18): number {
   return Math.min(total, Math.max(1, Math.ceil(clamp01(progress) * total)));
 }
 
+/** Turns continuous progress into a legible, presentation-only site phase. */
+export function constructionPhase(progress: number): ConstructionPhase {
+  const value = clamp01(progress);
+  if (value < 0.12) return "survey";
+  if (value < 0.32) return "foundation";
+  if (value < 0.72) return "framing";
+  if (value < 0.96) return "roofing";
+  return "complete";
+}
+
 interface Effect {
   readonly group: Group;
   readonly meshes: readonly Mesh[];
+  readonly processMeshCount: number;
   kind: ProcessKind;
   resource: string | null;
   seen: boolean;
@@ -87,6 +104,13 @@ export class ProcessStage {
   private readonly geometry = new BoxGeometry(1, 1, 1);
   private readonly wood = new MeshStandardMaterial({ color: WOOD, roughness: 0.9 });
   private readonly stone = new MeshStandardMaterial({ color: STONE, roughness: 0.96 });
+  private readonly scaffold = new MeshStandardMaterial({
+    color: 0xd9b36c, roughness: 0.86, transparent: true, opacity: 0.78,
+  });
+  private readonly placement = new MeshStandardMaterial({
+    color: 0x72d7e8, emissive: 0x163a42, roughness: 0.5,
+    transparent: true, opacity: 0.68,
+  });
   private readonly food = new MeshStandardMaterial({ color: FOOD, roughness: 1 });
   private readonly craft = new MeshStandardMaterial({ color: CRAFT, roughness: 0.82 });
   private readonly water = new MeshStandardMaterial({
@@ -169,12 +193,19 @@ export class ProcessStage {
   private create(kind: ProcessKind, key: string, resource: string | null): Effect {
     const group = new Group();
     group.rotation.y = hashString(`process:${key}`) * Math.PI * 2;
-    const count = kind === "construction" ? 33 : kind === "gathering" ? 8 : 10;
+    const processMeshCount = kind === "construction" ? 33 : kind === "gathering" ? 8 : 10;
+    const count = processMeshCount + (kind === "construction" ? 12 : 0);
     const meshes: Mesh[] = [];
     for (let index = 0; index < count; index += 1) {
       const material =
         kind === "construction"
-          ? index < 9 ? this.stone : this.wood
+          ? index < 9
+            ? this.stone
+            : index < processMeshCount
+              ? this.wood
+              : index < processMeshCount + 4
+                ? this.placement
+                : this.scaffold
           : kind === "gathering"
             ? resource === "water" ? this.water
               : resource === "stone" ? this.stone
@@ -187,12 +218,13 @@ export class ProcessStage {
       meshes.push(mesh);
     }
     this.scene.add(group);
-    return { group, meshes, kind, resource, seen: true };
+    return { group, meshes, processMeshCount, kind, resource, seen: true };
   }
 
   private apply(effect: Effect, visual: ProcessVisual): void {
     if (visual.kind === "construction") {
-      const visible = constructionBlockCount(visual.progress, effect.meshes.length);
+      const visible = constructionBlockCount(visual.progress, effect.processMeshCount);
+      const phase = constructionPhase(visual.progress);
       const parts: Array<readonly [number, number, number, number, number, number]> = [];
       // Stone foundation: a complete 3×3 footprint.
       for (let z = -1; z <= 1; z += 1) {
@@ -219,12 +251,61 @@ export class ProcessStage {
         }
       }
 
-      for (let index = 0; index < effect.meshes.length; index += 1) {
+      for (let index = 0; index < effect.processMeshCount; index += 1) {
         const mesh = effect.meshes[index]!;
         const [x, y, z, sx, sy, sz] = parts[index] ?? [0, 0, 0, 0, 0, 0];
-        mesh.position.set(x, y, z);
-        mesh.scale.set(sx, sy, sz);
+        // Each course arrives from a nearby material stack, settles downward,
+        // and grows into its final dimensions. The local fraction preserves
+        // monotonic canonical progress while avoiding the old instant pop.
+        const local = clamp01(visual.progress * effect.processMeshCount - index);
+        const eased = local * local * (3 - 2 * local);
+        const side = index % 2 === 0 ? -1 : 1;
+        mesh.position.set(
+          x + side * (1 - eased) * 0.42,
+          y + (1 - eased) * 0.72,
+          z + (1 - eased) * 0.22,
+        );
+        mesh.scale.set(sx * (0.72 + eased * 0.28), sy * eased, sz * (0.72 + eased * 0.28));
+        mesh.rotation.set(
+          (1 - eased) * 0.22,
+          side * (1 - eased) * 0.3,
+          side * (1 - eased) * 0.16,
+        );
         mesh.visible = index < visible;
+      }
+
+      // Stakes preview the exact footprint before the walls make it obvious.
+      const showStakes = phase === "survey" || phase === "foundation";
+      const stakePositions = [
+        [-1.02, -1.02], [1.02, -1.02], [-1.02, 1.02], [1.02, 1.02],
+      ] as const;
+      for (let index = 0; index < 4; index += 1) {
+        const stake = effect.meshes[effect.processMeshCount + index]!;
+        const [x, z] = stakePositions[index]!;
+        const pulse = 1 + Math.sin(visual.progress * Math.PI * 18 + index) * 0.08;
+        stake.position.set(x, 0.22, z);
+        stake.scale.set(0.07 * pulse, 0.44, 0.07 * pulse);
+        stake.visible = showStakes;
+      }
+
+      // Temporary scaffold frames make active building unmistakable, then clear
+      // during the final handoff so completion has a strong visual beat.
+      const showScaffold = phase === "framing" || phase === "roofing";
+      for (let side = 0; side < 2; side += 1) {
+        const x = side === 0 ? -1.12 : 1.12;
+        const base = effect.processMeshCount + 4 + side * 4;
+        for (let pole = 0; pole < 2; pole += 1) {
+          const mesh = effect.meshes[base + pole]!;
+          mesh.position.set(x, 0.72, pole === 0 ? -0.82 : 0.82);
+          mesh.scale.set(0.07, 1.44, 0.07);
+          mesh.visible = showScaffold;
+        }
+        for (let rail = 0; rail < 2; rail += 1) {
+          const mesh = effect.meshes[base + 2 + rail]!;
+          mesh.position.set(x, 0.46 + rail * 0.58, 0);
+          mesh.scale.set(0.08, 0.07, 1.72);
+          mesh.visible = showScaffold;
+        }
       }
       return;
     }
@@ -236,10 +317,16 @@ export class ProcessStage {
         const mesh = effect.meshes[index]!;
         const gathered = index < collected;
         const angle = index * 2.399;
+        const transfer = clamp01(visual.progress * effect.meshes.length - index);
+        const lift = gathered ? Math.sin(transfer * Math.PI) * 0.34 : 0;
+        const sourceX = Math.cos(angle) * (0.34 + index * 0.035);
+        const sourceZ = Math.sin(angle) * (0.34 + index * 0.035);
+        const pileX = 0.72 + (index % 2) * 0.18;
+        const pileZ = 0.42;
         mesh.position.set(
-          gathered ? 0.72 + (index % 2) * 0.18 : Math.cos(angle) * (0.34 + index * 0.035),
-          0.07 + (gathered ? Math.floor(index / 2) * 0.11 : 0),
-          gathered ? 0.42 : Math.sin(angle) * (0.34 + index * 0.035),
+          sourceX + (pileX - sourceX) * transfer,
+          0.07 + lift + transfer * Math.floor(index / 2) * 0.11,
+          sourceZ + (pileZ - sourceZ) * transfer,
         );
         if (effect.resource === "wood") {
           mesh.scale.set(0.12, 0.12, 0.32);
@@ -249,7 +336,9 @@ export class ProcessStage {
         } else {
           mesh.scale.set(0.14, 0.12, 0.14);
         }
-        mesh.visible = gathered ? visual.progress > 0.08 : collected < effect.meshes.length;
+        // Keep both the remaining source and transferred pile legible for the
+        // whole action; position, rather than disappearance, communicates flow.
+        mesh.visible = true;
       }
       return;
     }
@@ -268,12 +357,17 @@ export class ProcessStage {
         mesh.visible = true;
       } else if (index < 9) {
         const assembly = clamp01(visual.progress * 1.5 - index * 0.035);
-        mesh.position.set((index - 6) * 0.2 * (1 - assembly), 0.76, 0);
-        mesh.scale.set(0.24, 0.08, 0.2);
+        const beat = Math.sin(visual.progress * Math.PI * 12 + index) * 0.018;
+        mesh.position.set((index - 6) * 0.42 * (1 - assembly), 0.78 + beat, 0);
+        mesh.rotation.set(0, (1 - assembly) * (index - 6) * 0.28, beat * 4);
+        mesh.scale.set(0.24 * assembly, 0.08, 0.2 * assembly);
         mesh.visible = visual.progress > (index - 4) * 0.1;
       } else {
-        mesh.position.set(0, 0.92, 0);
-        mesh.scale.set(0.34, 0.28, 0.18);
+        const reveal = clamp01((visual.progress - 0.82) / 0.18);
+        const eased = reveal * reveal * (3 - 2 * reveal);
+        mesh.position.set(0, 0.83 + eased * 0.14, 0);
+        mesh.rotation.set(0, (1 - eased) * Math.PI, 0);
+        mesh.scale.set(0.34 * eased, 0.28 * eased, 0.18 * eased);
         mesh.visible = visual.progress >= 0.82;
       }
     }
@@ -289,6 +383,8 @@ export class ProcessStage {
     this.geometry.dispose();
     this.wood.dispose();
     this.stone.dispose();
+    this.scaffold.dispose();
+    this.placement.dispose();
     this.food.dispose();
     this.craft.dispose();
     this.water.dispose();

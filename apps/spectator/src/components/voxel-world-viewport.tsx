@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { ObservatoryRun } from "@/lib/observatory-types";
 
@@ -19,6 +19,8 @@ interface VoxelWorldViewportProps {
   phase?: "BEFORE" | "DURING" | "AFTER";
   movement?: { from: Point; to: Point } | null;
 }
+
+type CameraMode = "first-person" | "third-person";
 
 const TERRAIN_COLOURS: Record<string, number> = {
   water: 0x24718a,
@@ -134,6 +136,7 @@ export function VoxelWorldViewport({
   movement = null,
 }: VoxelWorldViewportProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+  const [cameraMode, setCameraMode] = useState<CameraMode>("third-person");
 
   useEffect(() => {
     const mount = mountRef.current;
@@ -229,17 +232,23 @@ export function VoxelWorldViewport({
     grid.position.z = -0.5;
     scene.add(grid);
 
+    const cameraAnchor = new THREE.Vector3(0, 0.42, 0);
     if (mode === "follow") {
       for (const inhabitant of run.inhabitants) {
         const relativeX = inhabitant.location.x - focus.x;
         const relativeZ = inhabitant.location.y - focus.y;
         if (Math.abs(relativeX) > radius || Math.abs(relativeZ) > radius) continue;
-        addCharacter(
+        const character = addCharacter(
           scene,
           new THREE.Vector3(relativeX, 0.42, relativeZ),
           seedColour(inhabitant.id === targetId ? visualSeed : fallbackSeed(inhabitant.id)),
           inhabitant.id === targetId,
         );
+        if (inhabitant.id === targetId) {
+          cameraAnchor.copy(character.position);
+          // In first person the followed body would otherwise fill the lens.
+          character.visible = cameraMode !== "first-person";
+        }
       }
     } else {
       let actorPoint = focus;
@@ -263,26 +272,46 @@ export function VoxelWorldViewport({
         );
         scene.add(path);
       }
-      addCharacter(
+      const character = addCharacter(
         scene,
         new THREE.Vector3(actorPoint.x - focus.x, 0.42, actorPoint.y - focus.y),
         seedColour(visualSeed),
         true,
       );
+      cameraAnchor.copy(character.position);
+      character.visible = cameraMode !== "first-person";
     }
 
-    const target = new THREE.Vector3(0, 1.3, 0);
+    const target = cameraAnchor.clone().add(new THREE.Vector3(0, 1.35, 0));
     let azimuth = mode === "follow" ? 0.72 : 0.88;
     let elevation = mode === "follow" ? 0.38 : 0.58;
+    let desiredAzimuth = azimuth;
+    let desiredElevation = elevation;
     let distance = mode === "follow" ? 10.5 : 12.5;
+    let desiredDistance = distance;
     const updateCamera = () => {
+      if (cameraMode === "first-person") {
+        const eye = cameraAnchor.clone().add(new THREE.Vector3(0, 2.55, 0));
+        const direction = new THREE.Vector3(
+          Math.sin(azimuth) * Math.cos(elevation),
+          Math.sin(elevation),
+          Math.cos(azimuth) * Math.cos(elevation),
+        );
+        camera.position.copy(eye);
+        camera.lookAt(eye.clone().add(direction));
+        camera.fov = 68;
+        camera.updateProjectionMatrix();
+        return;
+      }
       const horizontal = Math.cos(elevation) * distance;
       camera.position.set(
-        Math.sin(azimuth) * horizontal,
-        Math.sin(elevation) * distance + 1,
-        Math.cos(azimuth) * horizontal,
+        target.x + Math.sin(azimuth) * horizontal,
+        target.y + Math.sin(elevation) * distance,
+        target.z + Math.cos(azimuth) * horizontal,
       );
       camera.lookAt(target);
+      camera.fov = 48;
+      camera.updateProjectionMatrix();
     };
     updateCamera();
 
@@ -298,19 +327,24 @@ export function VoxelWorldViewport({
     };
     const onPointerMove = (event: PointerEvent) => {
       if (!dragging) return;
-      azimuth -= (event.clientX - previousX) * 0.008;
-      elevation = Math.max(0.16, Math.min(1.08, elevation + (event.clientY - previousY) * 0.006));
+      desiredAzimuth -= (event.clientX - previousX) * 0.008;
+      const minimumElevation = cameraMode === "first-person" ? -1.15 : 0.16;
+      const maximumElevation = cameraMode === "first-person" ? 1.15 : 1.08;
+      desiredElevation = Math.max(
+        minimumElevation,
+        Math.min(maximumElevation, desiredElevation + (event.clientY - previousY) * 0.006),
+      );
       previousX = event.clientX;
       previousY = event.clientY;
-      updateCamera();
     };
     const onPointerUp = () => {
       dragging = false;
     };
     const onWheel = (event: WheelEvent) => {
       event.preventDefault();
-      distance = Math.max(5.5, Math.min(22, distance + event.deltaY * 0.012));
-      updateCamera();
+      if (cameraMode === "third-person") {
+        desiredDistance = Math.max(4.5, Math.min(22, desiredDistance + event.deltaY * 0.012));
+      }
     };
     canvas.addEventListener("pointerdown", onPointerDown);
     canvas.addEventListener("pointermove", onPointerMove);
@@ -331,6 +365,13 @@ export function VoxelWorldViewport({
 
     let frame = 0;
     const render = () => {
+      // Frame-rate independent-feeling damping keeps orbit changes cinematic
+      // while retaining a responsive first-person look.
+      const damping = cameraMode === "first-person" ? 0.34 : 0.14;
+      azimuth += (desiredAzimuth - azimuth) * damping;
+      elevation += (desiredElevation - elevation) * damping;
+      distance += (desiredDistance - distance) * 0.12;
+      updateCamera();
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(render);
     };
@@ -356,7 +397,18 @@ export function VoxelWorldViewport({
       });
       mount.removeChild(canvas);
     };
-  }, [focus.x, focus.y, mode, movement, phase, run, targetId, targetName, visualSeed]);
+  }, [
+    cameraMode,
+    focus.x,
+    focus.y,
+    mode,
+    movement,
+    phase,
+    run,
+    targetId,
+    targetName,
+    visualSeed,
+  ]);
 
   return (
     <div className="voxel-viewport">
@@ -366,7 +418,35 @@ export function VoxelWorldViewport({
         role="img"
         aria-label={`Interactive voxel view centred on ${targetName}`}
       />
-      <p className="voxel-viewport__help">Drag to orbit · wheel to zoom</p>
+      <div
+        className="absolute right-3 top-3 z-10 flex rounded-full border border-white/15 bg-slate-950/75 p-1 text-xs text-white shadow-lg backdrop-blur"
+        role="group"
+        aria-label="Camera view"
+      >
+        <button
+          type="button"
+          aria-pressed={cameraMode === "first-person"}
+          className={`rounded-full px-3 py-1.5 transition ${
+            cameraMode === "first-person" ? "bg-amber-300 text-slate-950" : "hover:bg-white/10"
+          }`}
+          onClick={() => setCameraMode("first-person")}
+        >
+          First person
+        </button>
+        <button
+          type="button"
+          aria-pressed={cameraMode === "third-person"}
+          className={`rounded-full px-3 py-1.5 transition ${
+            cameraMode === "third-person" ? "bg-amber-300 text-slate-950" : "hover:bg-white/10"
+          }`}
+          onClick={() => setCameraMode("third-person")}
+        >
+          Third person
+        </button>
+      </div>
+      <p className="voxel-viewport__help">
+        {cameraMode === "first-person" ? "Drag to look around" : "Drag to orbit · wheel to zoom"}
+      </p>
     </div>
   );
 }

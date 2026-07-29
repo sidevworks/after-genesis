@@ -214,9 +214,14 @@ export class ActorRig {
     this.mantleMesh.visible = identity.mantle;
     this.mantleMesh.castShadow = true;
 
-    this.propMesh.position.set(PART.arm.x + 0.06, PART.arm.y - PART.arm.h * 0.72, 0.14);
+    // A held prop belongs to the right-arm hierarchy. Previously it lived at
+    // body level and only copied the arm's angle, so a hammer rotated in place
+    // near the hip instead of travelling with the hand. Keeping it just below
+    // the hand makes every reach, strike and carrying swing read as connected.
+    this.propMesh.position.set(0, -PART.arm.h - 0.08, -0.04);
     this.propMesh.castShadow = true;
     this.propMesh.visible = false;
+    armR.add(this.propMesh);
 
     this.body.add(
       this.headMesh,
@@ -226,7 +231,6 @@ export class ActorRig {
       armR,
       legL,
       legR,
-      this.propMesh,
       this.headwearMesh,
       this.beltMesh,
       this.mantleMesh,
@@ -367,8 +371,9 @@ export class ActorRig {
       shape.h / PART.prop.h,
       shape.d / PART.prop.d,
     );
-    // The prop follows the right arm's swing so it does not float free of the hand.
-    this.propMesh.rotation.set(pose.armR.x, pose.armR.y, pose.armR.z);
+    // The arm pivot owns the prop transform, so applying the joint rotation a
+    // second time here would exaggerate the swing and disconnect the grip.
+    this.propMesh.rotation.set(0, 0, spec.prop === "tool" ? -0.12 : 0);
   }
 
   dispose(): void {
