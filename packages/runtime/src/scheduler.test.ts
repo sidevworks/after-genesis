@@ -21,6 +21,7 @@ async function setup() {
       id: "inh_founder",
       displayName: "Aster",
       modelId: "test",
+      sex: "female",
       inventory: { energy: 100, compute: 100 },
       traits: {},
       values: [],

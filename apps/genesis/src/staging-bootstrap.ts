@@ -57,6 +57,7 @@ export function buildStagingGenesisConfig(
       id: "inh_staging_founder",
       displayName: founderName,
       modelId: "gemini-3.5-flash-lite",
+      sex: "female",
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
       traits: { curiosity: 75, patience: 60 },
       values: ["curiosity", "continuity"],

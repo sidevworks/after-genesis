@@ -9,6 +9,7 @@ const config: GenesisConfig = {
   founder: {
     id: "inh_founder",
     displayName: "Aster",
+    sex: "female",
     modelId: "test-model",
     inventory: { energy: 800, compute: 500, food: 10, water: 10 },
     traits: { curiosity: 80 },
@@ -40,6 +41,7 @@ describe("buildGenesis", () => {
         {
           id: "inh_ember",
           displayName: "Ember",
+          sex: "male",
           modelId: "test-model",
           inventory: { energy: 800, compute: 500, food: 10, water: 10 },
           traits: { patience: 80 },

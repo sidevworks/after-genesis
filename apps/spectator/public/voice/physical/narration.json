@@ -1,0 +1,483 @@
+{
+  "version": 1,
+  "styleVersion": 2,
+  "entries": {
+    "45f7da4bf0fe167b3873bc79f1c83f729dbbaffa5bdf6f56f53292c8c3fdfa46": {
+      "canonical": "Gathered 6 food at (14, 17) over 30 minutes.",
+      "spoken": "Aleth gathers food briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "56a9c8730d346608d5fdcb6cd280694818bb1e862f25f19a93a8d583aa3a6909",
+      "responseHash": "f955e53b5460eec2b4b78a4767d0c7fb36cca8fc4ea9f096fe9bca8532acfc58",
+      "rejections": []
+    },
+    "1cedb92bfeff21ad1b536e3900ed0761ed38fc270ea9b0954e9dfa67aacd55f7": {
+      "canonical": "Canonical build recorded at (14, 17) over 320 minutes.",
+      "spoken": "Aleth spends a few hours building this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "46fa8f560033c80b47986c7e54af0d3bb37d82435d14ef6c598a731e70fba9b3",
+      "responseHash": "458d9f437089ae0f894e528f4fe8b42982036dab39a7c6b35ab5e367e3a0f43f",
+      "rejections": []
+    },
+    "dbfebba32f866f83b12fb73bcd3f9e1d3f0ffdb1d86f09a44aea7926fd02fc59": {
+      "canonical": "Canonical craft recorded at (14, 17) over 120 minutes.",
+      "spoken": "Aleth spends a couple of hours crafting this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "604b8d3d2e0bed9c5bf74a5481fc4855796ded08bf3437d117bcc9efad73fa01",
+      "responseHash": "918bdb347b27e6f95ae182409666b9f446a5ed44322f587a9099c4fd18667173",
+      "rejections": []
+    },
+    "2871ff03a1eda2613e527b6387966a4e8343689f3b3fc8844efffc651b0dba16": {
+      "canonical": "Rested at (14, 17) for 30 minutes.",
+      "spoken": "Aleth rests briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "6f380b1fb98c69e7595f5e5353b932897db0c87080006bfa3e8291016ffea601",
+      "responseHash": "0465af723fe82ee7759d1a8ea83389d25f3d732f5aa7aae5808225f75634f703",
+      "rejections": []
+    },
+    "25cc95d55f5dabb989eac4b18c8b84fa3e5c732479853f7145ac6d6e5f7bd994": {
+      "canonical": "Moved from (14, 17) to (13, 16) over 30 minutes.",
+      "spoken": "Aleth moves briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "cedaebb0100138036781144effec113442b2d7d71c8f6263297a22264788cf91",
+      "responseHash": "59ce039cc3db1aa84ae09f391114cf61a86197ad8d6de7e090c72e785bb510bf",
+      "rejections": []
+    },
+    "ecf2f2767708d5e713b880d5ddaac97be2795e1d9e1ffb059be4d87b6722a6d3": {
+      "canonical": "Canonical craft recorded at (14, 17) over 260 minutes.",
+      "spoken": "Aleth spends a few hours crafting this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "4c84a1f5e9d24b79d7e676e75a5c5992d5fa41c8e63ac25dc099e1b2f7f4393c",
+      "responseHash": "dc24f069f939b53d492bc94ff29c7105647ae2dca1dceba3f965ae194e9fac2b",
+      "rejections": []
+    },
+    "378a3bb53d0e84fc3988eefaa9cb423d88eae399e68b30158568456c14cd1566": {
+      "canonical": "Moved from (14, 17) to (13, 17) over 35 minutes.",
+      "spoken": "Aleth moves briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "8c9342639d08f567d19b33130e251ee33d058c9637ab8f2c8799e53dd876dc71",
+      "responseHash": "908f70235ca7d7144c869a3ece4439c1ed7ead86c3b646739010836d125874d0",
+      "rejections": []
+    },
+    "38a248321abd2afd7b4207a2be60fd083736b91d0da5ab28599eae40362cc5bb": {
+      "canonical": "Gathered 6 wood at (13, 17) over 75 minutes.",
+      "spoken": "Aleth spends a couple of hours gathering wood this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "5964c8f49a8de6a15ba15616c29ab1e41046c5518a700aa1d02d9856d21ff104",
+      "responseHash": "c57840014cdad033a7b5eb3478a71ef3d3be0f7b646246be40625c0eeaba1b6a",
+      "rejections": []
+    },
+    "a96ddde67e418affd8b22b69091017af1bf86994bb56fd06dac59f962523283e": {
+      "canonical": "Canonical build recorded at (15, 18) over 415 minutes.",
+      "spoken": "Aleth spends a few hours building in the night.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "f23c01a88cb7599ddac3c324f8e89b82073e2fb44b82dc9d008c5eae18745591",
+      "responseHash": "605cfa2638504fc8d5ee6f92b4c6a908c98874c49bbb380386fc42923ca344fc",
+      "rejections": []
+    },
+    "cf74deef2635552fd9e9e7cffc119feed18302b48e5a41f37737e3b779bf67fe": {
+      "canonical": "Canonical transfer recorded at (14, 17) over 30 minutes.",
+      "spoken": "Aleth and Berrun briefly transfer things in the afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "1072f9df684c91cc9f93210aa3eba5404cb4e05374dca2e3921ba637c33115ac",
+      "responseHash": "67dea9ffb59d0bc840b11acc02ea2e10c91a39b0ed7daddc393bf86df02e8603",
+      "rejections": []
+    },
+    "3f7f418a84de81da3106c1e7dc71d1fcc2445da1cd48cacca571eccbb7d978d5": {
+      "canonical": "Canonical communicate recorded at (14, 17) over 45 minutes.",
+      "spoken": "Aleth and Berrun spend a couple of hours communicating this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "11216fa486f6fd93eb6b66685365c6b7ebe345119f145faf2377ace101e423ac",
+      "responseHash": "0e8675e2df99b2d9e926cb0aef6ad35cdfc18f29adb23f398fa9ebb054f2c7f3",
+      "rejections": []
+    },
+    "42b5251ea907377c3bdff4b78bb69aeab2777f41d0ec3da2496e6d01c535396d": {
+      "canonical": "Moved from (14, 17) to (15, 16) over 30 minutes.",
+      "spoken": "Aleth moves briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "f039968b6c02799d28480f092875121e132d17d087fabe847a24e81263b4c124",
+      "responseHash": "59ce039cc3db1aa84ae09f391114cf61a86197ad8d6de7e090c72e785bb510bf",
+      "rejections": []
+    },
+    "e1e632e06eab2cb5de819d06dd6c35b67e6174a1802f639f91effc25587eaf9f": {
+      "canonical": "Canonical build recorded at (13, 17) over 505 minutes.",
+      "spoken": "Berrun spends most of the morning building.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "036793adff9247ab8ba6c910ca4668065ce98dc14edfbeab8d1e2b600147d2f8",
+      "responseHash": "71b0c8015226a8bdb206b63e067397a2478113034cf4b018cb74adfd4e9cdd64",
+      "rejections": []
+    },
+    "f672d0f00ba27704e3ba5587429675e44d3f11c673a5fc4da7f39f91f97a83b1": {
+      "canonical": "Rested at (15, 16) for 30 minutes.",
+      "spoken": "Berrun rests briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "6817f61b3b785175772ee0c44ebf5777d72dc372bf600650e6a6d9bfb5dda059",
+      "responseHash": "b0c9e021ffc4eae2d2c79e613fa9a3683714a8e2b639e929fc8e99ae933afc1d",
+      "rejections": []
+    },
+    "2e914a1efd1cdc942761beb738b53deedeae750ec3a2e4a68e13cc76a576de26": {
+      "canonical": "Moved from (15, 16) to (14, 16) over 30 minutes.",
+      "spoken": "Berrun moves briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "0171d84845e35f2c7f041c57ba5d14db8bad1abaf21a2b128fff68b1c56aff93",
+      "responseHash": "36f8f4b3549f20c88a3631d96928a4faee304861528605a655e20edb0af9afc1",
+      "rejections": []
+    },
+    "586d6016aa2b49d503ad0f32ddb0f2ad6907a1eb33ae924ea900d1f17ff3cc56": {
+      "canonical": "Gathered 7 water at (15, 16) over 30 minutes.",
+      "spoken": "Berrun is out gathering water this evening briefly.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "8f1748353112a8bcb8a669112c2c5cae8b38a8fac9415b652d8561a7a47b6874",
+      "responseHash": "0bd4214f6b5d4d767f2e894e63ce1c86eedfdb3448d79a69739e3ac3051b1426",
+      "rejections": []
+    },
+    "7ece862642145c1d7209b9aa5618cbc367f3b2c0d93c5703db9fe23e46b3955c": {
+      "canonical": "Moved from (13, 17) to (15, 16) over 55 minutes.",
+      "spoken": "Berrun moves for a couple of hours this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "e8bf2b294c6f0737bbf42291e9a240bfc32e3abebdbc3c72cdf3c3467c2f086e",
+      "responseHash": "c6ec2d97c2bed274de3015558212d0015b46b1830f9012f6b832c0a9afe63aaa",
+      "rejections": []
+    },
+    "1e902a80d9c6928b96c3062530c12e3b211b5eacd608e035685355a39d9e99e4": {
+      "canonical": "Moved from (15, 16) to (13, 17) over 55 minutes.",
+      "spoken": "Berrun spends a couple of hours moving this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "fab42341c25ef87ac622e6707cd2bca5fb54c568c6ee9a3b96d60bd674e48ffe",
+      "responseHash": "577c32288c58dd2d32c7ccdecd965165f61d71ac13ac88d134dcf7ea15914f46",
+      "rejections": []
+    },
+    "c218469b932e817aef9e1b6baf33342529535b5a178a27784570548fdbd2985e": {
+      "canonical": "Canonical transfer recorded at (15, 16) over 30 minutes.",
+      "spoken": "Berrun and Dovie briefly transfer things this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "1e6c5e3027986b49805033650cfa5dbe787b5299374fe968352195e7945f70a8",
+      "responseHash": "265260679a9ec2ca358b2576ff6f1533b078255c1498d0dd70354e1756429a37",
+      "rejections": []
+    },
+    "019c122576402fe2374b428b68f0f348a59fdb758cb3abe00aa7346e7be7ace4": {
+      "canonical": "Canonical build recorded at (15, 16) over 30 minutes.",
+      "spoken": "Dovie builds briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "ab0d4ce27578e0c3894700531faf069e854e56dd716eefd2a3cec616f3f4a151",
+      "responseHash": "e6a4d585b405c12d79fafbd129b423264e599875adabc562aafff38e3730b2a6",
+      "rejections": []
+    },
+    "b562598413fafd933ba1d3fefe7317b5d88f3500be8fb3a7d57a8f89cb02d12f": {
+      "canonical": "Canonical transfer recorded at (12, 18) over 30 minutes.",
+      "spoken": "Berrun and Erish spend a brief moment transferring items this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "e605cc7f94873e913d51db7d32f27c86200eb3c31e82f7771d4cf832bdd88ffa",
+      "responseHash": "978f3a01f7850c3bc1de1da51d9d463fd3dc67d82db8650470eafb34fa9d9ef0",
+      "rejections": []
+    },
+    "e7762dccb08c241afeaf7844022388c56169dcde705aafab285cb5516b8ccda1": {
+      "canonical": "Canonical transfer recorded at (15, 16) over 30 minutes.",
+      "spoken": "Erish and Berrun are briefly transferring this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "a14cd0d9de86f84f812ab1fb586d552a67f9fca4ffd8af08ec4615c51284ab6d",
+      "responseHash": "2e1923a3114969a61b7a3c2cf870c3f05c976422d5ca2809a07b264b777eeec9",
+      "rejections": []
+    },
+    "2f6da3f84682340e6b861e5c6cdc38dad02567b5c5830729f7f1e434d048cae1": {
+      "canonical": "Canonical communicate recorded at (15, 16) over 30 minutes.",
+      "spoken": "Berrun and Erish communicate briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "ce854de564522b194994c4989b7f1cb6c52fc2e91d2cf53d1fd8b38a00b6265e",
+      "responseHash": "7af7ec08b3d6e3ddd3eaf651c222d01a03145356854222ff93e31b5fa342e3c3",
+      "rejections": []
+    },
+    "a8fd32a2c26c112934ac372aaac62b423a11bae3384dac4671a7a643d682c133": {
+      "canonical": "Gathered 3 food at (15, 16) over 30 minutes.",
+      "spoken": "Berrun is out gathering food this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "27a3a89bbf956abc8ebd5750d9f29c3f0c973771d8f5c6d41f769ebe21d34bdb",
+      "responseHash": "d5bd08b5d6af5d02c09289f903b1e6bf4c316bee0a60a419ca7a2f2b9f43456c",
+      "rejections": []
+    },
+    "c1dd4547025a48e71e0696367e4a8af9d9090ad2a24eb4837d45e06944ac66df": {
+      "canonical": "Gathered 2 food at (15, 16) over 30 minutes.",
+      "spoken": "Berrun is briefly gathering this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "539995b86bb1b7d0f19844fd539f2e6a3da3efcb13f87859d0b9c14e19c859a2",
+      "responseHash": "2bfde74b757b01347dc9f49ec77c4765c27288d60d7b7b01fd0248b46435d71b",
+      "rejections": []
+    },
+    "f07303576725512543cb4053dc70315567239b4e5f0f43cc04117c8641d93bca": {
+      "canonical": "Canonical move recorded at (15, 16) over 30 minutes.",
+      "spoken": "Berrun moves briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "100d98ba358b7fb4b553b1a3389ac7358a28b72f9757b6aeab66375ace6a5933",
+      "responseHash": "3640b87ee7d0a14b7c2f391511c4a365e72a253c52c200058de1d0e4ad9b9fd2",
+      "rejections": []
+    },
+    "d8c78c2c0ff27f8ba6b034e5741ee9e0b92cdd8771d6a03e79b54edbd0b4fd68": {
+      "canonical": "Rested at (16, 15) for 30 minutes.",
+      "spoken": "Cael rests briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "2ef3afec0ea8b2e3f491b65b43e5704e603e2d0aba32f815c37b9cf687270ce1",
+      "responseHash": "965c1765046a20f3b8335c154e4d8d9fdde7e0d8718d365952a543f75b6060dd",
+      "rejections": []
+    },
+    "c8552051593f12aeea598da220c4e7bb80a54aa7dc02f2a6478538ed882e76ed": {
+      "canonical": "Canonical communicate recorded at (12, 18) over 30 minutes.",
+      "spoken": "Cael and Erish communicate briefly this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "22041b8f0a4a8f8ea67500206e6256a97736dc9ea7d56efd217d461e1818e5c2",
+      "responseHash": "31511546b3a40fd8d7cdd77f0e5fc7247accd1fa6d3b39f563877261fcdcb448",
+      "rejections": []
+    },
+    "af76c88ac3e7e1d230f2013b131335285bc088be0dc0e4262f6ed1dcaee78bf5": {
+      "canonical": "Gathered 6 wood at (16, 15) over 30 minutes.",
+      "spoken": "Cael spends a brief moment gathering wood this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "4e2935fcba3d4ebd08dbd3923188c8ae3142867c5e94aadb8097a11e007f26f7",
+      "responseHash": "c8aa67591686f0e9ea5df9147d391faa042c1c71eaf54f3acae15eb526a0264b",
+      "rejections": []
+    },
+    "ace74b7963ee5a4fd82d2dc3ca6ce7771a25590ebe961b4a8e007ab7e56ba86b": {
+      "canonical": "Moved from (16, 15) to (15, 14) over 30 minutes.",
+      "spoken": "Cael moves briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "bf6c2f8890e79a4e91b14da89ad13724f821396adfa57fba46aa22191d3cb545",
+      "responseHash": "db8f8b4d6bc74819bdace1a291555b9e06d43d666826af32e2b3bf6005afc647",
+      "rejections": []
+    },
+    "f4cb2fbb3211b4c7b06d870223b1d1a53d8021b13770460ae01515550b349116": {
+      "canonical": "Rested at (14, 13) for 30 minutes.",
+      "spoken": "Dovie rests briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "dc5edbd9803cb83c994d99db7f8e1bc35aac5244e730cc114ee7a8894c13e1b9",
+      "responseHash": "a8d447b0107f21de305d4c6530de6227730b54c83bc62ad49093d5df0334fc40",
+      "rejections": []
+    },
+    "b8b76593091e2476e75f6c4b40ed1117d161614df15f9767eabc29ac475b1105": {
+      "canonical": "Moved from (14, 13) to (14, 14) over 30 minutes.",
+      "spoken": "Dovie moves briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "565a0a3762b4de6a14714010119b9d33a6e0cae1b2660e59ee985ad5f5214488",
+      "responseHash": "bdde48eacb556ed13c290c99d426b81825bd7b075416fb4cf1d4bd5d59d74976",
+      "rejections": []
+    },
+    "35f5d32a65e9413b67957fc2475d4ee0a5969cf5ff95e9948608a8ceb9b4e51d": {
+      "canonical": "Gathered 6 stone at (14, 13) over 30 minutes.",
+      "spoken": "Dovie is out gathering stone this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "a5ca12535b306e232ed965188fc258e4537506926b9badff1e81cbe1937cd8d6",
+      "responseHash": "31546ca215f01dba2adf7b75de840e92a2b6fd4289157c64fadd0c4bcd8e035a",
+      "rejections": []
+    },
+    "610840399735b4cd55f6aadf57a82908e1a0c2adbbca7010c5227e9df9adf0f4": {
+      "canonical": "Gathered 7 stone at (14, 13) over 30 minutes.",
+      "spoken": "Dovie gathers stone briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "04efd5065765c21d2cc73ae245be2494c3a019504c35f0681b522ca04b233990",
+      "responseHash": "22bcac309f73fc81299eff98e59f2d71cc2485429435e1a7bf457db768fba2a3",
+      "rejections": []
+    },
+    "876badffa6a27b9360752eaf0cf2464edd9b66f849135495908e2680c7aeed77": {
+      "canonical": "Gathered 2 wood at (14, 13) over 30 minutes.",
+      "spoken": "Dovie briefly gathers wood this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "350b7b77511899c7a13e6e39e0012958b459fd3d36eaf44352a7d9177dd85049",
+      "responseHash": "e9344abe40d295f2db88dbd4aea0d5dc368359221241451dc88032b3172a2a93",
+      "rejections": []
+    },
+    "d9203a754cfaa358626c1247a2d167eb30dd01ee7064f12994534631637594d3": {
+      "canonical": "Gathered 10 food at (14, 13) over 30 minutes.",
+      "spoken": "Dovie is out gathering food this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "ba2893a4a33c5f8ec33104c26cbab40d8e4937f727f54be78889c546016eab54",
+      "responseHash": "50c98dbbc7506f23ed7868e5123f420fca5c208b237909a2a4c12e86db77cc83",
+      "rejections": []
+    },
+    "ea0bc0d4d865d0ebd22799dd8b3039b339bf9a3491d27bb8888dc3742455f3ed": {
+      "canonical": "Canonical build recorded at (12, 18) over 540 minutes.",
+      "spoken": "Erish and Dovie spend most of the day building through the night.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "f8c307819aaa60de27bf1d837863d347490bb72b5a7d9161288089b64e6c0e9c",
+      "responseHash": "67a92d8ebea31ee81a078b6ad0ba24617394cbd1928f6aec14fcd68de7c1b251",
+      "rejections": []
+    },
+    "bd318fd24a81af5bd749dc6577dfe298ac6824ba3b564a9aa73a060057dbc64a": {
+      "canonical": "Canonical craft recorded at (14, 13) over 260 minutes.",
+      "spoken": "Dovie spends a few hours of the afternoon crafting.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "39256f91f57ce48fa6b97eea83ce3d27ffe0194e0689b90ce9a0ee8cd683b6a4",
+      "responseHash": "8b3fc40b82c37decade434b0b5cf4ee8c8d1b7a0683c5d9a6fdb92d6eaa3f6cf",
+      "rejections": []
+    },
+    "f987630de89063e9d625806f99bda671030ffb12611ee90c06a30dcbeb0e9359": {
+      "canonical": "Canonical move recorded at (12, 18) over 30 minutes.",
+      "spoken": "Erish moves briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "9fcf53de533192bd330b95618f05d7ff9edad932ec0cc741386aa519459c38af",
+      "responseHash": "652fddb33dc3528a1a15dff715d730a76eecc821f68cddc3a4b6ce8885ca8f07",
+      "rejections": []
+    },
+    "3196856d6697e723020378f7e2f5662b2390332ea708e1b306b0a16eaa49bf3a": {
+      "canonical": "Canonical craft recorded at (12, 18) over 210 minutes.",
+      "spoken": "Erish spends a few hours crafting in the afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "541d4d70cfd04acb2bf0f840a99f54e3fe389b0f616f125899abe8cecdb9e5a6",
+      "responseHash": "9b2b6a56784f167f161d566f64beafd5aa4aa269caf3fc955818da6247f90301",
+      "rejections": []
+    },
+    "7054d4b06d0eb3ff20863c1358ed23850642ce07d39d8f10e846ca8114412e6f": {
+      "canonical": "Canonical communicate recorded at (12, 18) over 30 minutes.",
+      "spoken": "Erish and Fenne pause briefly this evening to communicate.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "f803eba04c2dbd6e88502763007e984cc8cef4e90419ae3c63774cd6002f94ab",
+      "responseHash": "6f778e2217bd15ff60cee80621cc5c65513f5944676c944df8c88d0280f3a928",
+      "rejections": []
+    },
+    "0d5875a4ac2fb934b3fd8f5c9f116c235222235280b6f34ac7600d7e6526b165": {
+      "canonical": "Canonical communicate recorded at (13, 12) over 30 minutes.",
+      "spoken": "Erish and Iolen briefly communicate this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "95450a729be7df55bdd2c24b729eb82f2a6e011a73134dc28f4ca11d795c4367",
+      "responseHash": "b07346ac41de535a03e71bc8ebc3eeae7e96e7cb13cf1be7e254e334c4d91ce0",
+      "rejections": []
+    },
+    "d58dc3ec7ffd699f22ce3eac662664a9ad2c493a45a8da7f74b7a9146ce1e70d": {
+      "canonical": "Gathered 8 food at (17, 20) over 30 minutes.",
+      "spoken": "Fenne is briefly out gathering food this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "b5e40a1ededdabab7263b74d78763bf0bc58bc7fd8d6a0854728a25184a2cf4d",
+      "responseHash": "5d5236a164fbaedffca83e5a04b1547544e9f7b92a07aa0402e56a49095d0c28",
+      "rejections": []
+    },
+    "d05a2450db82bbea9bacdd7ad87890ff161a0865bf82882f7ec0719db34d0225": {
+      "canonical": "Gathered 6 water at (17, 20) over 30 minutes.",
+      "spoken": "Fenne briefly gathers water this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "a437a0bf33f7f5d22e5899e0825ddf47f592751cee2351cc15d010b5e879cdc9",
+      "responseHash": "671b658a93b27467d7862ab4e8cfd959e9ac5e1b6e7029ddf4762b0fc1cf9484",
+      "rejections": []
+    },
+    "b45b731265fac7a95d5519426ac4878162f290a0d04468a36a35c61fc72666b8": {
+      "canonical": "Rested at (17, 20) for 30 minutes.",
+      "spoken": "Fenne rests briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "78f4383becd2494b2718c38dd002e340b7479512f6186932e59805b4bffebdcd",
+      "responseHash": "5decab8dd0a3fcf600101ef641a714eeeb49fd1992b611184e8714463c6ddccd",
+      "rejections": []
+    },
+    "99418267d38f672f4580ad85362bb2a6cb52b7a3c0a01b2284e9f36e41916253": {
+      "canonical": "Canonical communicate recorded at (15, 18) over 30 minutes.",
+      "spoken": "Fenne and Gaure briefly communicate this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "d296f8776cb1068f65932b96a20ec7fd6a6955b74d77c319e5e0a29b37e8175c",
+      "responseHash": "f28e1c441cb41aae37a629e9f807424820e020873f7b4233f72f5bb7e9fcb803",
+      "rejections": []
+    },
+    "0ac48f33ac484d03b99098dfe7b30c6d7518f66d5e9e2cd49c21992583d8ab8e": {
+      "canonical": "Moved from (17, 20) to (17, 21) over 30 minutes.",
+      "spoken": "Fenne moves briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "e96d21880c7f7aa33c3dd33e4dd340c7f802889b4825910a07841d0e9938a6cc",
+      "responseHash": "0ee527b7efd5e9347aab54a98777e2e691e28d262a57c2c5b1ce609936137c06",
+      "rejections": []
+    },
+    "0f1cc60c4a34e7937cd2bcd830fbe1aad353a27f6db0549961616745f1d603cf": {
+      "canonical": "Gathered 10 water at (15, 18) over 30 minutes.",
+      "spoken": "Gaure is briefly out gathering water this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "5214e28b9b2c0bb02b7e34e49dbda5f075cfa05adf1bcaafbdfe51cc62121be2",
+      "responseHash": "b104ba85ffd036b281e88d890c7b99bdcea71dff6c7c793b55b3b65ef9189cd9",
+      "rejections": []
+    },
+    "d1174de101b31a81fd3ec7d3421b6ab84e7c3901b830ceb2f2f68b641d7fd9e2": {
+      "canonical": "Moved from (15, 18) to (16, 18) over 30 minutes.",
+      "spoken": "Gaure moves briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "8c5552a7ba685420704b88c2113eb893da20dce62ac85931dfedbeb3f574896a",
+      "responseHash": "05bb6aa74dac6b7e86ac753a38656a2a1b9848f268423df0524e2cff044b27c6",
+      "rejections": []
+    },
+    "953e465a17d92d96c3dbb79e631a161788aa325da027910e2d099652c264bab4": {
+      "canonical": "Gathered 3 wood at (15, 18) over 30 minutes.",
+      "spoken": "Gaure briefly gathers wood this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "d715f43d351edc572e3221fc4e4ad6db48365d2f5d698ad24208d41b9acde499",
+      "responseHash": "527fe13ae6c37457e73c6eb30b7a4b0e1e7d8a24b731859f23805ac3ae67671d",
+      "rejections": []
+    },
+    "09a2fb716de663853de7fb377556bc84a2c8c4625d19cc2825051778bc966c9b": {
+      "canonical": "Gathered 5 food at (15, 18) over 30 minutes.",
+      "spoken": "Gaure gathers food briefly this morning.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "f562f132cce6bbb6be79af5fae1ea813234e4fcd53b38f030e3f8891baf7ab1c",
+      "responseHash": "6a2fc67325d140e6823a39c38b60f05bcea89d13be51fb8d5fcabe213a7305ac",
+      "rejections": []
+    },
+    "c59efc279020de5130eaf62ab60bfa70783732b658aa0ad3c93bc0ef4461b361": {
+      "canonical": "Moved from (13, 12) to (12, 13) over 30 minutes.",
+      "spoken": "Iolen moves briefly this evening.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "078331d3389b97a4a515d0a7a8d38c623aba3f894754efdf56b0fc23c4160a75",
+      "responseHash": "3fed95f18e6cc5cbcac5f738bbecdc4f0e9dbdaba6be58a161e669d0c5abd1c9",
+      "rejections": []
+    },
+    "405c3389cae70007dd855266f5467d4c80b46564870d91070670d4262c26e9d4": {
+      "canonical": "Canonical move recorded at (15, 15) over 30 minutes.",
+      "spoken": "Jarn moves briefly this afternoon.",
+      "styled": true,
+      "modelId": "gemini-3.5-flash-lite",
+      "requestHash": "17b752ca249460348e7b989b8ed464b302de36835f6707bd8b978f8339019e21",
+      "responseHash": "053638833cb94f4b54303f3e188904910be4e66f1cee71d80925e2cd579cf583",
+      "rejections": []
+    }
+  }
+}

@@ -71,6 +71,8 @@ export interface CinemaViewportProps {
   readonly mapOverride?: TerrainMap;
   readonly settlementSource?: SettlementProjectionSource;
   readonly broadcast?: boolean;
+  /** Names the folder under `public/voice/` holding this reel's rendered audio. */
+  readonly voiceReel: string;
 }
 
 interface Interval {
@@ -174,6 +176,7 @@ export function CinemaViewport({
   mapOverride,
   settlementSource,
   broadcast = false,
+  voiceReel,
 }: CinemaViewportProps) {
   const chronicle = chronicleOverride ?? getChronicle();
   const mountRef = useRef<HTMLDivElement>(null);
@@ -538,7 +541,7 @@ export function CinemaViewport({
         onStepCut={stepCut}
       />}
 
-      <ElevenLabsVoicePlayer subject={hud.subject} isVideoPlaying={hud.playing} />
+      <ElevenLabsVoicePlayer subject={hud.subject} isVideoPlaying={hud.playing} reel={voiceReel} />
 
       <p className={broadcast ? "cinema__provenance cinema__provenance--broadcast" : "cinema__provenance"}>
         <strong>Canonical</strong> — position, activity, participants, duration, world clock,

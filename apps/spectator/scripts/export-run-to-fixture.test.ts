@@ -21,7 +21,20 @@ describe("Export simulation run to Spectator fixture", () => {
     expect(events.length).toBeGreaterThan(0);
 
     const replay = replayHistory(events);
-    expect(replay.ok).toBe(true);
+    // A recording made before a canonical schema change cannot replay against
+    // the current engine: the inhabitant checksum covers different fields, so
+    // every post-state hash in the file disagrees. That is the intended
+    // behaviour (§23 — a constitutional change ends the current experiment),
+    // not a replay defect. `.worlds/` is a local rehearsal artifact, so the
+    // fix is to re-record it, and the message needs to say which of the two
+    // situations this is.
+    expect(
+      replay.ok,
+      `replay of ${eventsPath} failed at ${replay.mismatches.length} event(s); ` +
+        `first: ${JSON.stringify(replay.mismatches[0] ?? null)}. ` +
+        `If the engine's canonical schema has changed since this run was recorded, ` +
+        `re-record it with \`npm run world\` rather than relaxing this assertion.`,
+    ).toBe(true);
     expect(replay.state).not.toBeNull();
 
     const state: WorldState = replay.state!;

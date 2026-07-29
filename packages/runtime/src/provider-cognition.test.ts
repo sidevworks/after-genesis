@@ -30,6 +30,7 @@ function state() {
       id: "inh_founder",
       displayName: "Aster",
       modelId: "test-model",
+      sex: "female",
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
       traits: { curiosity: 80 },
       values: ["learn carefully"],

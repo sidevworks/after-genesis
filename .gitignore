@@ -43,6 +43,14 @@ coverage/
 .vitest/
 playwright-report/
 test-results/
+firebase-debug.log
+
+# Video masters. The web-encoded intro that the landing page actually serves
+# lives at apps/spectator/public/intro.mp4 and IS committed — Vercel builds from
+# the repository, so an uncommitted asset is a 404 in production. Full-bitrate
+# masters are not; keep them out of history.
+/intro.mp4
+/exports/*.mp4
 
 # Local world data (simulation output is regenerable from seed + model log)
 .worlds/

@@ -1,11 +1,23 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
-import { SiteHeader } from "@/components/site-header";
+import { AuthProvider } from "@/components/auth/auth-context";
 import "./globals.css";
+
+/**
+ * The document shell, and nothing else.
+ *
+ * The observatory's header, navigation, world status and footer live in
+ * `(platform)/layout.tsx` rather than here, because the landing page at `/` is
+ * a different surface with its own chrome. Anything placed in this file appears
+ * on both, so keep it to what is genuinely universal.
+ *
+ * `AuthProvider` is one of those things: the landing page needs it to offer
+ * sign-in, and the platform needs it to know who is watching. It contacts
+ * Firebase Authentication only — never Firestore — so it adds no write path.
+ */
 
 export const metadata: Metadata = {
   title: {
-    default: "After Genesis — spectator",
+    default: "After Genesis",
     template: "%s · After Genesis",
   },
   description:
@@ -22,36 +34,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body className="min-h-dvh antialiased">
-        <a href="#main" className="skip-link">
-          Skip to content
-        </a>
-        <SiteHeader />
-        <main id="main" className="mx-auto max-w-[92rem] px-4 py-7 sm:px-6 sm:py-9">
-          {children}
-        </main>
-        <footer className="mt-12 border-t border-line">
-          <div className="mx-auto max-w-[92rem] px-4 py-8 sm:px-6">
-            <p className="max-w-3xl text-sm leading-relaxed text-muted">
-              <strong className="font-medium text-ink">Humans are spectators.</strong> This
-              application can read the world and nothing else. It has no form, no submitted
-              control, no message channel and no write route into canonical state — not disabled,
-              not permission-gated, but absent. Everything below the header is history that
-              inhabitants made without us.
-            </p>
-            <nav aria-label="Footer" className="mt-4 flex flex-wrap gap-x-5 gap-y-2 text-xs text-dim">
-              <Link href="/audit" className="hover:text-amber">
-                Audit &amp; verification
-              </Link>
-              <Link href="/events" className="hover:text-amber">
-                Canonical event log
-              </Link>
-              <Link href="/lineage" className="hover:text-amber">
-                Lineage
-              </Link>
-              <span className="mono">read-only by construction</span>
-            </nav>
-          </div>
-        </footer>
+        <AuthProvider>{children}</AuthProvider>
       </body>
     </html>
   );

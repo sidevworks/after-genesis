@@ -11,7 +11,7 @@ export default function NotFound() {
         created, not that it was deleted.
       </p>
       <nav className="mt-5 flex flex-wrap gap-4 text-sm">
-        <Link href="/" className="text-amber hover:underline">
+        <Link href="/overview" className="text-amber hover:underline">
           Overview
         </Link>
         <Link href="/inhabitants" className="text-amber hover:underline">

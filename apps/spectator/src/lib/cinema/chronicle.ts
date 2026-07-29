@@ -475,6 +475,7 @@ function interstitialSegment(
   const minutes = endTick - startTick;
   return {
     id: `seg:${inhabitantId}:${startTick}:idle`,
+    canonicalMinutes: 0,
     inhabitantId,
     activityId: null,
     sequence: null,
@@ -513,6 +514,7 @@ function unrecordedSegment(
 ): ChronicleSegment {
   return {
     id: `seg:${inhabitantId}:${startTick}:unrecorded`,
+    canonicalMinutes: 0,
     inhabitantId,
     activityId: null,
     sequence: null,
@@ -573,6 +575,7 @@ function canonicalSegment(
     actionType: envelope.actionType,
     activityState: envelope.activityState,
     startTick: draft.startTick,
+    canonicalMinutes,
     endTick: draft.endTick,
     from: draft.from,
     to: draft.to,
@@ -725,6 +728,7 @@ function buildBeats(envelopes: readonly ActivityEnvelope[], known: ReadonlySet<s
 
     beats.push({
       id: `beat:${envelope.sequence}:${subjectId}`,
+      sequence: envelope.sequence,
       tick: envelope.startedAt,
       endTick: Math.max(envelope.endsAt, envelope.startedAt),
       subjectId,

@@ -47,6 +47,7 @@ export function WatchExperience({
           chronicle={physicalChronicle}
           map={physicalDemoRun.map}
           settlementSource={physicalSettlementSource}
+          voiceReel="physical"
         />
       ) : (
         <CinemaChannel
@@ -54,6 +55,7 @@ export function WatchExperience({
           subjects={subjects}
           activities={activities}
           endTick={endTick}
+          voiceReel="month"
         />
       )}
     </div>

@@ -51,6 +51,7 @@ async function fixture() {
         id: ACTOR,
         displayName: "Aster",
         modelId: "test",
+        sex: "female",
         inventory: { energy: 100, compute: 100 },
         traits: {},
         values: [],

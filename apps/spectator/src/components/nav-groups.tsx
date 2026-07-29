@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useTier } from "./tier-context";
 
 export const NAV_ITEMS = [
-  { href: "/", label: "Overview", category: "Main" },
+  { href: "/overview", label: "Overview", category: "Main" },
   { href: "/observatory", label: "Observatory 3D", category: "Main" },
   { href: "/watch", label: "Watch 3D", category: "Main", proOnly: true },
   { href: "/events", label: "Events", category: "Civilisation" },
@@ -27,8 +27,7 @@ export function NavGroups() {
     <nav aria-label="Main navigation" className="mx-2 overflow-x-auto">
       <ul className="flex items-center gap-1">
         {NAV_ITEMS.map((item, index) => {
-          const active =
-            item.href === "/" ? normalised === "/" : normalised.startsWith(item.href);
+          const active = normalised === item.href || normalised.startsWith(`${item.href}/`);
 
           const isCategoryStart =
             index > 0 && item.category !== NAV_ITEMS[index - 1]?.category;

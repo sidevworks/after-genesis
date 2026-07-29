@@ -59,6 +59,26 @@ const sourceFiles = walk(
     !path.includes(`${"fixtures"}/generate.mts`),
 );
 
+/**
+ * Files permitted to call `fetch`, and the reason each is allowed.
+ *
+ * The blanket ban below exists because sending data anywhere is how a reader
+ * stops being a reader. Reading a same-origin static file is the one shape
+ * that cannot do that: it names a path, carries no body, uses the default GET
+ * method and reaches nothing but this application's own published output.
+ *
+ * The allowlist is not the safeguard — an entry here only exempts a file from
+ * the blanket pattern. `every allowed network call is a same-origin GET` below
+ * then proves the calls in these files really are that shape, so adding a file
+ * here cannot smuggle in a POST, a body or an external host.
+ */
+const ALLOWED_NETWORK_READS: ReadonlyMap<string, string> = new Map([
+  [
+    "src/lib/cinema/use-voice-manifest.ts",
+    "GETs /voice/<reel>/manifest.json, a static file this app publishes (§21).",
+  ],
+]);
+
 /** Each pattern is a way this application could stop being read-only. */
 const FORBIDDEN_IN_SOURCE: Array<{ name: string; pattern: RegExp }> = [
   { name: "a form element", pattern: /<form[\s/>]/ },
@@ -85,10 +105,39 @@ describe("the spectator application has no write path in its source", () => {
     it(`contains ${name} nowhere`, () => {
       const offenders = sourceFiles
         .filter((file) => pattern.test(readFileSync(file, "utf8")))
-        .map((file) => relative(APP_ROOT, file));
+        .map((file) => relative(APP_ROOT, file))
+        .filter((file) => !(name === "a network call" && ALLOWED_NETWORK_READS.has(file)));
       expect(offenders, `${name} found in: ${offenders.join(", ")}`).toEqual([]);
     });
   }
+
+  it("every allowed network call is a same-origin GET of a static file", () => {
+    for (const [file, reason] of ALLOWED_NETWORK_READS) {
+      const source = readFileSync(join(APP_ROOT, file), "utf8");
+      const calls = [...source.matchAll(/(?<![\w.])fetch\s*\(([^)]*)\)/g)].map((m) => m[1] ?? "");
+
+      expect(calls.length, `${file} is allowlisted but calls no fetch — ${reason}`).toBeGreaterThan(
+        0,
+      );
+
+      for (const call of calls) {
+        // No second argument at all: no method, no body, no headers, no
+        // credentials. A bare GET is the only request this app may make.
+        expect(call.includes(","), `${file} passes options to fetch: ${call}`).toBe(false);
+        // A same-origin absolute path. A scheme or a protocol-relative URL
+        // would reach a host this application does not publish.
+        expect(call.trim().startsWith("`/") || call.trim().startsWith('"/') || call.trim().startsWith("'/"),
+          `${file} fetches something that is not a same-origin path: ${call}`).toBe(true);
+      }
+    }
+  });
+
+  it("allowlists no file that has since been deleted", () => {
+    const stale = [...ALLOWED_NETWORK_READS.keys()].filter(
+      (file) => !existsSync(join(APP_ROOT, file)),
+    );
+    expect(stale, `stale network allowlist entries: ${stale.join(", ")}`).toEqual([]);
+  });
 
   it("defines no route handler, so there is no endpoint to POST to", () => {
     const handlers = walk(join(SRC, "app"), (path) =>
@@ -109,6 +158,98 @@ describe("the spectator application has no write path in its source", () => {
   it("is configured as a static export, so it runs no server at all", () => {
     const config = readFileSync(join(APP_ROOT, "next.config.mjs"), "utf8");
     expect(config).toMatch(/output:\s*["']export["']/);
+  });
+});
+
+/* ------------------------------------------------------------------------ */
+/* Sign-in, and the wall between it and the world.                           */
+/* ------------------------------------------------------------------------ */
+
+/**
+ * The spectator app has accounts: Google, email and anonymous "guest".
+ * Authenticating writes a record into Firebase Authentication, which is the one
+ * write this application performs and the one it must never be able to confuse
+ * with a canonical write.
+ *
+ * The wall is structural rather than conventional. `firebase/auth` may be
+ * imported only by the files listed below, and no file may import both
+ * `firebase/auth` and `firebase/firestore`. That makes it impossible to reach a
+ * canonical document from a sign-in code path without deleting a test, and the
+ * blanket bans above still apply to the auth surface — it contains no form, no
+ * submitting control and no fetch, like everything else here.
+ *
+ * A viewer's identity decides which spectator surfaces open for them. It is not
+ * a capability inside the world: there is no action it unlocks, no inhabitant it
+ * reaches and no state it can change (claude.md §17, §20, §28).
+ */
+const AUTH_SURFACE = [
+  "src/lib/firebase/auth-client.ts",
+  "src/components/auth/auth-context.tsx",
+];
+
+describe("authentication cannot reach canonical state", () => {
+  const importsAuth = sourceFiles.filter((file) =>
+    /from\s+["']firebase\/auth["']/.test(readFileSync(file, "utf8")),
+  );
+
+  it("confines the Firebase Auth SDK to the declared auth surface", () => {
+    const unexpected = importsAuth
+      .map((file) => relative(APP_ROOT, file))
+      .filter((file) => !AUTH_SURFACE.includes(file));
+    expect(
+      unexpected,
+      `firebase/auth imported outside the auth surface: ${unexpected.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  it("declares no auth-surface file that has since been deleted", () => {
+    const stale = AUTH_SURFACE.filter((file) => !existsSync(join(APP_ROOT, file)));
+    expect(stale, `stale auth surface entries: ${stale.join(", ")}`).toEqual([]);
+  });
+
+  it("never imports Firestore into a file that can sign anyone in", () => {
+    const both = importsAuth
+      .filter((file) => /from\s+["']firebase\/firestore["']/.test(readFileSync(file, "utf8")))
+      .map((file) => relative(APP_ROOT, file));
+    expect(
+      both,
+      `these files can both authenticate and touch Firestore: ${both.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  it("never reads the world from an auth-surface file", () => {
+    const leaks = AUTH_SURFACE.filter((file) =>
+      /\bworldSource\b|from\s+["']@\/lib\/world-source["']/.test(
+        readFileSync(join(APP_ROOT, file), "utf8"),
+      ),
+    );
+    expect(leaks, `auth surface reaching the world source: ${leaks.join(", ")}`).toEqual([]);
+  });
+
+  it("ships no service-account credential to the browser", () => {
+    /*
+     * The one mistake that would hand the world's write key to every visitor.
+     *
+     * Secret *values* are banned outright. Secret *names* are banned only where
+     * they are read — `process.env.X` — because several files legitimately
+     * explain in prose which credential they must never touch, and forbidding
+     * the words would delete the explanation rather than the risk.
+     */
+    const FORBIDDEN_CREDENTIAL = [
+      /"?type"?\s*:\s*["']service_account["']/,
+      /\bprivate_key\b/,
+      /BEGIN\s+PRIVATE\s+KEY/,
+      /process\.env\.GOOGLE_APPLICATION_CREDENTIALS/,
+      /process\.env\.GEMINI_API_KEY/,
+      /process\.env\.ELEVENLABS_API_KEY/,
+      /process\.env\.FIREBASE_[A-Z_]+/,
+    ];
+    for (const pattern of FORBIDDEN_CREDENTIAL) {
+      const offenders = sourceFiles
+        .filter((file) => pattern.test(readFileSync(file, "utf8")))
+        .map((file) => relative(APP_ROOT, file));
+      expect(offenders, `${pattern} found in: ${offenders.join(", ")}`).toEqual([]);
+    }
   });
 });
 
@@ -163,6 +304,7 @@ describe.skipIf(renderedPages.length === 0)(
   () => {
     const EXPECTED_ROUTES = [
       "index.html",
+      "overview/index.html",
       "map/index.html",
       "inhabitants/index.html",
       "lineage/index.html",

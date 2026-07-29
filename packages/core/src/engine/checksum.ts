@@ -89,6 +89,7 @@ function inhabitant(i: Inhabitant): Normal {
     birthTime: i.birthTime,
     location: { x: i.location.x, y: i.location.y },
     status: i.status,
+    sex: i.sex,
     traits: numberRecord(i.traits as Readonly<Record<string, number>>),
     // `values` and `privateGoals` are ordered by the inhabitant's own
     // priority, so their order is meaning and is preserved.

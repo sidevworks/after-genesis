@@ -65,9 +65,11 @@ import {
   recordDestroyed,
   updateInhabitant,
   type Inhabitant,
+  type Sex,
   type TraitKind,
   type TraitSet,
 } from "../state.js";
+import { voicePool } from "../voice.js";
 import { advanceNeeds, beginActivity, spend } from "./effects.js";
 import { reject, type DerivedEvent, type ResolutionResult, type Resolver } from "./types.js";
 
@@ -184,15 +186,14 @@ const CONFLICTING_GOALS: readonly (readonly [string, string])[] = Object.freeze(
   ["settle in one place for good", "see every part of this world"] as const,
 ]);
 
-/** Voices are persistent per inhabitant (§21) and assigned, never chosen. */
-const VOICE_POOL: readonly string[] = Object.freeze([
-  "voice_alto",
-  "voice_bass",
-  "voice_baritone",
-  "voice_contralto",
-  "voice_mezzo",
-  "voice_tenor",
-]);
+/**
+ * Sex is drawn 50/50 from the world RNG and is not inherited, negotiated or
+ * requested. `create_inhabitant` has no field for it: §7 requires creation to
+ * "produce a distinct autonomous identity" and forbids the creator from
+ * directing what it gets. A creator who could specify sex would be choosing
+ * how its descendant sounds, which is a small step towards designing one.
+ */
+const SEX_DRAW: readonly Sex[] = Object.freeze(["male", "female"]);
 
 /**
  * The bounded imperfections of §7 that this build can actually enforce.
@@ -533,7 +534,10 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
   const imperfection = ctx.rng.pickWeighted(IMPERFECTIONS);
   const severity = ctx.rng.nextInt(20, 60);
   const conflict = ctx.rng.pick(CONFLICTING_GOALS);
-  const voiceId = ctx.rng.pick(VOICE_POOL);
+  // Two draws, always taken in this order regardless of outcome, so that the
+  // RNG stream position after this resolver never depends on the sex drawn.
+  const sex = ctx.rng.pick(SEX_DRAW);
+  const voiceId = ctx.rng.pick(voicePool(sex));
 
   let maxEnergy = NEWBORN_MAX_ENERGY;
   let maxCompute = NEWBORN_MAX_COMPUTE;
@@ -556,6 +560,7 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       birthTime: ctx.simTime,
       creationSequence: ctx.sequence,
       generation: actor.generation + 1,
+      sex,
       // §7 establishes lineage from those who actually made the thing.
       // `coCreatorIds` is recorded on the event but not written into lineage:
       // there is no consent action in this build, and naming an inhabitant as a

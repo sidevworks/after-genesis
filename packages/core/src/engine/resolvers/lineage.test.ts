@@ -9,6 +9,7 @@
  */
 import { describe, expect, it } from "vitest";
 import { getActionSpec } from "../../schema/actions/index.js";
+import { CreateInhabitantPayloadSchema } from "../../schema/actions/lineage.js";
 import { CONSERVED_RESOURCES, RESOURCE_KINDS } from "../../schema/primitives.js";
 import type { ResourceBundle } from "../../schema/primitives.js";
 import { simTime, type SimTime } from "../../time.js";
@@ -27,6 +28,7 @@ import {
   type WorldState,
 } from "../state.js";
 import { founderOf, makeTestWorld } from "../test-support.js";
+import { DEFAULT_VOICE_HANDLE, isVoiceHandle, voicePool, voiceSex } from "../voice.js";
 import {
   LineageRejection,
   POPULATION_SOFT_CEILING,
@@ -233,8 +235,52 @@ describe("create_inhabitant", () => {
   it("gives the newborn a persistent voice and its creator's model config (§21, §6)", () => {
     const before = world();
     const child = newborn(before, create(before).state);
-    expect(child.voiceId).not.toBe("voice_default");
+    expect(child.voiceId).not.toBe(DEFAULT_VOICE_HANDLE);
     expect(child.modelId).toBe(founderOf(before).modelId);
+  });
+
+  it("draws the newborn's voice from the pool matching its sex (§21)", () => {
+    const before = world();
+    const child = newborn(before, create(before).state);
+    expect(voicePool(child.sex)).toContain(child.voiceId);
+    expect(voiceSex(child.voiceId)).toBe(child.sex);
+  });
+
+  it("assigns a canonical voice handle, never a provider voice id (§3, §23)", () => {
+    const before = world();
+    const child = newborn(before, create(before).state);
+    // An ElevenLabs id is a 20-character opaque token. Canonical state must
+    // never contain one, or changing speech provider rewrites history.
+    expect(isVoiceHandle(child.voiceId)).toBe(true);
+    expect(child.voiceId).toMatch(/^voice_[mf]\d\d$/);
+  });
+
+  it("draws sex from the world stream, so it is reproducible on replay (§15)", () => {
+    const before = world();
+    const first = newborn(before, create(before).state);
+    const second = newborn(before, create(before).state);
+    expect(first.sex).toBe(second.sex);
+    expect(first.voiceId).toBe(second.voiceId);
+  });
+
+  it("offers the creator no way to choose its descendant's sex or voice (§7)", () => {
+    const fields = Object.keys(CreateInhabitantPayloadSchema.shape);
+    expect(fields).not.toContain("sex");
+    expect(fields).not.toContain("voiceId");
+  });
+
+  it("does not let sex change any outcome other than the voice drawn (§11G)", () => {
+    // Sex is a rendering attribute. If a resolver ever branches on it, this
+    // catches it: two children differing only in drawn sex must be otherwise
+    // comparable — same caps, same starting stock, same maturity.
+    const before = world();
+    const child = newborn(before, create(before).state);
+    const asMale: Inhabitant = { ...child, sex: "male" };
+    const asFemale: Inhabitant = { ...child, sex: "female" };
+    expect(asMale.maxEnergy).toBe(asFemale.maxEnergy);
+    expect(asMale.maxCompute).toBe(asFemale.maxCompute);
+    expect(asMale.inventory).toEqual(asFemale.inventory);
+    expect(asMale.maturity).toBe(asFemale.maturity);
   });
 });
 

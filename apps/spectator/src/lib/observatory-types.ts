@@ -286,7 +286,12 @@ export interface ObservatoryRun {
     location: { x: number; y: number };
     status: string;
     activity: { state: string; activityId: string | null; busyUntil: number };
+    /** Canonical voice handle (`voice_f04`), resolved to a provider voice by the media layer. */
     voiceId: string;
+    /** Voice class. Optional only because older exported fixtures predate it. */
+    sex?: "male" | "female";
+    /** Developmental stage (§11B). Selects the child voice while low. */
+    maturity?: number;
   }>;
   structures: Array<Record<string, unknown>>;
   artifacts: Array<Record<string, unknown>>;

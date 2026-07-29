@@ -7,6 +7,7 @@
  * network, no filesystem, no `Math.random`, no floating point.
  */
 export * from "./state.js";
+export * from "./voice.js";
 export * from "./health.js";
 export * from "./checksum.js";
 export * from "./mapgen.js";

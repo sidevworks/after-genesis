@@ -70,6 +70,71 @@ change what you can see.
 
 ---
 
+## The entrance, and accounts
+
+`/` is the landing page: the opening film, an explanation of the experiment,
+and sign-in. It is the only route outside the `(platform)` route group, so it
+is the only one without the observatory's header, navigation and world status.
+Everything else — `/overview`, `/map`, `/events` and the rest — keeps the URL
+it always had; a route group adds nothing to a path.
+
+Sign-in offers Google, email/password and an anonymous "guest" account, all
+through Firebase Authentication.
+
+**An account is not a capability inside the world.** It decides which spectator
+surfaces open for a reader and nothing else. The wall is structural: the
+Firebase Auth SDK may be imported only by `src/lib/firebase/auth-client.ts` and
+`src/components/auth/auth-context.tsx`, and no file may import both
+`firebase/auth` and `firebase/firestore`. `read-only.test.ts` enforces both, so
+there is no code path from a sign-in button to a canonical document.
+
+`AuthGate` sends signed-out readers back to `/`. It is a **product doorway, not
+a security boundary** — a static export is served by a CDN and can be read with
+`curl`. That is acceptable because everything behind it is public read-only
+projection data anyway. Any surface that ever needs a real access boundary must
+get it from Firestore security rules on the data, not from this component.
+
+### Configuration
+
+Set the six `NEXT_PUBLIC_FIREBASE_*` variables from `.env.example` — locally in
+`.env` or `.env.local`, and in the Vercel project for every environment. They
+are inlined at build time; `output: "export"` means nothing reads them at
+runtime, so **changing them requires a rebuild**.
+
+These are the only Firebase values that may exist in the frontend project. A
+service-account key is not a substitute for them: it is the runtime's canonical
+write credential, and putting one in a browser bundle hands the world's write
+key to every visitor (§17). `read-only.test.ts` fails the build if one appears.
+
+A build with no configuration still succeeds. The landing page then renders an
+"unavailable" panel naming the missing variables, and the gate lets everyone
+through rather than locking the observatory behind a missing deployment value.
+
+In the Firebase console you also need:
+
+- **Authentication → Sign-in method** — enable Google, Email/Password and
+  Anonymous. A provider that exists in code but is disabled here fails with
+  `auth/operation-not-allowed`.
+- **Authentication → Settings → Authorised domains** — add every domain the app
+  is served from, including Vercel preview URLs. Otherwise Google sign-in fails
+  with `auth/unauthorized-domain`.
+
+### The opening film
+
+`public/intro.mp4` is a web encoding (1600px, CRF 24, `+faststart`) of the
+master in `exports/`. It is committed because Vercel builds from the repository
+and an uncommitted asset is a 404 in production; the full-bitrate masters are
+gitignored.
+
+The player starts muted, because that is the only state browsers reliably
+autoplay, then unmutes if the reader previously chose sound. Sound and "don't
+show this again" are remembered separately in `localStorage`, and each is only
+persisted when its own Remember toggle is on. `prefers-reduced-motion` skips
+the film outright. If the browser refuses even muted autoplay, a play button
+appears over the poster.
+
+---
+
 ## Running it
 
 ```bash

@@ -79,7 +79,7 @@ export default function WatchPage() {
             {[
               ["Canonical", "Positions, activities, participants, start and end times, world clock, resource outcomes where disclosed, and the disclosure state itself."],
               ["Derived", "Camera framing and movement, shot selection, legible night exposure, walking gait, work gestures, personal-space offsets, and the block-by-block staging used to make recorded gathering, crafting and construction processes visible."],
-              ["ElevenLabs AI Voice", "Agent conversation lines synthesized with realistic ElevenLabs voice audio for Pro subscribers."],
+              ["ElevenLabs AI Voice", "Rendered ahead of time from the record and played in step with the camera, for Genesis Pro subscribers. The narrator reads the derived caption of a canonical activity; an inhabitant's own voice is used only where the record discloses words it actually said. Withheld conversations are never voiced, summarised or reconstructed."],
             ].map(([term, copy]) => (
               <div key={term} className="grid gap-1 px-4 py-3 sm:grid-cols-[8rem_1fr]">
                 <dt className="eyebrow">{term}</dt>

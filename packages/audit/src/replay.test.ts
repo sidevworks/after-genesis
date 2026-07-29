@@ -20,6 +20,7 @@ const config: GenesisConfig = {
     id: "inh_founder",
     displayName: "Aster",
     modelId: "recorded-model",
+    sex: "female",
     inventory: { energy: 800, compute: 500, food: 10, water: 10 },
     traits: {},
     values: [],

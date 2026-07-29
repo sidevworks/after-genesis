@@ -155,6 +155,19 @@ export const EMPTY_NEEDS: Needs = Object.freeze({
 /* Inhabitant                                                                 */
 /* ------------------------------------------------------------------------- */
 
+/**
+ * The two voice classes the media layer can render (§21).
+ *
+ * Deliberately not modelled as a spectrum, a gender identity or anything an
+ * inhabitant may declare about itself. It is a rendering attribute of the
+ * canonical record with no social meaning attached by the engine; inhabitants
+ * are free to describe themselves however they wish in their own words, and
+ * nothing here contradicts or overrides that (§11G: the engine records
+ * observable facts, inhabitants supply interpretation).
+ */
+export const SEXES = ["male", "female"] as const;
+export type Sex = (typeof SEXES)[number];
+
 /** A directed belief about, and history with, another inhabitant. Private. */
 export interface Relationship {
   readonly other: string;
@@ -208,6 +221,18 @@ export interface Inhabitant {
   readonly birthTime: SimTime;
   readonly location: Coord;
   readonly status: "alive" | "dead";
+  /**
+   * Assigned at creation, never chosen and never changed.
+   *
+   * This exists for exactly one reason: §21 requires a persistent voice
+   * configuration per inhabitant, and the media layer needs a stable canonical
+   * attribute to select a voice from. It carries no mechanical consequence —
+   * no resolver reads it, no skill, need, cost, capability or outcome depends
+   * on it, and creation is not sexual reproduction (§7: an inhabitant is made
+   * by one creator paying a cost). Anything more than voice selection would be
+   * a rule the constitution does not contain.
+   */
+  readonly sex: Sex;
 
   readonly traits: TraitSet;
   readonly values: readonly string[];
@@ -811,6 +836,7 @@ export interface MakeInhabitantOptions {
   readonly birthTime: SimTime;
   readonly creationSequence: number;
   readonly generation?: number;
+  readonly sex?: Sex;
   readonly parents?: readonly string[];
   readonly inventory?: ResourceBundle;
   readonly concealed?: ResourceBundle;
@@ -837,6 +863,7 @@ export function makeInhabitant(options: MakeInhabitantOptions): Inhabitant {
     birthTime: options.birthTime,
     location: { x: options.location.x, y: options.location.y },
     status: "alive",
+    sex: options.sex ?? "female",
     traits: { ...(options.traits ?? {}) },
     values: [...(options.values ?? [])],
     privateGoals: [...(options.privateGoals ?? [])],

@@ -59,6 +59,7 @@ async function createStagingFixture() {
         id: ACTOR_ID,
         displayName: "Staging Pioneer",
         modelId: "gemini-3.5-flash-lite",
+        sex: "female",
         inventory: { energy: 100, compute: 100 },
         traits: {},
         values: [],

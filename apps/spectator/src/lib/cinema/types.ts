@@ -100,6 +100,16 @@ export interface ChronicleSegment {
   readonly startTick: Tick;
   /** Always `>= startTick`. Zero-length canonical activities are widened to the minimum. */
   readonly endTick: Tick;
+  /**
+   * The activity's declared duration, in canonical sim minutes.
+   *
+   * Not the same as `endTick - startTick`: a segment is truncated where the
+   * next activity begins, so a build declaring 320 minutes may occupy far
+   * fewer ticks on the track. The caption quotes *this* number, so anything
+   * else describing the activity's length must quote it too, or it will
+   * contradict the caption beside it. Zero for synthesised gap segments.
+   */
+  readonly canonicalMinutes: number;
   /** Canonical position at `startTick`. */
   readonly from: Vec2;
   /** Canonical position at `endTick`. Equal to `from` for stationary activities. */
@@ -150,6 +160,14 @@ export interface ChronicleTrack {
  */
 export interface ChronicleBeat {
   readonly id: string;
+  /**
+   * Canonical event sequence of the activity this beat marks.
+   *
+   * Present so a beat can be matched back to the `ChronicleSegment` it came
+   * from — `(subjectId, sequence)` identifies exactly one — without parsing
+   * `id`, which is a display key and not a structured field.
+   */
+  readonly sequence: number;
   readonly tick: Tick;
   readonly endTick: Tick;
   readonly subjectId: string;

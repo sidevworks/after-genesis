@@ -280,6 +280,11 @@ export type HealthState = z.infer<typeof HealthStateSchema>;
  */
 export const VoiceIdentitySchema = z.object({
   /** Provider voice identifier, e.g. an ElevenLabs voice id. */
+  /**
+   * A canonical voice handle (`voice_f04`), never a provider voice id. See
+   * `engine/voice.ts` for why the vendor identifier is kept out of canonical
+   * state and resolved in the media layer instead.
+   */
   voiceId: z.string().max(ENTITY_NAME_MAX),
   /** Integer per mille adjustments. No floats reach the canonical record. */
   stabilityPermille: z.number().int().min(0).max(1000).default(500),

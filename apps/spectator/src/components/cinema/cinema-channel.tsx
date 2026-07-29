@@ -46,6 +46,7 @@ export function CinemaChannel({
   map,
   settlementSource,
   initialSubjectId = null,
+  voiceReel,
 }: {
   readonly subjects: readonly ChannelSubject[];
   readonly activities: readonly ChannelActivity[];
@@ -54,6 +55,8 @@ export function CinemaChannel({
   readonly map?: TerrainMap;
   readonly settlementSource?: SettlementProjectionSource;
   readonly initialSubjectId?: string | null;
+  /** Names the folder under `public/voice/` holding this reel's rendered audio. */
+  readonly voiceReel: string;
 }) {
   const [subjectId, setSubjectId] = useState<string | null>(initialSubjectId);
   const [jumpTick, setJumpTick] = useState<number | undefined>(undefined);
@@ -156,6 +159,7 @@ export function CinemaChannel({
         {...(map === undefined ? {} : { mapOverride: map })}
         {...(settlementSource === undefined ? {} : { settlementSource })}
         broadcast={broadcast}
+        voiceReel={voiceReel}
       />
     </div>
   );

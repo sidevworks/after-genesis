@@ -65,6 +65,11 @@ const inhabitants = Object.values(inhabitantsById)
     location: inhabitant.location,
     status: inhabitant.status,
     activity: inhabitant.activity,
+    maturity: inhabitant.maturity,
+    // Both are canonical (§6) and both are needed to select a voice: the
+    // handle names the assigned adult voice, `sex` selects the child voice
+    // used while `maturity` is below the media layer's threshold.
+    sex: inhabitant.sex,
     voiceId: inhabitant.voiceId,
   }))
   .sort((left, right) => String(left.id).localeCompare(String(right.id)));

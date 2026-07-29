@@ -124,6 +124,7 @@ export function ReferenceResolver() {
             <CinemaViewport
               subjectId={target.subjectId}
               initialTick={target.initialTick}
+              voiceReel="month"
             />
           );
         })()

@@ -52,9 +52,11 @@ export function UpgradeModal() {
           <div className="flex items-start gap-3 pt-3">
             <span className="mono text-amber">✓</span>
             <div>
-              <p className="font-medium text-ink">ElevenLabs AI Voice Dialogue</p>
+              <p className="font-medium text-ink">ElevenLabs Voice Narration</p>
               <p className="text-xs text-dim">
-                Listen in on real-time agent conversations synthesized with ElevenLabs natural voice audio.
+                Every notable moment of the record, voiced by the world narrator and played in step
+                with the camera. Inhabitants speak in their own assigned voices wherever the record
+                discloses their words.
               </p>
             </div>
           </div>
