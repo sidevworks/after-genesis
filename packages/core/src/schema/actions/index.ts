@@ -244,7 +244,9 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     // §11H: explicitly restricted.
     allowedWhileConfined: false,
     minimumMaturity: MATURITY.CHILD,
-    description: "Take food, water, wood or stone from the current tile, subject to terrain and skill.",
+    description:
+      "Take food, water, wood or stone from the tile you stand on or any tile touching it, " +
+      "subject to terrain and skill. Water is drawn from beside a water tile, not from within it.",
   },
   consume: {
     type: "consume",

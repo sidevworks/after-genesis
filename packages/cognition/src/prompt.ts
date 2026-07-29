@@ -22,7 +22,7 @@
  * turn. Offering an unavailable action costs tokens and teaches the model, across
  * thousands of turns, that proposing illegal actions is a normal thing to do.
  */
-import { canonicalJson } from "@after-genesis/core";
+import { IMPASSABLE_TERRAIN, canonicalJson } from "@after-genesis/core";
 import type { ModelRequest } from "@after-genesis/core";
 import { HashDomain, hashValue } from "@after-genesis/core";
 import type { Sha256Hex } from "@after-genesis/core";
@@ -324,6 +324,7 @@ const WORLD_PHYSICS = [
   "IMMUTABLE WORLD PHYSICS",
   "- Time passes. Every action consumes time and attention.",
   "- Space and distance exist. Objects and bodies occupy locations.",
+  "- Not all ground can be walked on. Water cannot be entered; it is reached by standing on a tile beside it.",
   "- Matter, energy and usable resources are finite. Actions may consume them.",
   "- Observation is local and information is incomplete.",
   "- Other inhabitants have independent judgement and may cooperate, refuse, conceal, imitate, teach, persuade or deceive.",
@@ -627,8 +628,9 @@ function renderSurroundings(observation: Observation): {
   if (tiles.length > 0) {
     lines.push("", "TERRAIN YOU CAN SEE");
     for (const tile of tiles) {
+      const footing = isImpassable(tile.terrain) ? " [cannot be entered]" : "";
       lines.push(
-        `- (${tile.location.x}, ${tile.location.y}) ${tile.terrain}: ${canonicalJson(tile.visibleResources)}`,
+        `- (${tile.location.x}, ${tile.location.y}) ${tile.terrain}${footing}: ${canonicalJson(tile.visibleResources)}`,
       );
     }
   }
@@ -640,6 +642,17 @@ function renderSurroundings(observation: Observation): {
   }
 
   return { text: lines.join("\n"), flags };
+}
+
+/**
+ * Whether a body can stand on this ground.
+ *
+ * The cognition layer carries terrain as a plain string, so the engine's set is
+ * consulted by name. An inhabitant that is not told which ground it cannot
+ * enter will walk into the lake it is trying to drink from.
+ */
+function isImpassable(terrain: string): boolean {
+  return (IMPASSABLE_TERRAIN as ReadonlySet<string>).has(terrain);
 }
 
 /** How many remembered places to recall per kind of ground. */
@@ -675,7 +688,8 @@ function renderRememberedPlaces(places: readonly RememberedPlace[]): string[] {
     const rendered = nearest
       .map((place) => `(${place.location.x}, ${place.location.y}) ${place.distance} away`)
       .join(", ");
-    lines.push(`- ${terrain}: ${rendered}`);
+    const footing = isImpassable(terrain) ? " [cannot be entered; stand beside it]" : "";
+    lines.push(`- ${terrain}${footing}: ${rendered}`);
   }
   return lines;
 }
