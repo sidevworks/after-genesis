@@ -112,13 +112,26 @@ export interface SelfView {
     readonly startedAt: number;
     readonly endedAt: number;
   } | null;
-  /** Integer 0–100. */
+  /** Integer, 0 to `maxEnergy`. */
   readonly energy: number;
+  /**
+   * This inhabitant's own energy ceiling (§11B: capacity is per-inhabitant, and
+   * a newborn's is lower than an adult's). Carried explicitly because the prompt
+   * used to render energy against a hardcoded 100 while the default ceiling is
+   * 1000 — the founder spent its life reasoning aloud about being at "998/100".
+   */
+  readonly maxEnergy: number;
   /** Remaining compute allowance for the current day, in integer units (§11B). */
   readonly computeAllowance: number;
   /** Integer 0–100. */
   readonly integrity: number;
   readonly confined: boolean;
+  /**
+   * What this inhabitant last said it was doing, in its own words, or null if
+   * it has never said. Authored by the inhabitant, so it is rendered inside an
+   * untrusted block like any other authored text.
+   */
+  readonly currentIntention: { readonly statement: string; readonly simTime: number } | null;
   readonly traits: readonly Trait[];
   readonly values: readonly HeldValue[];
   readonly privateGoals: readonly PrivateGoal[];

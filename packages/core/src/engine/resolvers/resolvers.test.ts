@@ -79,40 +79,56 @@ const expectClean = (state: WorldState): void => {
 
 describe("resolver registry", () => {
   it("registers a resolver for every declared action type", () => {
-    expect(ACTION_TYPES).toHaveLength(64);
+    expect(ACTION_TYPES).toHaveLength(65);
     for (const type of ACTION_TYPES) {
       expect(typeof RESOLVERS[type]).toBe("function");
     }
     expect(Object.keys(RESOLVERS).sort()).toEqual([...ACTION_TYPES].sort());
   });
 
-  it("implements exactly the physical slice plus neutral public speech", () => {
+  it("implements the physical slice, neutral public speech, exchange and lineage", () => {
     expect([...IMPLEMENTED_ACTIONS].sort()).toEqual(
       [
+        "accept_trade",
         "announce",
         "communicate",
         "consume",
         "copy_artifact",
         "create_artifact",
+        "create_currency",
+        "create_inhabitant",
         "build",
         "gather",
+        "store_goods",
         "guard_location",
         "move",
         "observe",
+        "offer_trade",
         "publish",
+        "reject_trade",
         "release",
         "rest",
         "restrain",
-        "transfer",
+        "transfer_currency",
+        "transfer_property",
         "wait",
       ].sort(),
     );
   });
 
+  // `transfer` resolves but is not offered: it is a narrow early slice of
+  // `transfer_property`, kept registered so recorded history still replays.
+  it("keeps a resolver for transfer without offering it", () => {
+    expect(IMPLEMENTED_ACTIONS).not.toContain("transfer");
+    expect(RESOLVERS.transfer).not.toBe(notYetImplemented);
+  });
+
   it("every unimplemented action rejects with NOT_IMPLEMENTED and never fakes success", () => {
     const base = world();
-    const unimplemented = ACTION_TYPES.filter((t) => !IMPLEMENTED_ACTIONS.includes(t));
-    expect(unimplemented).toHaveLength(48);
+    const unimplemented = ACTION_TYPES.filter(
+      (t) => !IMPLEMENTED_ACTIONS.includes(t) && t !== "transfer",
+    );
+    expect(unimplemented).toHaveLength(41);
 
     for (const type of unimplemented) {
       expect(RESOLVERS[type]).toBe(notYetImplemented);

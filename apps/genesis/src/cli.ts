@@ -631,14 +631,15 @@ function productionCognition(
   priorModelCostMicros: number,
   maxSpendUsd: string | null,
 ): ProviderCognitionService {
-  const modelId = resolveModelRouting(process.env).routine;
+  const routing = resolveModelRouting(process.env);
+  const modelId = routing.routine;
   if (modelId !== "gemini-3.5-flash-lite") {
     throw new Error(
       `No verified price table is bundled for ${modelId}. ` +
         "Set AG_MODEL_ROUTINE=gemini-3.5-flash-lite or add a newly verified price.",
     );
   }
-  const prices: readonly PriceTable[] = [
+  const prices: PriceTable[] = [
     {
       modelId,
       inputMicrosPerMillionTokens: 300_000,
@@ -646,6 +647,42 @@ function productionCognition(
       verifiedOn: "2026-07-28",
     },
   ];
+
+  /*
+   * The deliberate model (§3: Flash for high-importance cognition).
+   *
+   * Its price is not bundled, because a price nobody verified is worse than no
+   * price at all: §14.18 requires every turn to record an estimated cost, and an
+   * invented rate would make the whole spend ledger — and the ceilings built on
+   * it — quietly wrong. So the operator supplies the rate they actually verified,
+   * or deliberate routing does not run and every level stays on the routine
+   * model. Both outcomes are honest; a guessed number is not.
+   */
+  const deliberateModelId =
+    routing.deliberate === modelId ? undefined : routing.deliberate;
+  if (deliberateModelId !== undefined) {
+    const input = optionalIntEnv("AG_PRICE_DELIBERATE_INPUT_MICROS_PER_M");
+    const output = optionalIntEnv("AG_PRICE_DELIBERATE_OUTPUT_MICROS_PER_M");
+    const verifiedOn = process.env["AG_PRICE_DELIBERATE_VERIFIED_ON"]?.trim();
+    if (input === null || output === null || verifiedOn === undefined || verifiedOn === "") {
+      throw new Error(
+        `AG_MODEL_DELIBERATE is ${deliberateModelId}, but no verified price is configured for it. ` +
+          "Set AG_PRICE_DELIBERATE_INPUT_MICROS_PER_M, AG_PRICE_DELIBERATE_OUTPUT_MICROS_PER_M " +
+          "and AG_PRICE_DELIBERATE_VERIFIED_ON (YYYY-MM-DD) to the rates you have checked, " +
+          `or set AG_MODEL_DELIBERATE=${modelId} to run every level on one model.`,
+      );
+    }
+    prices.push({
+      modelId: deliberateModelId,
+      inputMicrosPerMillionTokens: input,
+      outputMicrosPerMillionTokens: output,
+      verifiedOn,
+    });
+    console.warn(
+      `[cognition] deliberate levels (planning, reflection, study) route to ${deliberateModelId}. ` +
+        "At the current level distribution that is the majority of turns, not a rare event.",
+    );
+  }
   const configuredDaily = requiredUsdMicros("AG_SPEND_LIMIT_DAILY_USD");
   const configuredTotal = requiredUsdMicros("AG_SPEND_LIMIT_TOTAL_USD");
   const hardLifetimeCeiling =
@@ -688,6 +725,7 @@ function productionCognition(
     provider: geminiFromEnv(process.env),
     audit,
     modelId,
+    ...(deliberateModelId === undefined ? {} : { deliberateModelId }),
     prices,
     enforcement,
     limits: {
@@ -724,6 +762,21 @@ async function sumModelAuditCostMicros(directory: string, worldId: string): Prom
     }
   }
   return total;
+}
+
+/**
+ * A non-negative integer from the environment, or null when unset.
+ *
+ * Rejects rather than coerces: a price of `NaN` would silently make every turn
+ * cost nothing and the spend ceilings unreachable.
+ */
+function optionalIntEnv(name: string): number | null {
+  const raw = process.env[name]?.trim();
+  if (raw === undefined || raw === "") return null;
+  if (!/^\d+$/.test(raw)) {
+    throw new Error(`${name} must be a non-negative integer, got ${JSON.stringify(raw)}`);
+  }
+  return Number.parseInt(raw, 10);
 }
 
 function requiredUsdMicros(name: string): number {

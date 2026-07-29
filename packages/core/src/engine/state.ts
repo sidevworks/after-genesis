@@ -662,6 +662,33 @@ export interface WorldRules {
   readonly waterThirstRelief: number;
   readonly waterEnergyGain: number;
   readonly maxConsumePerAction: number;
+  /**
+   * The most conserved material — food, water, wood and stone together — that
+   * one inhabitant can carry (§5: storage capacity is a resource).
+   *
+   * Without a ceiling, an inventory is an infinite pocket, and an infinite
+   * pocket removes the reason for almost everything §5 and §10 describe. The
+   * first long run demonstrated it precisely: the founder ended day 100 carrying
+   * 681 food and 164 wood, having gathered a surplus it could not use, could not
+   * lose and had no reason to store, trade, protect or build anything for.
+   * Storage is a thing a civilisation has to solve; it cannot be solved if it was
+   * never a problem.
+   *
+   * Energy and compute are excluded: they are capacities of a body, not goods in
+   * a pack, and they already have their own ceilings.
+   */
+  readonly carryCapacity: number;
+  /** Minutes between spoilage passes over carried food. */
+  readonly minutesPerFoodSpoil: number;
+  /**
+   * The fraction of carried food lost each pass, as a divisor: 20 means a
+   * twentieth. Integer division means a holding below the divisor loses nothing,
+   * so a few days' food keeps and a hoard rots — which is the distinction that
+   * makes a storehouse worth building rather than a decoration.
+   */
+  readonly foodSpoilDivisor: number;
+  /** Multiplier on energy restored by resting at a tile holding a shelter. */
+  readonly shelterRestMultiplier: number;
 }
 
 export const DEFAULT_RULES: WorldRules = Object.freeze({
@@ -711,6 +738,10 @@ export const DEFAULT_RULES: WorldRules = Object.freeze({
   waterThirstRelief: 25,
   waterEnergyGain: 10,
   maxConsumePerAction: 20,
+  carryCapacity: 150,
+  minutesPerFoodSpoil: 720,
+  foodSpoilDivisor: 20,
+  shelterRestMultiplier: 2,
 } satisfies WorldRules);
 
 export function computeRulesChecksum(rules: WorldRules): Sha256Hex {

@@ -51,6 +51,7 @@ const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   accept_trade: { offerId: "off_1" },
   reject_trade: { offerId: "off_1" },
   transfer_property: { toInhabitantId: "inh_b", resources: { food: 1 } },
+  store_goods: { structureId: "str_1", direction: "deposit", resources: { food: 1 } },
   transfer: { toInhabitantId: "inh_b", resources: { food: 1 } },
   copy_artifact: { sourceArtifactId: "art_1" },
   restrain: { targetId: "inh_b", structureId: "str_1", durationMinutes: 60 },
@@ -121,8 +122,8 @@ describe("ACTION_CATALOGUE", () => {
   });
 
   it("defines the legacy catalogue plus the neutral transfer capability", () => {
-    expect(ACTION_TYPES).toHaveLength(64);
-    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(64);
+    expect(ACTION_TYPES).toHaveLength(65);
+    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(65);
   });
 
   it("gives every spec a self-consistent type and a resolvable payload schema", () => {
@@ -333,9 +334,10 @@ describe("confinement (§11H)", () => {
       "wait",
     ];
     expect([...allowed].sort()).toEqual(expected);
-    // 41 permitted, 23 restricted (neutral physical transfer and restraint require access).
+    // 41 permitted, 24 restricted (neutral physical transfer, restraint and
+    // reaching a store all require access to property, which §11H withdraws).
     expect(allowed.size).toBe(41);
-    expect(ACTION_TYPES.length - allowed.size).toBe(23);
+    expect(ACTION_TYPES.length - allowed.size).toBe(24);
   });
 });
 

@@ -70,7 +70,13 @@ import {
   type TraitSet,
 } from "../state.js";
 import { voicePool } from "../voice.js";
-import { advanceNeeds, beginActivity, spend } from "./effects.js";
+import {
+  advanceNeeds,
+  beginActivity,
+  reachableHoldings,
+  spend,
+  spendFromHandAndStores,
+} from "./effects.js";
 import { reject, type DerivedEvent, type ResolutionResult, type Resolver } from "./types.js";
 
 /** Declared metadata for `create_inhabitant` (§11A). See the note in move.ts. */
@@ -459,21 +465,28 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       ).join(", ")} in a world of ${livingBefore}`,
     );
   }
-  const afterCost = spend(actor, cost);
-  if (afterCost === null) {
+  // Hand first, then any store the creator is standing on. The cost exceeds a
+  // single pack several times over by design (§7: creation must consume declared
+  // resources and require time), so a creator has to have built somewhere to keep
+  // things — which is the point at which storage stops being an optimisation and
+  // becomes a precondition for a second generation.
+  const drawn = spendFromHandAndStores(state, actor, cost);
+  if (drawn === null) {
     return reject(
       ctx,
       LineageRejection.InsufficientResources,
-      `${actor.id} does not hold the declared creation cost`,
+      `${actor.id} does not hold the declared creation cost, in hand or in a store at its feet`,
     );
   }
+  const afterCost = drawn.inhabitant;
+  const stateAfterDraw = drawn.state;
 
   const consumedByAttempt = conservedPart(cost);
 
   // §15: "Creation costs cannot be bypassed." The materials were assembled
   // before the world was found to be full; they do not come back.
   if (livingBefore >= state.rules.populationLimit) {
-    let next = updateInhabitant(state, actor.id, () => afterCost);
+    let next = updateInhabitant(stateAfterDraw, actor.id, () => afterCost);
     next = recordDestroyed(next, consumedByAttempt);
     const detail = {
       livingBefore,
@@ -505,12 +518,23 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
     };
   }
 
-  const bonus = endowmentBonus(input.resourcesCommitted, cost, afterCost.inventory);
-  const afterBonus = spend(afterCost, bonus);
+  // The surplus is bounded by everything the creator can actually reach, hand
+  // and store alike — the same reach the cost itself was paid from. Measuring
+  // the bonus against the pack alone would mean a creator with a full storehouse
+  // could pay for a child but not give it anything, purely because a pack is
+  // small.
+  const bonus = endowmentBonus(
+    input.resourcesCommitted,
+    cost,
+    reachableHoldings(stateAfterDraw, afterCost),
+  );
+  const bonusDrawn = spendFromHandAndStores(stateAfterDraw, afterCost, bonus);
   /* c8 ignore next 3 */
-  if (afterBonus === null) {
+  if (bonusDrawn === null) {
     return reject(ctx, LineageRejection.InsufficientResources, "endowment surplus is not held");
   }
+  const afterBonus = bonusDrawn.inhabitant;
+  const stateAfterBonus = bonusDrawn.state;
 
   const endowment = addBundles(CHILD_ENDOWMENT, bonus);
   // The endowment is a transfer, so only the difference leaves the world. This
@@ -589,7 +613,7 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
     nextEligibleTime: endsAt,
   };
 
-  let next = updateInhabitant(state, actor.id, () => ({
+  let next = updateInhabitant(stateAfterBonus, actor.id, () => ({
     ...afterBonus,
     needs: advanceNeeds(afterBonus.needs, CREATE.baseDuration, state.rules),
   }));

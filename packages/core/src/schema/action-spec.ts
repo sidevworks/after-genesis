@@ -48,6 +48,7 @@ export const ActionTypeSchema = z.enum([
   "accept_trade",
   "reject_trade",
   "transfer_property",
+  "store_goods",
   "transfer",
   "copy_artifact",
   "restrain",
@@ -194,6 +195,23 @@ export const ProposedActionSchema = z.object({
   payload: z.unknown(),
   /** The model's stated reason. Recorded for audit; never affects resolution. */
   rationale: z.string().max(2000).optional(),
+  /**
+   * What the inhabitant takes itself to be doing across more than this turn.
+   *
+   * A turn is two hours; a shelter is days of work and a descendant is thirty
+   * of them. An inhabitant that begins each turn from nothing but its needs and
+   * its surroundings cannot undertake anything that outlasts a turn, and the
+   * first long run showed exactly that: a hundred days of gathering, resting and
+   * looking around, by a founder holding materials, holding the ability to
+   * build, and never once proposing to.
+   *
+   * This is the inhabitant's own sentence about its own purpose. It is stored,
+   * shown back on later turns, and replaced whenever the inhabitant writes a new
+   * one — a plan it may keep, revise or abandon. The engine never reads it: no
+   * resolver consults it, no precondition depends on it, and nothing is easier
+   * or likelier because it says so. It is memory, not mechanism.
+   */
+  intention: z.string().max(600).optional(),
 });
 export type ProposedAction = z.infer<typeof ProposedActionSchema>;
 

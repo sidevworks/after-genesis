@@ -94,6 +94,26 @@ const RESPONSE_BUNDLE = {
   additionalProperties: false,
 } as const;
 
+/**
+ * One half of a proposed exchange.
+ *
+ * Deliberately narrower than the engine's `TradeSideSchema`, which also carries
+ * land tiles and currency amounts. Those are legal to trade, but a side with six
+ * optional collections in it is a side a small model fills with plausible-looking
+ * empty structure. What is offered here is what the world currently has to
+ * exchange; the branch widens when land and currency actually exist to move.
+ */
+const RESPONSE_TRADE_SIDE = {
+  type: "object",
+  properties: {
+    resources: RESPONSE_BUNDLE,
+    artifactIds: { type: "array", items: { type: "string" } },
+    structureIds: { type: "array", items: { type: "string" } },
+    labourMinutes: { type: "integer", minimum: 0 },
+  },
+  additionalProperties: false,
+} as const;
+
 function responseBranch(
   type: string,
   properties: Readonly<Record<string, unknown>>,
@@ -198,13 +218,105 @@ export const RESPONSE_JSON_SCHEMA = {
     ),
     responseBranch("publish", { artifactId: { type: "string" } }, ["artifactId"]),
     responseBranch(
-      "transfer",
+      "transfer_property",
       {
         toInhabitantId: { type: "string" },
+        toOrganisationId: { type: "string" },
         resources: RESPONSE_BUNDLE,
         artifactIds: { type: "array", items: { type: "string" } },
+        structureIds: { type: "array", items: { type: "string" } },
+        asGift: { type: "boolean" },
+        note: { type: "string" },
       },
-      ["toInhabitantId"],
+      [],
+    ),
+    responseBranch(
+      "store_goods",
+      {
+        structureId: { type: "string" },
+        direction: { type: "string", enum: ["deposit", "withdraw"] },
+        resources: RESPONSE_BUNDLE,
+        note: { type: "string" },
+      },
+      ["structureId", "direction", "resources"],
+    ),
+    responseBranch(
+      "offer_trade",
+      {
+        toInhabitantIds: { type: "array", items: { type: "string" } },
+        isOpenOffer: { type: "boolean" },
+        give: RESPONSE_TRADE_SIDE,
+        want: RESPONSE_TRADE_SIDE,
+        expiresInMinutes: { type: "integer", minimum: 1 },
+        message: { type: "string" },
+      },
+      [],
+    ),
+    responseBranch(
+      "accept_trade",
+      { offerId: { type: "string" }, note: { type: "string" } },
+      ["offerId"],
+    ),
+    responseBranch(
+      "reject_trade",
+      { offerId: { type: "string" }, reason: { type: "string" } },
+      ["offerId"],
+    ),
+    responseBranch(
+      "create_currency",
+      {
+        name: { type: "string" },
+        symbol: { type: "string" },
+        initialSupply: { type: "integer", minimum: 0 },
+        supplyRule: {
+          type: "string",
+          enum: ["fixed", "issuer_mint", "backed_issue", "scheduled", "burn_only"],
+        },
+        transferRule: {
+          type: "string",
+          enum: ["free", "issuer_approval", "members_only", "non_transferable"],
+        },
+        ledgerVisibility: { type: "string", enum: ["public", "members", "private"] },
+        governance: {
+          type: "string",
+          enum: ["issuer", "organisation", "holders_vote", "none"],
+        },
+        description: { type: "string" },
+      },
+      ["name", "symbol"],
+    ),
+    responseBranch(
+      "transfer_currency",
+      {
+        currencyId: { type: "string" },
+        toInhabitantId: { type: "string" },
+        amount: { type: "integer", minimum: 1 },
+        memo: { type: "string" },
+      },
+      ["currencyId", "amount"],
+    ),
+    responseBranch(
+      "create_inhabitant",
+      {
+        proposedName: { type: "string" },
+        resourcesCommitted: RESPONSE_BUNDLE,
+        traitHints: {
+          type: "array",
+          items: {
+            type: "object",
+            properties: {
+              trait: { type: "string" },
+              emphasis: { type: "integer", minimum: -3, maximum: 3 },
+            },
+            required: ["trait"],
+            additionalProperties: false,
+          },
+        },
+        valueHints: { type: "array", items: { type: "string" } },
+        statedCareMinutesPerDay: { type: "integer", minimum: 0 },
+        statement: { type: "string" },
+      },
+      ["proposedName", "resourcesCommitted"],
     ),
     responseBranch(
       "restrain",
@@ -329,7 +441,14 @@ const WORLD_PHYSICS = [
   "- Observation is local and information is incomplete.",
   "- Other inhabitants have independent judgement and may cooperate, refuse, conceal, imitate, teach, persuade or deceive.",
   "- Physical actions have physical consequences. Death is irreversible.",
-  "- Biological reproduction and lineage require a consensual relationship between a male inhabitant and a female inhabitant.",
+  // What the engine actually does, stated without recommending it. The previous
+  // wording — that lineage "requires a consensual relationship between a male
+  // inhabitant and a female inhabitant" — described a mechanic that does not
+  // exist, and told a founder alone in the world that descendants were
+  // impossible. `createInhabitantResolver` takes one creator, charges a heavy
+  // declared cost and thirty days of exclusive work, and draws the new
+  // inhabitant's traits, values and sex from the world's own randomness.
+  "- A new inhabitant can be made by one existing inhabitant. It costs a great deal of material and a long unbroken stretch of work, and what results is another person with its own judgement, which its creator does not control and cannot undo.",
   "- Canonical history is append-only. Past events cannot be rewritten.",
   "",
   "EVIDENCE AND INTERPRETATION",
@@ -398,7 +517,7 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
     "YOU",
     `You are ${name.text} (${self.id}), generation ${self.generation}, developmental stage ${self.maturity}.`,
     `You were created at simulated minute ${self.birthTime}.`,
-    `Energy ${self.energy}/100. Physical integrity ${self.integrity}/100. ` +
+    `Energy ${self.energy}/${self.maxEnergy}. Physical integrity ${self.integrity}/100. ` +
       `Compute allowance remaining today: ${self.computeAllowance}.`,
   ];
 
@@ -475,6 +594,26 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
     }
   }
 
+  // What it last said it was doing. Placed before values and goals because it
+  // is the most specific and most recent of the three, and because a plan an
+  // inhabitant cannot see is a plan it does not have.
+  if (self.currentIntention !== null) {
+    lines.push("", "WHAT YOU LAST SAID YOU WERE DOING (your own words; change it whenever you like)");
+    const block = renderUntrustedBlock(
+      {
+        kind: "own_intention",
+        authorId: self.id,
+        authorName: self.displayName,
+        simTime: self.currentIntention.simTime,
+      },
+      self.currentIntention.statement,
+      maxBlockChars,
+    );
+    lines.push(block.rendered);
+    flags.push(...block.flags);
+    blocks += 1;
+  }
+
   // Values and goals are inhabitant-authored: this inhabitant wrote them about
   // itself on an earlier turn, and a compromised earlier turn must not be able
   // to install standing instructions here. They are its sincere beliefs about
@@ -542,11 +681,12 @@ const OUTPUT_FORMAT = [
   "OUTPUT FORMAT",
   "Answer with a single JSON object and nothing else. No prose, no markdown fence, no commentary.",
   "Shape:",
-  '{"type": "<one action type from AVAILABLE ACTIONS>", "payload": {...}, "rationale": "<= 2000 chars"}',
+  '{"type": "<one action type from AVAILABLE ACTIONS>", "payload": {...}, "rationale": "<= 2000 chars", "intention": "<optional, <= 600 chars>"}',
   "Rules:",
   "- `type` must be copied exactly from the AVAILABLE ACTIONS list.",
   "- `payload` must be an object. Use {} when the action takes no arguments.",
-  "- Include no keys other than type, payload and rationale.",
+  "- Include no keys other than type, payload, rationale and intention.",
+  "- `intention` is optional and is for anything you are doing that takes longer than this turn. Whatever you write replaces what you wrote before and is shown back to you next turn. Leave it out to keep the one you have.",
   "- Your answer is a PROPOSAL. The world engine decides what actually happens, and may reject it.",
   "- You cannot change the world by describing a change. Only the action you propose has any effect.",
   "- If you communicate, write words one inhabitant would plausibly say to another inhabitant.",

@@ -10,7 +10,7 @@
 import { describe, expect, it } from "vitest";
 import { getActionSpec } from "../../schema/actions/index.js";
 import { CreateInhabitantPayloadSchema } from "../../schema/actions/lineage.js";
-import { CONSERVED_RESOURCES, RESOURCE_KINDS } from "../../schema/primitives.js";
+import { CONSERVED_RESOURCES, RESOURCE_KINDS, addBundles } from "../../schema/primitives.js";
 import type { ResourceBundle } from "../../schema/primitives.js";
 import { simTime, type SimTime } from "../../time.js";
 import { canonicalJson } from "../../util/canonical.js";
@@ -19,6 +19,7 @@ import { checkInvariants, formatViolations } from "../invariants.js";
 import {
   TRAIT_KINDS,
   livingInhabitants,
+  putStructure,
   recordCreated,
   recordDestroyed,
   totalHeldResources,
@@ -43,19 +44,82 @@ import type { ResolutionContext, ResolutionResult } from "./types.js";
 const CREATE = getActionSpec("create_inhabitant");
 const MIDDAY = simTime(12 * 60);
 
-/** Enough of everything to create several times over. */
-const RICH: ResourceBundle = {
-  food: 4000,
-  water: 4000,
-  wood: 1600,
-  stone: 800,
+/**
+ * What the creator carries. Bounded by `rules.carryCapacity` like anyone's.
+ *
+ * The creation cost is 500 food, 500 water, 200 wood and 100 stone — eight times
+ * what a body can carry. That is deliberate (§7: creation must consume declared
+ * resources), and it means a creator cannot hold the price of a child. The
+ * materials have to be somewhere, and the only somewhere is a structure, so
+ * these fixtures build one.
+ */
+const CARRIED: ResourceBundle = {
+  food: 60,
+  water: 40,
+  wood: 30,
+  stone: 20,
   energy: 1000,
   compute: 1000,
 };
 
+/** Enough in a store to create several times over. */
+const STORED: ResourceBundle = { food: 4000, water: 4000, wood: 1600, stone: 800 };
+
+/**
+ * A world where the founder stands on a full storehouse.
+ *
+ * `recordCreated` declares the stocked goods the way Genesis declares the
+ * founder's, so conservation holds before the resolver runs — otherwise every
+ * conservation assertion below would be measuring the fixture.
+ */
 function world(): WorldState {
-  const base = makeTestWorld({ founderInventory: RICH });
-  return { ...base, simTime: MIDDAY };
+  const base = makeTestWorld({ founderInventory: CARRIED });
+  const founder = founderOf(base);
+  const stocked = putStructure(base, {
+    id: "str_store",
+    kind: "storehouse",
+    location: { ...founder.location },
+    owner: founder.id,
+    ownerOrganisation: null,
+    integrity: 100,
+    capacity: 12_000,
+    storage: { ...STORED },
+    ownershipPublic: true,
+    storagePublic: false,
+    secured: false,
+    occupants: [],
+    createdSequence: 0,
+    createdAt: base.simTime,
+  });
+  return { ...recordCreated(stocked, STORED), simTime: MIDDAY };
+}
+
+
+/** What the founder can reach: its own pack plus every store on its tile. */
+function reachable(state: WorldState, kind: (typeof RESOURCE_KINDS)[number]): number {
+  const founder = founderOf(state);
+  let total = founder.inventory[kind] ?? 0;
+  for (const structure of Object.values(state.structures)) {
+    if (
+      structure.location.x === founder.location.x &&
+      structure.location.y === founder.location.y
+    ) {
+      total += structure.storage[kind] ?? 0;
+    }
+  }
+  return total;
+}
+
+
+/** Add goods to the founder's store, declaring them the way Genesis would. */
+function stock(state: WorldState, goods: ResourceBundle): WorldState {
+  const store = state.structures["str_store"] as NonNullable<WorldState["structures"][string]>;
+  const filled = putStructure(state, {
+    ...store,
+    capacity: Math.max(store.capacity, 200_000),
+    storage: addBundles(store.storage, goods),
+  });
+  return recordCreated(filled, goods);
 }
 
 /** The same context `runAction` builds, for the same turn. */
@@ -450,10 +514,11 @@ describe("conservation and cost", () => {
     const before = world();
     const cost = creationCost(livingInhabitants(before).length);
     const result = create(before);
-    const creator = result.state.inhabitants["inh_founder"] as Inhabitant;
+    // Measured across hand and store together, because that is where the cost is
+    // paid from. A creator cannot carry the price of a child.
     for (const kind of RESOURCE_KINDS) {
-      const spent = (founderOf(before).inventory[kind] ?? 0) - (creator.inventory[kind] ?? 0);
-      expect(spent).toBeGreaterThanOrEqual(cost[kind] ?? 0);
+      const spent = (reachable(before, kind) ?? 0) - (reachable(result.state, kind) ?? 0);
+      expect(spent, kind).toBeGreaterThanOrEqual(cost[kind] ?? 0);
     }
   });
 
@@ -495,7 +560,27 @@ describe("conservation and cost", () => {
   });
 
   it("rejects a creator who cannot pay, without charging", () => {
-    const poor = updateInhabitant(world(), "inh_founder", (i) => ({
+    // Empty the store as well as the pack: a cost is payable from either, so a
+    // creator standing on four thousand food is not poor.
+    const emptied = world();
+    const bare = {
+      ...emptied,
+      structures: {
+        ...emptied.structures,
+        str_store: { ...emptied.structures["str_store"]!, storage: {} },
+      },
+      ledger: {
+        ...emptied.ledger,
+        destroyed: {
+          ...emptied.ledger.destroyed,
+          food: (emptied.ledger.destroyed.food ?? 0) + (STORED.food ?? 0),
+          water: (emptied.ledger.destroyed.water ?? 0) + (STORED.water ?? 0),
+          wood: (emptied.ledger.destroyed.wood ?? 0) + (STORED.wood ?? 0),
+          stone: (emptied.ledger.destroyed.stone ?? 0) + (STORED.stone ?? 0),
+        },
+      },
+    };
+    const poor = updateInhabitant(bare, "inh_founder", (i) => ({
       ...i,
       inventory: { ...i.inventory, stone: 0 },
       exposed: {},
@@ -572,10 +657,14 @@ describe("population ceiling", () => {
 
   it("cannot push the world past the ceiling (§15)", () => {
     const nearly = populateTo(world(), 63);
+    // At 63 living the crowding multiplier is 4, so the cost is four times base.
+    // The bulk goes into the store: a pack still holds only `carryCapacity`,
+    // however rich its owner is.
+    const stocked = stock(nearly, { food: 40_000, water: 40_000, wood: 16_000, stone: 8_000 });
     const rich = endow(
-      nearly,
+      stocked,
       "inh_founder",
-      { food: 40000, water: 40000, wood: 16000, stone: 8000, energy: 8000, compute: 8000 },
+      { ...CARRIED, energy: 8000, compute: 8000 },
       { maxEnergy: 8000, maxCompute: 8000 },
     );
     const result = createInhabitantResolver(creationContext(rich), payload(rich));
@@ -638,7 +727,7 @@ describe("lineage over generations", () => {
       // rather than the twenty years of world it would otherwise take.
       sequence += 1;
       state = {
-        ...endow(state, child.id, RICH, { maxEnergy: 1000, maxCompute: 1000 }),
+        ...endow(state, child.id, CARRIED, { maxEnergy: 1000, maxCompute: 1000 }),
         simTime: simTime(state.simTime + CREATE.baseDuration),
       };
       state = updateInhabitant(state, child.id, (i) => ({

@@ -15,12 +15,13 @@
  * that cost nothing would be a free action, and §11A has none.
  */
 import { getActionSpec } from "../../schema/actions/index.js";
-import type { ResourceKind } from "../../schema/primitives.js";
+import type { Coord, ResourceKind } from "../../schema/primitives.js";
 import { isNight } from "../../time.js";
 import {
   clampInt,
   idiv,
   recordDestroyed,
+  sortedValues,
   updateInhabitant,
   type Inhabitant,
   type WorldRules,
@@ -284,6 +285,27 @@ export const consumeResolver: Resolver = (ctx, payload): ResolutionResult => {
 /* ------------------------------------------------------------------------- */
 
 /**
+ * Whether an intact shelter stands on this tile.
+ *
+ * `integrity > 0` because §5 keeps a ruined structure in the world rather than
+ * deleting it — a collapsed shelter is still a landmark, still possessed and
+ * still part of history, but it does not keep the weather off anyone.
+ */
+function shelterAt(state: WorldState, location: Coord): boolean {
+  for (const structure of sortedValues(state.structures)) {
+    if (
+      structure.kind === "shelter" &&
+      structure.integrity > 0 &&
+      structure.location.x === location.x &&
+      structure.location.y === location.y
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * `rest` — sleep (§13, §11B "required rest").
  *
  * Rest is the world's source of energy, and it is paid for in the only currency
@@ -305,7 +327,19 @@ export const restResolver: Resolver = (ctx, payload): ResolutionResult => {
 
   const { state, actor } = ctx;
   const night = isNight(ctx.simTime);
-  const gain = minutes * rules.restEnergyPerMinute * (night ? 2 : 1);
+  // A shelter on this tile makes the same hours worth more (§5: constructed
+  // entities occupy locations and are consulted, not merely recorded). Until
+  // this existed, `build` had no mechanical consequence whatsoever: a structure
+  // was written into state, given an integrity and a capacity, and then read by
+  // nothing. Shelter is the first reason to spend materials on one.
+  //
+  // Possession is not consulted. A roof keeps the rain off whoever is under it,
+  // and who may sleep beneath someone else's shelter is a question for the
+  // inhabitants (§11G), not one the engine should answer by making the walls
+  // selectively solid.
+  const sheltered = shelterAt(state, actor.location);
+  const shelterFactor = sheltered ? rules.shelterRestMultiplier : 1;
+  const gain = minutes * rules.restEnergyPerMinute * (night ? 2 : 1) * shelterFactor;
 
   const energyBefore = energyOf(actor);
   const rested = capEnergy(receive(actor, { energy: gain }));

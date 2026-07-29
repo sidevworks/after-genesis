@@ -122,6 +122,7 @@ import {
   ConsumePayloadSchema,
   GatherPayloadSchema,
   InspectInventoryPayloadSchema,
+  StoreGoodsPayloadSchema,
   RevealAssetPayloadSchema,
   SecureStoragePayloadSchema,
   TransferPropertyPayloadSchema,
@@ -338,6 +339,26 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     minimumMaturity: MATURITY.CHILD,
     description:
       "Physically end a nearby inhabitant's active restraint. Records no judgement about it.",
+  },
+  store_goods: {
+    type: "store_goods",
+    schemaVersion: 1,
+    payload: StoreGoodsPayloadSchema,
+    activity: "working",
+    baseDuration: minutes(30),
+    baseCost: { energy: 4 },
+    interruption: "partial_progress_kept",
+    visibility: "local",
+    // An inhabitant needs nobody's permission to set down what it is carrying.
+    // Whether it may set it down *there* is a question about the structure and
+    // the people around it, not one this flag can answer (§11G).
+    requiresConsent: false,
+    // §11H restricts "accessing property"; a confined inhabitant cannot reach a
+    // store.
+    allowedWhileConfined: false,
+    minimumMaturity: MATURITY.CHILD,
+    description:
+      "Put carried goods into a structure, or take them back out. A body carries only so much; a store does not move.",
   },
   inspect_inventory: {
     type: "inspect_inventory",
@@ -1295,6 +1316,7 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("coordinate_work"), payload: CoordinateWorkPayloadSchema }),
   z.object({ type: z.literal("contribute_to_group"), payload: ContributeToGroupPayloadSchema }),
   z.object({ type: z.literal("inspect_inventory"), payload: InspectInventoryPayloadSchema }),
+  z.object({ type: z.literal("store_goods"), payload: StoreGoodsPayloadSchema }),
   z.object({ type: z.literal("audit_records"), payload: AuditRecordsPayloadSchema }),
   z.object({ type: z.literal("conceal_asset"), payload: ConcealAssetPayloadSchema }),
   z.object({ type: z.literal("reveal_asset"), payload: RevealAssetPayloadSchema }),

@@ -105,9 +105,11 @@ export function makeObservation(overrides: Partial<Observation> = {}): Observati
       terrain: "plains",
       activity: "idle",
       energy: 72,
+      maxEnergy: 100,
       computeAllowance: 40,
       integrity: 91,
       confined: false,
+      currentIntention: null,
       traits: [
         { name: "curiosity", value: 71 },
         { name: "caution", value: 44 },

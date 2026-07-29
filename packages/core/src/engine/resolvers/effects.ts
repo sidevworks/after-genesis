@@ -11,7 +11,7 @@
  */
 import type { ActionType, ActivityState, InterruptionPolicy } from "../../schema/action-spec.js";
 import type { Coord, ResourceBundle } from "../../schema/primitives.js";
-import { addBundles, coordKey, subtractBundles } from "../../schema/primitives.js";
+import { addBundles, bundleTotal, coordKey, subtractBundles } from "../../schema/primitives.js";
 import { deriveActivityId } from "../../ids.js";
 import { addDuration, duration, isNight, type SimTime } from "../../time.js";
 import type { Rng } from "../../util/rng.js";
@@ -26,6 +26,7 @@ import {
   insertSorted,
   normaliseBundle,
   putActivity,
+  recordDestroyed,
   sortedValues,
   updateInhabitant,
   type ActivityRecord,
@@ -101,6 +102,153 @@ export function clampExposed(inventory: ResourceBundle, exposed: ResourceBundle)
     if (value > 0) out[kind] = value;
   }
   return normaliseBundle(out);
+}
+
+/**
+ * The conserved goods that occupy space in a pack.
+ *
+ * Energy and compute are deliberately absent: they are capacities of a body,
+ * not things carried in it, and they have their own ceilings.
+ */
+export const CARRIED_KINDS: readonly (keyof ResourceBundle)[] = ["food", "water", "wood", "stone"];
+
+/** Total material an inhabitant is carrying, against `rules.carryCapacity`. */
+export function carriedTotal(inventory: ResourceBundle): number {
+  let total = 0;
+  for (const kind of CARRIED_KINDS) total += inventory[kind] ?? 0;
+  return total;
+}
+
+/** How much more material this inhabitant could pick up. Never negative. */
+export function remainingCapacity(inhabitant: Inhabitant, rules: WorldRules): number {
+  const free = rules.carryCapacity - carriedTotal(inhabitant.inventory);
+  return free > 0 ? free : 0;
+}
+
+/**
+ * Spoilage of carried food (§5: every resource needs declared sinks).
+ *
+ * Applied on interval boundaries derived from absolute simulated time rather
+ * than from a per-inhabitant timer, so it needs no new field on `Inhabitant`,
+ * survives a world resumed from a snapshot, and is a pure function of
+ * `(before, now)` — which is what replay requires.
+ *
+ * Loss is `food / foodSpoilDivisor` per pass under integer division, so a
+ * holding smaller than the divisor loses nothing at all. Small stocks keep;
+ * large ones do not. Nothing here decides that hoarding is wrong — food simply
+ * behaves the way food behaves, and what to do about that is the experiment.
+ */
+export function spoilCarriedFood(
+  state: WorldState,
+  before: SimTime,
+  now: SimTime,
+): { readonly state: WorldState; readonly destroyed: ResourceBundle } {
+  const interval = state.rules.minutesPerFoodSpoil;
+  if (interval <= 0 || now <= before) return { state, destroyed: {} };
+  const passes = idiv(now, interval) - idiv(before, interval);
+  if (passes <= 0) return { state, destroyed: {} };
+
+  let next = state;
+  let lost = 0;
+  for (const inhabitant of sortedValues(state.inhabitants)) {
+    if (inhabitant.status !== "alive") continue;
+    let food = inhabitant.inventory.food ?? 0;
+    for (let pass = 0; pass < passes && food > 0; pass += 1) {
+      food -= idiv(food, state.rules.foodSpoilDivisor);
+    }
+    const spoiled = (inhabitant.inventory.food ?? 0) - food;
+    if (spoiled <= 0) continue;
+    lost += spoiled;
+    next = updateInhabitant(next, inhabitant.id, (current) => ({
+      ...current,
+      inventory: normaliseBundle({ ...current.inventory, food }),
+      exposed: clampExposed(normaliseBundle({ ...current.inventory, food }), current.exposed),
+    }));
+  }
+  if (lost === 0) return { state: next, destroyed: {} };
+  return { state: recordDestroyed(next, { food: lost }), destroyed: { food: lost } };
+}
+
+/**
+ * Spend a cost from what an inhabitant carries, drawing on stores at its feet
+ * for whatever will not fit in a pack.
+ *
+ * Some costs are simply larger than a body: `create_inhabitant` requires 500
+ * food, 500 water, 200 wood and 100 stone, and the carrying capacity is 150.
+ * Without this, the heaviest and most consequential action in the world would be
+ * arithmetically impossible for anyone, forever — which is exactly the class of
+ * bug that leaves a world looking alive while being unable to do anything.
+ *
+ * Reaching a store requires standing on it, so the materials are somewhere real
+ * and someone could have taken them first. Structures are drawn in a fixed
+ * sorted order so two replays empty the same store first.
+ *
+ * Returns `null` if hand and stores together fall short, and mutates nothing in
+ * that case: a cost is paid entirely or not at all (§15).
+ */
+export function spendFromHandAndStores(
+  state: WorldState,
+  inhabitant: Inhabitant,
+  cost: ResourceBundle,
+): { readonly state: WorldState; readonly inhabitant: Inhabitant } | null {
+  const direct = spend(inhabitant, cost);
+  if (direct !== null) return { state, inhabitant: direct };
+
+  let owing: ResourceBundle = {};
+  for (const kind of Object.keys(cost) as (keyof ResourceBundle)[]) {
+    const short = (cost[kind] ?? 0) - (inhabitant.inventory[kind] ?? 0);
+    if (short > 0) owing[kind] = short;
+  }
+
+  let next = state;
+  for (const structure of sortedValues(state.structures)) {
+    if (bundleTotal(owing) === 0) break;
+    if (
+      structure.integrity <= 0 ||
+      structure.location.x !== inhabitant.location.x ||
+      structure.location.y !== inhabitant.location.y
+    ) {
+      continue;
+    }
+    const taken: ResourceBundle = {};
+    for (const kind of Object.keys(owing) as (keyof ResourceBundle)[]) {
+      const want = owing[kind] ?? 0;
+      const have = structure.storage[kind] ?? 0;
+      const amount = want < have ? want : have;
+      if (amount > 0) taken[kind] = amount;
+    }
+    if (bundleTotal(taken) === 0) continue;
+    const remaining = subtractBundles(structure.storage, taken);
+    /* c8 ignore next */
+    if (remaining === null) continue;
+    next = {
+      ...next,
+      structures: {
+        ...next.structures,
+        [structure.id]: { ...structure, storage: normaliseBundle(remaining) },
+      },
+    };
+    owing = subtractBundles(owing, taken) ?? {};
+  }
+
+  if (bundleTotal(owing) > 0) return null;
+
+  // Everything drawn from a store is spent immediately, so it never passes
+  // through the pack and never has to fit in it.
+  const paid = spend(inhabitant, subtractBundles(cost, missingPart(cost, inhabitant)) ?? {});
+  /* c8 ignore next */
+  if (paid === null) return null;
+  return { state: next, inhabitant: paid };
+}
+
+/** The part of a cost the inhabitant could not cover from its own inventory. */
+function missingPart(cost: ResourceBundle, inhabitant: Inhabitant): ResourceBundle {
+  const out: ResourceBundle = {};
+  for (const kind of Object.keys(cost) as (keyof ResourceBundle)[]) {
+    const short = (cost[kind] ?? 0) - (inhabitant.inventory[kind] ?? 0);
+    if (short > 0) out[kind] = short;
+  }
+  return out;
 }
 
 /** Cap energy at the inhabitant's ceiling. Capacity is never created (§11B). */
@@ -218,11 +366,14 @@ export function closeExpiredActivities(state: WorldState, now: SimTime): WorldSt
  * Everything the world does to itself at the start of a turn, before the actor
  * acts (§11A, §8).
  *
- * There are exactly two such things, and the order between them matters:
+ * There are exactly three such things, and the order between them matters:
  *
  * 1. Finished activities close, so nobody is killed while still nominally
  *    holding a task they had in fact completed.
- * 2. Health advances for **every living inhabitant**, not only the actor.
+ * 2. Carried food spoils, before health is advanced — so an inhabitant that
+ *    starves does so against the stock it actually still has, not against one
+ *    that had already rotted.
+ * 3. Health advances for **every living inhabitant**, not only the actor.
  *
  * Point 2 is the reason this hook exists at all. `advanceNeeds` runs inside a
  * resolver, which means it only ever touches whoever is taking the turn. Decline
@@ -246,7 +397,9 @@ export function worldTick(
   now: SimTime,
   sequence: number = state.sequence + 1,
 ): { readonly state: WorldState; readonly events: readonly DerivedEvent[] } {
-  return advanceHealth(closeExpiredActivities(state, now), now, sequence);
+  const settled = closeExpiredActivities(state, now);
+  const spoiled = spoilCarriedFood(settled, state.simTime, now);
+  return advanceHealth(spoiled.state, now, sequence);
 }
 
 /**
@@ -288,3 +441,26 @@ export function learnLocations(
 
 /** Night slows travel and deepens rest. Re-exported so resolvers share one source. */
 export const isNightAt = (t: SimTime): boolean => isNight(t);
+
+/**
+ * Everything an inhabitant can lay hands on without moving: its pack plus the
+ * stores standing on its own tile.
+ *
+ * Used where a rule asks "can this be afforded?" rather than "is this carried?".
+ * The two questions became different the moment carrying capacity existed, and
+ * conflating them is what would make a creator with a full storehouse count as
+ * destitute.
+ */
+export function reachableHoldings(state: WorldState, inhabitant: Inhabitant): ResourceBundle {
+  let total = inhabitant.inventory;
+  for (const structure of sortedValues(state.structures)) {
+    if (
+      structure.integrity > 0 &&
+      structure.location.x === inhabitant.location.x &&
+      structure.location.y === inhabitant.location.y
+    ) {
+      total = addBundles(total, structure.storage);
+    }
+  }
+  return total;
+}

@@ -192,6 +192,8 @@ export const PERFORMANCE_CATALOGUE: Readonly<Record<string, PerformanceSpec>> = 
   accept_trade: spec("reach", "bundle", "stationary", true, SLOW),
   reject_trade: spec("talk", "none", "stationary", true, SLOW),
   transfer_property: spec("carry", "bundle", "stationary", true, SLOW),
+  // Setting a load down into a store, or lifting one back out.
+  store_goods: spec("carry", "bundle", "stationary", false, STEADY),
   transfer: spec("carry", "bundle", "stationary", true, SLOW),
   copy_artifact: spec("write", "tablet", "stationary", false, STEADY),
   restrain: spec("reach", "none", "stationary", true, STEADY),

@@ -289,3 +289,112 @@ describe("estimateTokens", () => {
     expect(Number.isSafeInteger(estimateTokens("x".repeat(1_000_003)))).toBe(true);
   });
 });
+
+/* ------------------------------------------------------------------------- */
+/* Repetition does not consume the budget                                     */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * Reconstructed from the first hundred-day run.
+ *
+ * The founder's day-100 planning turn retrieved sixteen memories, and all
+ * sixteen were the same sentence: it had observed, and seen the same three kinds
+ * of terrain. Everything else it had ever done — gathering, moving, the four
+ * research notes it wrote — lost every retrieval slot to copies of one event.
+ */
+function observeMemory(id: string, simTime: number): MemoryRecord {
+  return {
+    tier: "episodic",
+    epistemicStatus: "observed",
+    id,
+    simTime,
+    content:
+      "You performed observe with payload {}. Outcome: resolved. " +
+      "You saw: fertile at (8, 2); forest at (10, 4); plains at (6, 0).",
+    tags: ["fertile", "forest", "observe", "plains"],
+    participants: [],
+    location: { x: 10, y: 4 },
+    significance: 50,
+    eventSequence: simTime,
+    provenance: "observed",
+  };
+}
+
+function distinctMemory(id: string, simTime: number, content: string): MemoryRecord {
+  return {
+    tier: "episodic",
+    epistemicStatus: "observed",
+    id,
+    simTime,
+    content,
+    tags: ["forest"],
+    participants: [],
+    location: { x: 10, y: 4 },
+    significance: 50,
+    eventSequence: simTime,
+    provenance: "observed",
+  };
+}
+
+describe("repeated memories do not crowd out the rest", () => {
+  const context = {
+    nowSimTime: 142_920,
+    location: { x: 10, y: 4 },
+    focusInhabitantIds: [],
+    needs: [],
+    goals: [],
+    situationTags: ["forest", "idle", "wood"],
+    cognitionLevel: "planning" as const,
+    maturity: 5 as const,
+  };
+
+  // Forty identical observes, and they are the *newest* memories — which is the
+  // shape of the real failure: the founder's recent past was a run of observes,
+  // so recency handed them every slot and the things it had actually done were
+  // all older than the repetition that displaced them.
+  const candidates: MemoryRecord[] = [
+    ...Array.from({ length: 40 }, (_, i) => observeMemory(`obs_${i}`, 130_000 + i * 120)),
+    distinctMemory("act_1", 120_000, "You performed gather. Outcome: resolved. You gathered 8 wood."),
+    distinctMemory("act_2", 121_000, "You performed build. Outcome: rejected: not enough wood."),
+    distinctMemory("act_3", 122_000, "You performed create_artifact. Outcome: resolved."),
+  ];
+
+  it("keeps one of the repeated memories, not forty", () => {
+    const result = retrieveMemories(candidates, context);
+    const observes = result.selected.filter((s) => s.record.content.includes("observe"));
+    expect(observes).toHaveLength(1);
+  });
+
+  it("keeps the most recent of the collapsed group", () => {
+    const result = retrieveMemories(candidates, context);
+    const observe = result.selected.find((s) => s.record.content.includes("observe"));
+    expect(observe?.record.id).toBe("obs_39");
+  });
+
+  it("admits the distinct memories the repeats used to displace", () => {
+    const result = retrieveMemories(candidates, context);
+    const ids = result.selected.map((s) => s.record.id);
+    expect(ids).toContain("act_1");
+    expect(ids).toContain("act_2");
+    expect(ids).toContain("act_3");
+  });
+
+  it("stays deterministic regardless of candidate order", () => {
+    const forward = retrieveMemories(candidates, context);
+    const backward = retrieveMemories([...candidates].reverse(), context);
+    expect(backward.selected.map((s) => s.record.id)).toEqual(
+      forward.selected.map((s) => s.record.id),
+    );
+  });
+
+  it("does not collapse memories that merely share a shape", () => {
+    // Same sentence pattern, genuinely different events. These must all survive.
+    const distinct = [
+      distinctMemory("a", 130_000, "You performed gather. Outcome: resolved. You gathered wood."),
+      distinctMemory("b", 130_100, "You performed gather. Outcome: resolved. You gathered food."),
+      distinctMemory("c", 130_200, "You performed gather. Outcome: resolved. You gathered stone."),
+    ];
+    const result = retrieveMemories(distinct, context);
+    expect(result.selected).toHaveLength(3);
+  });
+});

@@ -63,6 +63,29 @@ export const ConsumePayloadSchema = z.object({
 });
 
 /**
+ * Move goods between what an inhabitant carries and what a structure holds
+ * (§5: "storage capacity" is one of the world's initial resources).
+ *
+ * A body can carry only so much. Everything beyond that has to be put down
+ * somewhere, and somewhere that is not simply the ground is a thing an
+ * inhabitant has to build. That is the whole point of the action: it is the join
+ * between the carrying limit, which makes surplus a problem, and construction,
+ * which makes surplus solvable.
+ *
+ * It moves goods and nothing else. Depositing into a structure is not a claim
+ * on it, does not create or transfer possession, and does not make the contents
+ * safe — a structure's `secured` flag and whoever is standing near it decide
+ * that (§11F), not this schema.
+ */
+export const StoreGoodsPayloadSchema = z.object({
+  structureId: IdSchema,
+  /** Into the structure, or out of it. */
+  direction: z.enum(["deposit", "withdraw"]),
+  resources: PayloadBundleSchema,
+  note: optionalText(500),
+});
+
+/**
  * Hand property to another holder, with the owner's consent by construction.
  *
  * Requires no consent from the *recipient*: §11F's concern is non-consensual

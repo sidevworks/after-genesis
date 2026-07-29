@@ -526,6 +526,58 @@ export interface RetrievalResult {
 }
 
 /**
+ * A content key used to collapse memories that say the same thing.
+ *
+ * Lowercased, with digits and runs of whitespace flattened, so that "You saw:
+ * fertile at (8, 2); forest at (10, 4)" and the same sentence recorded two hours
+ * later with different coordinates do NOT collapse — the numbers are removed
+ * from comparison only after the words differ, which they do not here. Two
+ * memories collapse when they are the same sentence about the same kind of
+ * event, which is exactly the case this exists for.
+ *
+ * Pure string work on already-canonical content: no locale, no normalisation
+ * tables, so two machines derive the same key.
+ */
+function contentKey(record: MemoryRecord): string {
+  return record.content
+    .toLowerCase()
+    .replace(/-?\d+/g, "#")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/**
+ * Collapse repeated memories, keeping the most recent of each group.
+ *
+ * §19 asks for bounded retrieval, and a budget spent on the same sentence
+ * sixteen times is not bounded in any useful sense. On day 100 of the first
+ * long run, every one of the founder's sixteen retrieved memories read "You
+ * performed observe with payload {}. Outcome: resolved. You saw: fertile at
+ * (8, 2); forest at (10, 4); plains at (6, 0)." The strongest signal in its
+ * context window was a transcript of its own idleness, and it went on observing.
+ *
+ * This is not a judgement about which memories matter — that would be the
+ * platform choosing what an inhabitant values (§26). It is the narrower claim
+ * that hearing the same sentence a second time carries no information the first
+ * did not. The repetition itself is not erased: the record still exists, the
+ * canonical events behind every repeat are untouched, and a later turn with a
+ * different situation may retrieve a different member of the group.
+ */
+function collapseRepeats(scored: readonly ScoredMemory[]): ScoredMemory[] {
+  const best = new Map<string, ScoredMemory>();
+  for (const candidate of scored) {
+    const key = `${candidate.record.tier} ${contentKey(candidate.record)}`;
+    const incumbent = best.get(key);
+    if (incumbent === undefined || compareScored(candidate, incumbent) < 0) {
+      best.set(key, candidate);
+    }
+  }
+  // Sorted rather than returned in Map insertion order: insertion order follows
+  // the caller's candidate order, and the prompt must not depend on that.
+  return [...best.values()].sort(compareScored);
+}
+
+/**
  * Deterministic ordering for candidates with equal score.
  *
  * Score first (descending), then simTime (descending, so the newer of two
@@ -573,7 +625,11 @@ export function retrieveMemories(
     .map((s): ScoredMemory => ({ ...s, admission: "reserved" }));
 
   const reservedIds = new Set(working.map((s) => s.record.id));
-  const rest = scored.filter((s) => !reservedIds.has(s.record.id)).sort(compareScored);
+  // Repeats are collapsed only among the scored candidates. Reserved working
+  // memory is admitted on recency alone and stays whole: if the last three
+  // things that happened really were the same thing three times, that is the
+  // situation the inhabitant is in and hiding it would be a lie.
+  const rest = collapseRepeats(scored.filter((s) => !reservedIds.has(s.record.id)));
 
   const selected: ScoredMemory[] = [];
   let tokens = 0;

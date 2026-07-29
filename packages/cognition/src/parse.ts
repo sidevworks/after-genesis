@@ -275,7 +275,8 @@ export function parseModelResponse(rawText: string): ParseResult {
   }
 
   const extraKeys = Object.keys(record).filter(
-    (key) => key !== "type" && key !== "payload" && key !== "rationale",
+    (key) =>
+      key !== "type" && key !== "payload" && key !== "rationale" && key !== "intention",
   );
   if (extraKeys.length > 0) {
     // The key *names* are echoed because they are useful for correction and are
@@ -287,7 +288,7 @@ export function parseModelResponse(rawText: string): ParseResult {
     return {
       ok: false,
       code: "unexpected_fields",
-      reason: `The object contained ${extraKeys.length} unexpected field(s): ${shown}. Only type, payload and rationale are allowed.`,
+      reason: `The object contained ${extraKeys.length} unexpected field(s): ${shown}. Only type, payload, rationale and intention are allowed.`,
     };
   }
 

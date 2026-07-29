@@ -31,6 +31,7 @@ import {
   type Inhabitant,
   type WorldState,
 } from "./state.js";
+import { carriedTotal } from "./resolvers/effects.js";
 
 /** A specific, located breach of a specific rule. */
 export interface InvariantViolation {
@@ -1403,6 +1404,12 @@ export const needsAndCapsWithinBounds: Check = (state) => {
     bound(i, "needs.social", i.needs.social, NEED_CEILING);
     bound(i, "energy", i.inventory.energy ?? 0, i.maxEnergy);
     bound(i, "compute", i.inventory.compute ?? 0, i.maxCompute);
+    // Carried material against the world's carrying capacity (§5 storage
+    // capacity). Checked here rather than trusted to each faucet: `gather`
+    // clamps, but trade settlement, transfers and creation endowments all add to
+    // an inventory too, and a cap enforced in only some of those places is not a
+    // cap. A violation means a route into an inventory forgot to check.
+    bound(i, "carried material", carriedTotal(i.inventory), state.rules.carryCapacity);
   }
   return out;
 };

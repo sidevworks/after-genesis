@@ -41,8 +41,16 @@ import {
   publishArtifactResolver,
   transferResolver,
 } from "./artifacts.js";
-import { buildResolver, guardLocationResolver } from "./physical.js";
+import { buildResolver, guardLocationResolver, storeGoodsResolver } from "./physical.js";
 import { releaseResolver, restrainResolver } from "./restraint.js";
+import { createInhabitantResolver } from "./lineage.js";
+import { createCurrencyResolver, transferCurrencyResolver } from "./currency.js";
+import {
+  acceptTradeResolver,
+  offerTradeResolver,
+  rejectTradeResolver,
+  transferPropertyResolver,
+} from "./trade.js";
 import {
   RejectionCode,
   type ResolutionContext,
@@ -55,6 +63,15 @@ export { findRoute, isPassable, travelMinutes } from "./move.js";
 export { GATHERABLE, computeYield, findSource } from "./gather.js";
 export { CONSUMABLE } from "./basic.js";
 export { settleExpiredActivities } from "./effects.js";
+
+/**
+ * How a stored intention is recognised when it is read back.
+ *
+ * Exported because the cognition layer has to find the newest one to show the
+ * inhabitant what it last said it was doing, and a prefix agreed in two places
+ * is a prefix that will eventually disagree.
+ */
+export const INTENTION_PREFIX = "Intention:";
 
 /**
  * The honest placeholder.
@@ -71,7 +88,23 @@ export const notYetImplemented: Resolver = (ctx) => ({
   events: [],
 });
 
-/** The actions this build actually resolves — the §27 vertical slice. */
+/**
+ * The actions this build actually resolves — the §27 vertical slice.
+ *
+ * This list is what the cognition layer offers an inhabitant, so an action
+ * missing from it is an action the world cannot perform, however complete its
+ * resolver is. That distinction was not academic: `createInhabitantResolver`,
+ * the trade resolvers and the currency resolvers were all written and tested
+ * while none of them appeared here. A hundred simulated days produced a world of
+ * one inhabitant with a permanently unmeetable `social` need, because the only
+ * action that could have answered it was unreachable.
+ *
+ * `transfer` is deliberately absent despite having a resolver. It is a narrow
+ * early slice of `transfer_property` — resources and artifacts, inhabitant
+ * recipients only — and offering both would put two near-identical ways to hand
+ * something over in front of the model. The resolver stays registered below so
+ * that any event already recorded against `transfer` still replays.
+ */
 export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "observe",
   "move",
@@ -82,11 +115,18 @@ export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "announce",
   "communicate",
   "build",
+  "store_goods",
   "guard_location",
   "create_artifact",
   "copy_artifact",
   "publish",
-  "transfer",
+  "transfer_property",
+  "offer_trade",
+  "accept_trade",
+  "reject_trade",
+  "create_currency",
+  "transfer_currency",
+  "create_inhabitant",
   "restrain",
   "release",
 ];
@@ -101,11 +141,19 @@ const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
   announce: announceResolver,
   communicate: communicateResolver,
   build: buildResolver,
+  store_goods: storeGoodsResolver,
   guard_location: guardLocationResolver,
   create_artifact: createArtifactResolver,
   copy_artifact: copyArtifactResolver,
   publish: publishArtifactResolver,
   transfer: transferResolver,
+  transfer_property: transferPropertyResolver,
+  offer_trade: offerTradeResolver,
+  accept_trade: acceptTradeResolver,
+  reject_trade: rejectTradeResolver,
+  create_currency: createCurrencyResolver,
+  transfer_currency: transferCurrencyResolver,
+  create_inhabitant: createInhabitantResolver,
   restrain: restrainResolver,
   release: releaseResolver,
 };
@@ -329,6 +377,25 @@ function rememberTurn(
         `${perspective} ${action.type} with payload ${payloadText}. ` +
         `Outcome: ${outcome}.${revealed}`,
       participants,
+      sequence,
+      revisionOf: null,
+    });
+  }
+
+  // An intention the actor wrote about itself, kept as a reflection (§19: a
+  // belief, never a canonical fact). It is the actor's alone — witnesses saw an
+  // action, not the reason behind it — and each new one is a new record rather
+  // than an edit of the old, so the log shows what an inhabitant meant to do and
+  // when it changed its mind.
+  const intention = action.intention?.trim() ?? "";
+  if (intention !== "") {
+    state = putMemory(state, {
+      id: deriveMemoryId(state.worldId, sequence, discriminator++),
+      owner: actorId,
+      simTime: now,
+      kind: "reflection",
+      summary: `${INTENTION_PREFIX} ${intention}`,
+      participants: [actorId],
       sequence,
       revisionOf: null,
     });

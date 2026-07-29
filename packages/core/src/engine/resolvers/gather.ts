@@ -31,7 +31,16 @@ import {
   updateInhabitant,
   type WorldState,
 } from "../state.js";
-import { advanceNeeds, beginActivity, energyOf, practise, receive, spend } from "./effects.js";
+import {
+  advanceNeeds,
+  beginActivity,
+  carriedTotal,
+  energyOf,
+  practise,
+  receive,
+  remainingCapacity,
+  spend,
+} from "./effects.js";
 import { asObject, readEnum } from "./payload.js";
 import { RejectionCode, reject, type ResolutionResult, type Resolver } from "./types.js";
 
@@ -191,12 +200,24 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
   // the bonus lands. A conditional draw would make the stream position depend
   // on the skill level and desynchronise replays after any tuning change.
   const bonusRoll = ctx.rng.chance(skill + 10, 200);
+  // What a pack still has room for bounds the take, alongside what the deposit
+  // holds. The draw above happens either way, so a full pack does not shift the
+  // random stream and desynchronise replay.
+  const free = remainingCapacity(actor, rules);
   const amount = computeYield(
     rules.gatherBaseYield[terrain],
     skill,
-    source.available,
+    Math.min(source.available, free),
     bonusRoll,
   );
+
+  if (free <= 0) {
+    return reject(
+      ctx,
+      RejectionCode.InsufficientResources,
+      `carrying ${carriedTotal(actor.inventory)} of a capacity of ${rules.carryCapacity}; nothing more will fit`,
+    );
+  }
 
   /* c8 ignore next 3 */
   if (amount <= 0) {

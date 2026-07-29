@@ -12,7 +12,13 @@
  *    sources, into one document does not create an escape between them.
  */
 import { describe, expect, it } from "vitest";
-import { buildCorrectionRequest, buildPrompt, hashRequest } from "./prompt.js";
+import {
+  RESPONSE_JSON_SCHEMA,
+  buildCorrectionRequest,
+  buildPrompt,
+  hashRequest,
+} from "./prompt.js";
+import { IMPLEMENTED_ACTIONS } from "@after-genesis/core";
 import { retrieveMemories } from "./memory.js";
 import { UNTRUSTED_DELIMITERS, countDelimiters } from "./untrusted.js";
 import {
@@ -303,5 +309,45 @@ describe("format correction (§14.10)", () => {
     const a = buildCorrectionRequest(original, "oops", "bad");
     const b = buildCorrectionRequest(original, "oops", "bad");
     expect(a.userPrompt).toBe(b.userPrompt);
+  });
+});
+
+/* ------------------------------------------------------------------------- */
+/* Offered actions must be emittable                                          */
+/* ------------------------------------------------------------------------- */
+
+/**
+ * The failure this guards against is silent and was live for a hundred
+ * simulated days.
+ *
+ * `RESPONSE_JSON_SCHEMA` is described elsewhere as a provider *hint*, and for
+ * validation it is: parse.ts is the control. But Gemini enforces a supplied
+ * `anyOf` as structured output, so a branch missing from it is an action the
+ * model physically cannot emit — no matter that the engine offered it, resolves
+ * it and has tests for it. `create_inhabitant` was in that state: specced,
+ * resolved, 37 passing tests, and unreachable. The population could not grow and
+ * the founder's only unmet need was the one need with no available answer.
+ *
+ * So the two lists must agree in both directions. An offered action with no
+ * branch cannot be chosen; a branch with no offered action teaches the model,
+ * across thousands of turns, that proposing unavailable actions is normal.
+ */
+describe("every offered action can actually be emitted", () => {
+  const branchTypes = RESPONSE_JSON_SCHEMA.anyOf.map(
+    (branch) => (branch as { properties: { type: { enum: readonly string[] } } }).properties.type.enum[0],
+  );
+
+  it("gives every implemented action a structured-output branch", () => {
+    const missing = IMPLEMENTED_ACTIONS.filter((type) => !branchTypes.includes(type));
+    expect(missing).toEqual([]);
+  });
+
+  it("offers no branch for an action the engine will not resolve", () => {
+    const extra = branchTypes.filter((type) => !IMPLEMENTED_ACTIONS.includes(type as never));
+    expect(extra).toEqual([]);
+  });
+
+  it("names each branch exactly once", () => {
+    expect(new Set(branchTypes).size).toBe(branchTypes.length);
   });
 });
