@@ -2,6 +2,7 @@ import {
   SpendLimitExceededError,
   buildObservation,
   getActionSpec,
+  type CognitionLevel,
   type ModelAuditStore,
   type ModelProvider,
   type ResourceKind,
@@ -139,6 +140,61 @@ export class ProviderCognitionService implements CognitionService {
 
 type CoreObservation = ReturnType<typeof buildObservation>;
 
+/** A need at or above this is an emergency: act on it now. */
+const NEED_CRITICAL = 85;
+/** A need at or above this presses on the next decision. */
+const NEED_PRESSING = 50;
+/** Turns between the deliberate levels, once nothing is pressing. */
+const CALM_CYCLE = 24;
+
+/**
+ * Which kind of thinking this turn is (§11B).
+ *
+ * This was pinned to "routine" — "choose the sensible next thing given your
+ * needs" — for every turn of every inhabitant. Over two hundred simulated days
+ * the founder received that same sentence 2,400 times, and did what it asked:
+ * she ate, drank, rested, and gathered a surplus she had no use for. She never
+ * proposed building anything, holding 787 wood and the ability to build,
+ * because she was never once asked to think past the next hour.
+ *
+ * §11B describes six levels of cognitive activity. All six existed in the
+ * prompt; only one was ever assigned. What follows chooses between them from
+ * circumstance:
+ *
+ * - Someone is here, so attend to them.
+ * - A need is critical, so deal with it now.
+ * - A need presses, so weigh it against everything else.
+ * - Nothing presses, so use the quiet: plan, and periodically reflect or study.
+ *
+ * Deterministic by construction. Every input is canonical state or the
+ * inhabitant's own turn number, so a replay picks the same level at the same
+ * sequence — which matters because the level changes the prompt, and the prompt
+ * is hashed onto the event (§16).
+ *
+ * This chooses how the inhabitant is invited to think. It never chooses what to
+ * think, and it never names an action.
+ */
+export function cognitionLevelFor(
+  source: CoreObservation,
+  turnNumber: number,
+): CognitionLevel {
+  const needs = source.self.needs;
+  const worst = Math.max(needs.thirst, needs.hunger, needs.fatigue);
+
+  // Another mind present outranks everything short of an emergency: a
+  // conversation missed is gone, while a resource waits.
+  if (worst < NEED_CRITICAL && source.inhabitants.length > 0) return "conversation";
+  if (worst >= NEED_CRITICAL) return "reaction";
+  if (worst >= NEED_PRESSING) return "routine";
+
+  // Quiet. Most of it goes to planning, with reflection and study on a fixed
+  // cadence so that consolidating experience is not left to chance.
+  const phase = turnNumber % CALM_CYCLE;
+  if (phase === 0) return "reflection";
+  if (phase === CALM_CYCLE / 2) return "study";
+  return "planning";
+}
+
 function projectObservation(
   source: CoreObservation,
   sequence: number,
@@ -154,7 +210,7 @@ function projectObservation(
     sequence,
     simTime: source.simTime,
     turnNumber,
-    cognitionLevel: "routine",
+    cognitionLevel: cognitionLevelFor(source, turnNumber),
     self: {
       id: source.self.id,
       displayName: source.self.displayName,
