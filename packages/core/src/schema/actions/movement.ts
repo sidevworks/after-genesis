@@ -47,7 +47,14 @@ export const ObservePayloadSchema = z.object({
  * covered, so travel is the one long action that is never wasted.
  */
 export const MovePayloadSchema = z.object({
-  destination: CoordSchema,
+  /**
+   * Named `to` because that is the key the move resolver reads. This schema and
+   * the resolver disagreed for a long time — the schema said `destination`,
+   * nothing parsed it, and the disagreement was invisible because the declared
+   * schema is documentation rather than the gate. A resolver-contract test now
+   * fails if they diverge again.
+   */
+  to: CoordSchema,
   path: z.array(CoordSchema).max(MAX_PATH_LENGTH).default([]),
   /** Travel faster for more energy. A choice the inhabitant makes, not a modifier. */
   haste: z.boolean().default(false),
@@ -63,8 +70,8 @@ export const MovePayloadSchema = z.object({
  * never rests runs out of energy; one that rests constantly achieves nothing.
  */
 export const RestPayloadSchema = z.object({
-  /** Capped at 16 hours: sleeping longer is a condition, not a decision. */
-  intendedHours: z.number().int().min(1).max(16).default(8),
+  /** Minutes, matching the resolver. Capped at 16 hours: sleeping longer is a condition, not a decision. */
+  minutes: z.number().int().min(1).max(16 * 60).default(8 * 60),
   structureId: OptionalIdSchema,
 });
 
@@ -76,7 +83,8 @@ export const RestPayloadSchema = z.object({
  * recorded reason, rather than an absence in the log.
  */
 export const WaitPayloadSchema = z.object({
-  durationMinutes: minutesInRange(1, MAX_PLANNED_MINUTES).default(60),
+  /** Named `minutes` because that is the key the wait resolver reads. */
+  minutes: minutesInRange(1, MAX_PLANNED_MINUTES).default(60),
   reason: optionalText(300),
   /** If set, the wait ends early when this activity completes. */
   untilActivityId: OptionalIdSchema,

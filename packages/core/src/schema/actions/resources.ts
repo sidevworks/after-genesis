@@ -33,8 +33,11 @@ import {
  */
 export const GatherPayloadSchema = z.object({
   resource: GatherableResourceSchema,
-  /** An intent, not a guarantee. The engine resolves the actual yield. */
-  targetQuantity: z.number().int().min(1).max(MAX_GATHER_QUANTITY),
+  /**
+   * An intent, not a guarantee: the engine resolves the actual yield and does
+   * not read this. Optional because the resolver accepts a gather without it.
+   */
+  targetQuantity: z.number().int().min(1).max(MAX_GATHER_QUANTITY).optional(),
   coord: OptionalCoordSchema,
   /** A crafted tool that may improve yield, if the inhabitant owns it. */
   toolArtifactId: OptionalIdSchema,
@@ -46,16 +49,17 @@ export const GatherPayloadSchema = z.object({
  * The counterpart sink to `gather`. Consumption is how food and water leave the
  * world's conserved totals.
  */
+/**
+ * One resource at a time, matching the consume resolver.
+ *
+ * This schema previously declared a list of `items`, which nothing parsed and
+ * which no inhabitant could have submitted: the resolver reads a single
+ * `resource` with an optional `amount`. Consuming several things at once is a
+ * capability the engine does not have, and declaring it here implied it did.
+ */
 export const ConsumePayloadSchema = z.object({
-  items: z
-    .array(
-      z.object({
-        resource: ResourceKindSchema,
-        quantity: z.number().int().min(1).max(MAX_PAYLOAD_QUANTITY),
-      }),
-    )
-    .min(1)
-    .max(MAX_SMALL_LIST),
+  resource: ResourceKindSchema,
+  amount: z.number().int().min(1).max(MAX_PAYLOAD_QUANTITY).default(1),
 });
 
 /**

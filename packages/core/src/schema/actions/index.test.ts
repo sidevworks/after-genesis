@@ -27,9 +27,9 @@ import { ACTION_CATALOGUE, ActionSchema, actionsAllowedWhileConfined, getActionS
  */
 const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   observe: {},
-  move: { destination: { x: 3, y: 4 } },
-  gather: { resource: "wood", targetQuantity: 12 },
-  consume: { items: [{ resource: "food", quantity: 2 }] },
+  move: { to: { x: 3, y: 4 } },
+  gather: { resource: "wood" },
+  consume: { resource: "food", amount: 2 },
   rest: {},
   communicate: { recipients: ["inh_b"], message: "Will you come to the ridge tomorrow?" },
   announce: { message: "There is stone on the eastern slope." },
