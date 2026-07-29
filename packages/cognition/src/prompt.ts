@@ -427,6 +427,21 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
   const needs = [...self.needs].sort((a, b) => b.level - a.level || byCodeUnit(a.kind, b.kind));
   if (needs.length > 0) {
     lines.push("", "CURRENT NEEDS (100 = critical)", ...needs.map((n) => `- ${n.kind}: ${n.level}`));
+    const thirst = needs.find((n) => n.kind === "thirst")?.level ?? 0;
+    const hunger = needs.find((n) => n.kind === "hunger")?.level ?? 0;
+    if (thirst >= 40 || hunger >= 40) {
+      lines.push("SURVIVAL PRIORITIES: Your physical needs are rising. Address them before taking other actions.");
+      if (thirst >= 40) {
+        lines.push(
+          "- Thirst is high. Look at your remembered places for water, move to a land tile adjacent to the water, and gather water.",
+        );
+      }
+      if (hunger >= 40) {
+        lines.push(
+          "- Hunger is high. Move to a tile with food deposits and gather/consume food.",
+        );
+      }
+    }
   }
 
   const skills = [...self.skills].sort((a, b) => b.level - a.level || byCodeUnit(a.name, b.name));
@@ -735,7 +750,7 @@ function renderRememberedPlaces(places: readonly RememberedPlace[]): string[] {
     const rendered = nearest
       .map((place) => `(${place.location.x}, ${place.location.y}) ${place.distance} away`)
       .join(", ");
-    const footing = isImpassable(terrain) ? " [cannot be entered; stand beside it]" : "";
+    const footing = isImpassable(terrain) ? " [cannot be entered; stand on an adjacent land tile to gather or drink]" : "";
     lines.push(`- ${terrain}${footing}: ${rendered}`);
   }
   return lines;
