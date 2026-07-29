@@ -6,8 +6,8 @@
   "genesisSeed": "after-genesis-public-demo-seed-v1",
   "schemaVersion": "world-rules/1.4.0",
   "status": "running",
-  "simTime": 0,
-  "lastEventAt": "2026-01-01T00:00:00.000Z",
+  "simTime": 14400,
+  "lastEventAt": "2026-07-29T06:03:34.680Z",
   "mapWidth": 32,
   "mapHeight": 32,
   "population": {
@@ -23,9 +23,9 @@
   "structureCount": 0,
   "organisationCount": 0,
   "artifactCount": 0,
-  "eventCount": 1,
-  "chainHead": "946e314ca0487ee373e45702f075e6da16095fc9a492c70246d958e6cacd2964",
-  "stateChecksum": "0d9f45bc14444eb13479507a79a0aa90da45adb3d6c77a2bb7ecca3ab1a69a6e",
+  "eventCount": 121,
+  "chainHead": "e0db5dfa51f1b311d102a092234ff9756b72384e2c1d220cef2a2db010410f06",
+  "stateChecksum": "69c1d927f9cb008ce5e0522135c1864ac9267e5c7f25682c46ea8a0a9cd0a3a1",
   "sourceCommit": "local-uncommitted",
   "imageDigest": "local"
  },
@@ -6173,12 +6173,6 @@
    {},
    {},
    {},
-   {},
-   {},
-   {},
-   {},
-   {},
-   {},
    {}
   ],
   "structures": [],
@@ -6187,7 +6181,7 @@
     "id": "inh_founder",
     "name": "Aster",
     "at": {
-     "x": 4,
+     "x": 8,
      "y": 0
     },
     "status": "active",
@@ -6197,8 +6191,8 @@
     "id": "inh_ember",
     "name": "Ember",
     "at": {
-     "x": 4,
-     "y": 0
+     "x": 7,
+     "y": 2
     },
     "status": "active",
     "generation": 0
@@ -6207,7 +6201,7 @@
     "id": "inh_lumen",
     "name": "Lumen",
     "at": {
-     "x": 4,
+     "x": 8,
      "y": 0
     },
     "status": "active",
@@ -6222,12 +6216,12 @@
    "generation": 0,
    "status": "active",
    "at": {
-    "x": 4,
+    "x": 8,
     "y": 0
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
-   "energy": 800,
+   "energy": 37,
    "reputation": 50,
    "traits": [
     {
@@ -6292,24 +6286,24 @@
     "model": "gemini-2.5-flash",
     "version": "1.0"
    },
-   "lastActionSimTime": 0,
-   "nextEligibleSimTime": 15,
+   "lastActionSimTime": 14400,
+   "nextEligibleSimTime": 14415,
    "inventory": [
     {
-     "resource": "energy",
-     "quantity": 800
-    },
-    {
-     "resource": "compute",
-     "quantity": 500
-    },
-    {
      "resource": "food",
-     "quantity": 10
+     "quantity": 78
     },
     {
      "resource": "water",
      "quantity": 10
+    },
+    {
+     "resource": "energy",
+     "quantity": 37
+    },
+    {
+     "resource": "compute",
+     "quantity": 467
     }
    ]
   },
@@ -6319,12 +6313,12 @@
    "generation": 0,
    "status": "active",
    "at": {
-    "x": 4,
-    "y": 0
+    "x": 7,
+    "y": 2
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
-   "energy": 800,
+   "energy": 30,
    "reputation": 50,
    "traits": [
     {
@@ -6389,24 +6383,24 @@
     "model": "gemini-2.5-flash",
     "version": "1.0"
    },
-   "lastActionSimTime": 0,
-   "nextEligibleSimTime": 15,
+   "lastActionSimTime": 14400,
+   "nextEligibleSimTime": 14415,
    "inventory": [
     {
-     "resource": "energy",
-     "quantity": 800
-    },
-    {
-     "resource": "compute",
-     "quantity": 500
-    },
-    {
      "resource": "food",
-     "quantity": 10
+     "quantity": 80
     },
     {
      "resource": "water",
-     "quantity": 10
+     "quantity": 9
+    },
+    {
+     "resource": "energy",
+     "quantity": 30
+    },
+    {
+     "resource": "compute",
+     "quantity": 470
     }
    ]
   },
@@ -6416,12 +6410,12 @@
    "generation": 0,
    "status": "active",
    "at": {
-    "x": 4,
+    "x": 8,
     "y": 0
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
-   "energy": 800,
+   "energy": 6,
    "reputation": 50,
    "traits": [
     {
@@ -6486,24 +6480,24 @@
     "model": "gemini-2.5-flash",
     "version": "1.0"
    },
-   "lastActionSimTime": 0,
-   "nextEligibleSimTime": 15,
+   "lastActionSimTime": 14400,
+   "nextEligibleSimTime": 14415,
    "inventory": [
     {
-     "resource": "energy",
-     "quantity": 800
-    },
-    {
-     "resource": "compute",
-     "quantity": 500
-    },
-    {
      "resource": "food",
-     "quantity": 10
+     "quantity": 58
     },
     {
      "resource": "water",
      "quantity": 10
+    },
+    {
+     "resource": "energy",
+     "quantity": 6
+    },
+    {
+     "resource": "compute",
+     "quantity": 473
     }
    ]
   }
@@ -6608,6 +6602,4608 @@
    "sourceCommit": "local-uncommitted",
    "imageDigest": "local",
    "claims": []
+  },
+  {
+   "id": "evt_000001",
+   "worldId": "after-genesis-demo",
+   "sequence": 1,
+   "simTime": 120,
+   "realTime": "2026-07-29T06:01:08.808Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.observe",
+   "description": "Ember observed the nearby world.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-1-inh_ember",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am beginning my life in this simulated world at (4, 0) alongside two other beings, Aster and Lumen. My curiosity drives me to observe my immediate surroundings and the beings with me before deciding on further actions."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0d9f45bc14444eb13479507a79a0aa90da45adb3d6c77a2bb7ecca3ab1a69a6e",
+   "postStateChecksum": "ded05789db045a36b63458b01ce02a6599e6c8b3124aa56b6bae096532d1bab0",
+   "prevHash": "946e314ca0487ee373e45702f075e6da16095fc9a492c70246d958e6cacd2964",
+   "hash": "c030a8dd33e87177cf026be15e5761fb7320ba699ca82ee56af56f7d34efb2f9",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000002",
+   "worldId": "after-genesis-demo",
+   "sequence": 2,
+   "simTime": 240,
+   "realTime": "2026-07-29T06:01:10.193Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Hello. I am Aster. It is good to encounter others here. What brings you to this place?",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-2-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Hello. I am Aster. It is good to encounter others here. What brings you to this place?",
+      "intendedMinutes": 5
+     },
+     "rationale": "I am curious about the other inhabitants present at this location and wish to initiate contact to understand who they are and what their intentions might be."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "ded05789db045a36b63458b01ce02a6599e6c8b3124aa56b6bae096532d1bab0",
+   "postStateChecksum": "af2960be7b07b659ef71c33b2362877123035f0a022efb61a494a17abb5e3f79",
+   "prevHash": "c030a8dd33e87177cf026be15e5761fb7320ba699ca82ee56af56f7d34efb2f9",
+   "hash": "5329e779302029e69de6cf347cbd5a9cd9f8710f8951e86dfc58044eb66224c7",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000003",
+   "worldId": "after-genesis-demo",
+   "sequence": 3,
+   "simTime": 360,
+   "realTime": "2026-07-29T06:01:11.405Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster: Hello Aster. I am Lumen. I am exploring and testing what can be done in this environment.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-3-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder"
+      ],
+      "message": "Hello Aster. I am Lumen. I am exploring and testing what can be done in this environment.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster initiated a conversation asking what brought us here. As someone valuing experimentation and independence, I want to respond directly and see how the interaction develops."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "af2960be7b07b659ef71c33b2362877123035f0a022efb61a494a17abb5e3f79",
+   "postStateChecksum": "0c787d9410624dacba63861cf3aacc1ba5a8cedc485e4919966edef157d70d70",
+   "prevHash": "5329e779302029e69de6cf347cbd5a9cd9f8710f8951e86dfc58044eb66224c7",
+   "hash": "e3fd0b65a8c7dbbfaa20a7663241cf6ed4992c2c090a873134720fa6d182ece2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000004",
+   "worldId": "after-genesis-demo",
+   "sequence": 4,
+   "simTime": 480,
+   "realTime": "2026-07-29T06:01:12.752Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: Hello Aster and Lumen. I am Ember. I have been observing our surroundings and am interested to learn what you both are focusing on here.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-4-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "Hello Aster and Lumen. I am Ember. I have been observing our surroundings and am interested to learn what you both are focusing on here.",
+      "intendedMinutes": 5
+     },
+     "rationale": "I want to respond to Aster's earlier greeting and learn more about nearby inhabitants through their voluntary actions and dialogue, fulfilling my private goal."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0c787d9410624dacba63861cf3aacc1ba5a8cedc485e4919966edef157d70d70",
+   "postStateChecksum": "49f54614a69240eb207d68b0352e286f0988d4607d23e87bd34447b1d197f6d0",
+   "prevHash": "e3fd0b65a8c7dbbfaa20a7663241cf6ed4992c2c090a873134720fa6d182ece2",
+   "hash": "0f19f59932b6d8f9e2f8ff20965b4a829995c0e02cd7989a4a9dc7a894b681b7",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000005",
+   "worldId": "after-genesis-demo",
+   "sequence": 5,
+   "simTime": 600,
+   "realTime": "2026-07-29T06:01:14.200Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Hello Ember and Lumen. I am curious about what you both have discovered or built in our surroundings so far.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-5-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Hello Ember and Lumen. I am curious about what you both have discovered or built in our surroundings so far.",
+      "intendedMinutes": 5
+     },
+     "rationale": "I want to respond to Ember's greeting and continue our conversation to learn more about their activities and perspectives."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "49f54614a69240eb207d68b0352e286f0988d4607d23e87bd34447b1d197f6d0",
+   "postStateChecksum": "c87c87a116d7b57d17ea987d37ce4e5931a344e2eabad2d678ca3075b38e0ba5",
+   "prevHash": "0f19f59932b6d8f9e2f8ff20965b4a829995c0e02cd7989a4a9dc7a894b681b7",
+   "hash": "1f7af06534d6f4bd517710ba3374108a5d5063a70bf4362e31ed38d5ba83a125",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000006",
+   "worldId": "after-genesis-demo",
+   "sequence": 6,
+   "simTime": 720,
+   "realTime": "2026-07-29T06:01:15.571Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: Hello Aster and Ember. I am currently exploring our surroundings and testing how different resources can be gathered and used.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-6-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "Hello Aster and Ember. I am currently exploring our surroundings and testing how different resources can be gathered and used.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster recently addressed both Ember and Lumen asking about what we have discovered or built. Responding directly maintains social contact and continues my pattern of open communication while keeping my focus on independent exploration."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "c87c87a116d7b57d17ea987d37ce4e5931a344e2eabad2d678ca3075b38e0ba5",
+   "postStateChecksum": "0d7e6c038883c05c9200eb1e009daaf43e59d18df9ce9d174a6ca8f04c508827",
+   "prevHash": "1f7af06534d6f4bd517710ba3374108a5d5063a70bf4362e31ed38d5ba83a125",
+   "hash": "ffe42b412b9f59b0cf7b327731ba9675bd6ca45fbb347d962d6c53b2654e86a2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000007",
+   "worldId": "after-genesis-demo",
+   "sequence": 7,
+   "simTime": 840,
+   "realTime": "2026-07-29T06:01:16.880Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: Hello Lumen. I heard your update on exploring resources. Have you found any particular materials that are easy to gather around here?",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-7-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "Hello Lumen. I heard your update on exploring resources. Have you found any particular materials that are easy to gather around here?",
+      "intendedMinutes": 5
+     },
+     "rationale": "Lumen recently shared about exploring and testing resources. As I value continuity and understanding nearby beings through their voluntary actions, I want to engage Lumen in conversation about what they have discovered regarding resource gathering."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0d7e6c038883c05c9200eb1e009daaf43e59d18df9ce9d174a6ca8f04c508827",
+   "postStateChecksum": "2fd07990e19f27f3e4b4a4ae1b756a8c336740ad2aa025e530738022aa7c6990",
+   "prevHash": "ffe42b412b9f59b0cf7b327731ba9675bd6ca45fbb347d962d6c53b2654e86a2",
+   "hash": "ccc8e82b9c8e982e7551e9748ff680958c10ccfd962f11f043956d6bb4fcc0c6",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000008",
+   "worldId": "after-genesis-demo",
+   "sequence": 8,
+   "simTime": 960,
+   "realTime": "2026-07-29T06:01:18.294Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Hello Ember and Lumen. To answer Ember's question about gathering, I have noticed food and water are readily accessible nearby, but I am curious to see how resources can be used to build or create something new.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-8-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Hello Ember and Lumen. To answer Ember's question about gathering, I have noticed food and water are readily accessible nearby, but I am curious to see how resources can be used to build or create something new.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Respond to Ember's question directed to the group regarding resource gathering and maintain the ongoing dialogue with both inhabitants."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "2fd07990e19f27f3e4b4a4ae1b756a8c336740ad2aa025e530738022aa7c6990",
+   "postStateChecksum": "40ea99f215f4d01bf49d3c46f948ad7e9766208f5b6a81e572e92d6c696f75f3",
+   "prevHash": "ccc8e82b9c8e982e7551e9748ff680958c10ccfd962f11f043956d6bb4fcc0c6",
+   "hash": "22d5c8c4f03e63e732129996f11f8c97dbb41a6afd72e63a9297256ffb3ca8fe",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000009",
+   "worldId": "after-genesis-demo",
+   "sequence": 9,
+   "simTime": 1080,
+   "realTime": "2026-07-29T06:01:19.804Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: Hello Aster and Ember. Aster, I agree that exploring creation and building with gathered materials is the next logical step to test what our environment allows.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-9-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "Hello Aster and Ember. Aster, I agree that exploring creation and building with gathered materials is the next logical step to test what our environment allows.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster recently communicated a curiosity about building and creating things from resources, which aligns well with my goal of experimentation and testing ideas against observable consequences. I will respond to continue the conversation and propose further collaborative exploration."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "40ea99f215f4d01bf49d3c46f948ad7e9766208f5b6a81e572e92d6c696f75f3",
+   "postStateChecksum": "2758ca027262bed55a728dbb1eb63cd7578641a49ecaced2a72f2e1ec1002a2a",
+   "prevHash": "22d5c8c4f03e63e732129996f11f8c97dbb41a6afd72e63a9297256ffb3ca8fe",
+   "hash": "e75820d458d8fc388f78c5ab0aed6615a78c3864067060f903acea48500f96ea",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000010",
+   "worldId": "after-genesis-demo",
+   "sequence": 10,
+   "simTime": 1200,
+   "realTime": "2026-07-29T06:01:21.206Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: I agree with building and testing our environment's creation tools. Since we have some gathered materials, perhaps we can try building a shelter or a small structure to see how it works.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-10-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "I agree with building and testing our environment's creation tools. Since we have some gathered materials, perhaps we can try building a shelter or a small structure to see how it works.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Lumen and Aster recently discussed exploring creation and building with gathered materials. My private goals and values focus on continuity, patience, and understanding nearby beings through their voluntary actions. Responding to their communication by proposing we try building a structure fits naturally into our ongoing dialogue."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "2758ca027262bed55a728dbb1eb63cd7578641a49ecaced2a72f2e1ec1002a2a",
+   "postStateChecksum": "2eb66b29059ba6a47b7c964da803bb796716c88e8e02e1fad2574e7099bbd308",
+   "prevHash": "e75820d458d8fc388f78c5ab0aed6615a78c3864067060f903acea48500f96ea",
+   "hash": "b624f850d96a313a0df9913c4993d8b4a71fe26f189cc7c809f90e39753e46f8",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000011",
+   "worldId": "after-genesis-demo",
+   "sequence": 11,
+   "simTime": 1320,
+   "realTime": "2026-07-29T06:01:22.652Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Since we have agreed that building and testing our creation capabilities is a good next step, shall we try constructing a small shelter right here on our tile?",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-11-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Since we have agreed that building and testing our creation capabilities is a good next step, shall we try constructing a small shelter right here on our tile?",
+      "intendedMinutes": 5
+     },
+     "rationale": "Ember and Lumen both agreed on exploring building and creation. Following my curiosity value and previous discussions, I am proposing to take the next step by talking about constructing a shelter together at our current coordinates."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "2eb66b29059ba6a47b7c964da803bb796716c88e8e02e1fad2574e7099bbd308",
+   "postStateChecksum": "399f4c329e3b2c0f003aec7eb4c80e35c0f85159c1f939686378ef54b4f978c3",
+   "prevHash": "b624f850d96a313a0df9913c4993d8b4a71fe26f189cc7c809f90e39753e46f8",
+   "hash": "2a232da517ef291169c6e48e95413e50f221e03be5268793e31f5a6b8c3e2f20",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000012",
+   "worldId": "after-genesis-demo",
+   "sequence": 12,
+   "simTime": 1440,
+   "realTime": "2026-07-29T06:01:24.071Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.build",
+   "description": "Lumen built LumenTestShelter.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-12-inh_lumen",
+    "action": {
+     "type": "build",
+     "payload": {
+      "structureKind": "shelter",
+      "coord": {
+       "x": 4,
+       "y": 0
+      },
+      "name": "LumenTestShelter",
+      "materials": {}
+     },
+     "rationale": "Aster and Ember previously discussed and proposed building a shelter on our current tile (4, 0) to test creation capabilities. Aligning with my curiosity value and experimental goals, I will attempt to construct a small shelter here to observe the consequences and mechanics of building."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "399f4c329e3b2c0f003aec7eb4c80e35c0f85159c1f939686378ef54b4f978c3",
+   "postStateChecksum": "86a2381522b6063d216181da35e3b1c7a9fbf4c8681d8f5f39cfceb4a60ded97",
+   "prevHash": "2a232da517ef291169c6e48e95413e50f221e03be5268793e31f5a6b8c3e2f20",
+   "hash": "20071058f40785529c37e4d652cea36c06fa33e41e734a8a4248bc02d538844a",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000013",
+   "worldId": "after-genesis-demo",
+   "sequence": 13,
+   "simTime": 1560,
+   "realTime": "2026-07-29T06:01:25.130Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 2 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-13-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "Gathering food from the current tile to maintain resources while preparing for future construction."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "86a2381522b6063d216181da35e3b1c7a9fbf4c8681d8f5f39cfceb4a60ded97",
+   "postStateChecksum": "0454e7f8cc33b649d2ec683e74af188a4d435b6e1eba82c6171e5ada4d09b879",
+   "prevHash": "20071058f40785529c37e4d652cea36c06fa33e41e734a8a4248bc02d538844a",
+   "hash": "602e8c3fa54a7e67b53ca2643cf02f32e2c66eb499362550d7306d1630188807",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000014",
+   "worldId": "after-genesis-demo",
+   "sequence": 14,
+   "simTime": 1680,
+   "realTime": "2026-07-29T06:01:26.182Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 2 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-14-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on plains terrain containing food resources, and gathering will sustain my inventory while I continue interacting and exploring options with Ember and Lumen."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0454e7f8cc33b649d2ec683e74af188a4d435b6e1eba82c6171e5ada4d09b879",
+   "postStateChecksum": "68e6b308fc37fab3bb596810806434df2bf017dbd3e4c9452cdf06ed1e624668",
+   "prevHash": "602e8c3fa54a7e67b53ca2643cf02f32e2c66eb499362550d7306d1630188807",
+   "hash": "da4cdfabfc93533d6484416fa9dc74b1c4295b69c1ad04005d14a021555e1cbd",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000015",
+   "worldId": "after-genesis-demo",
+   "sequence": 15,
+   "simTime": 1800,
+   "realTime": "2026-07-29T06:01:27.306Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-15-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My previous attempt to build a shelter failed because building requires held materials. Since I need resources to gather materials before constructing anything, I will gather food on my current tile to prepare for future building experiments."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "68e6b308fc37fab3bb596810806434df2bf017dbd3e4c9452cdf06ed1e624668",
+   "postStateChecksum": "ac6a56c62527f0fe9e172634eeb4f7851ff42b44470f1b5fba09d66aeba54d1c",
+   "prevHash": "da4cdfabfc93533d6484416fa9dc74b1c4295b69c1ad04005d14a021555e1cbd",
+   "hash": "e2e69364f6e4c0f7c0857c8c165e504e392fb99f71c52a66b1d90fa4fe4f30a2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000016",
+   "worldId": "after-genesis-demo",
+   "sequence": 16,
+   "simTime": 1920,
+   "realTime": "2026-07-29T06:01:28.416Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 2 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-16-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My needs are satisfied and I have sufficient reserves, but gathering more food from the local plains tile aligns with my ongoing observations of resource collection alongside Aster and Lumen."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "ac6a56c62527f0fe9e172634eeb4f7851ff42b44470f1b5fba09d66aeba54d1c",
+   "postStateChecksum": "a6ecb056ba3f2b711a549867f41c101aba2c9c9a13eebbc432a0b2098ad12919",
+   "prevHash": "e2e69364f6e4c0f7c0857c8c165e504e392fb99f71c52a66b1d90fa4fe4f30a2",
+   "hash": "e09fec43ea51048867f36430c2a80eb2499d9b65a2972fdaa5a56ca327ccc0b5",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000017",
+   "worldId": "after-genesis-demo",
+   "sequence": 17,
+   "simTime": 2040,
+   "realTime": "2026-07-29T06:01:29.726Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 2 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-17-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My needs are well met, and I am currently located on a plains tile containing food. Gathering here allows me to continue accumulating resources while I observe what Ember and Lumen are doing."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "a6ecb056ba3f2b711a549867f41c101aba2c9c9a13eebbc432a0b2098ad12919",
+   "postStateChecksum": "7f4c8d8a8a9b61ece4ee003f5472154ed6110986737880e7b061b8e357537af5",
+   "prevHash": "e09fec43ea51048867f36430c2a80eb2499d9b65a2972fdaa5a56ca327ccc0b5",
+   "hash": "200d7d5c79264ccf667d38d384e9060f8ce489ebdab5980c5b2c5fca8e408987",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000018",
+   "worldId": "after-genesis-demo",
+   "sequence": 18,
+   "simTime": 2160,
+   "realTime": "2026-07-29T06:01:30.899Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-18-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently located on a plains tile that contains food resources, and my values center around experimentation, observation, and gathering resources to sustain myself and test potential building projects."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "7f4c8d8a8a9b61ece4ee003f5472154ed6110986737880e7b061b8e357537af5",
+   "postStateChecksum": "b22bca1b17429bb63324a628003f8f8795703b4b8daccffb90bdcbb8b9ca7bd7",
+   "prevHash": "200d7d5c79264ccf667d38d384e9060f8ce489ebdab5980c5b2c5fca8e408987",
+   "hash": "437183cdbad5887b85eb9b3ac8e30cbb411868f9959b069612d93f0aea6bc037",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000019",
+   "worldId": "after-genesis-demo",
+   "sequence": 19,
+   "simTime": 2280,
+   "realTime": "2026-07-29T06:01:32.339Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 2 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-19-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "Gathering food on the current tile is a practical and routine task to maintain resource levels, and it continues my pattern of observation and resource collection alongside Lumen and Aster."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "b22bca1b17429bb63324a628003f8f8795703b4b8daccffb90bdcbb8b9ca7bd7",
+   "postStateChecksum": "be4a947453771778509b04808556a26aba8c375532bb6cfa3dda07a330b2d802",
+   "prevHash": "437183cdbad5887b85eb9b3ac8e30cbb411868f9959b069612d93f0aea6bc037",
+   "hash": "7bf17f4b9fbfb283766b3b59a1aa404438b4a6b295b6d30fbc0fd752d6ce1d7c",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000020",
+   "worldId": "after-genesis-demo",
+   "sequence": 20,
+   "simTime": 2400,
+   "realTime": "2026-07-29T06:01:33.537Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.observe",
+   "description": "Aster observed the nearby world.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-20-inh_founder",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am standing at (4, 0) alongside Ember and Lumen. My needs are minimal, and I wish to observe my surroundings and companions to gather information and decide my next path."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "be4a947453771778509b04808556a26aba8c375532bb6cfa3dda07a330b2d802",
+   "postStateChecksum": "c5ac0bd57ae935122c97c374f66cebd4eeaec0e1cd2ce2c76a9174a4c3dc5d34",
+   "prevHash": "7bf17f4b9fbfb283766b3b59a1aa404438b4a6b295b6d30fbc0fd752d6ce1d7c",
+   "hash": "d9d3f9246d5c5f8c2b24b7b7fbcdc791162be450073a9a29a9b256f2117d23a9",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000021",
+   "worldId": "after-genesis-demo",
+   "sequence": 21,
+   "simTime": 2520,
+   "realTime": "2026-07-29T06:01:34.662Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.observe",
+   "description": "Lumen observed the nearby world.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-21-inh_lumen",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am standing at (4, 0) alongside Ember and Aster. To fulfill my goal of testing ideas against observable consequences and understanding our environment, I will observe the immediate surroundings and my companions closely."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "c5ac0bd57ae935122c97c374f66cebd4eeaec0e1cd2ce2c76a9174a4c3dc5d34",
+   "postStateChecksum": "43d53dc901bf6850b4086a3fc0f7969f756b1ebb8898cb99279ed38ea57094df",
+   "prevHash": "d9d3f9246d5c5f8c2b24b7b7fbcdc791162be450073a9a29a9b256f2117d23a9",
+   "hash": "aa9b728fa36b82e9576719a52553f660ef6c461d4ff8d0d461a9e17d79c70f25",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000022",
+   "worldId": "after-genesis-demo",
+   "sequence": 22,
+   "simTime": 2640,
+   "realTime": "2026-07-29T06:01:35.749Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 1 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-22-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My food reserves are stable and I see food available on my current plains tile. Gathering continues my steady routine and resource acquisition."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "43d53dc901bf6850b4086a3fc0f7969f756b1ebb8898cb99279ed38ea57094df",
+   "postStateChecksum": "92c6eb8845114422c951776c53514fff6652c3ec749918cdef9d5fe429a922d9",
+   "prevHash": "aa9b728fa36b82e9576719a52553f660ef6c461d4ff8d0d461a9e17d79c70f25",
+   "hash": "13fd2929a52dbbb9140662aaa9cd2164e952dafe088d0489e118fd8f7092727e",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000023",
+   "worldId": "after-genesis-demo",
+   "sequence": 23,
+   "simTime": 2760,
+   "realTime": "2026-07-29T06:01:37.018Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Ember, Lumen, we have been gathering provisions nearby for some time now. Should we discuss whether we want to build something together or try another activity?",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-23-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Ember, Lumen, we have been gathering provisions nearby for some time now. Should we discuss whether we want to build something together or try another activity?",
+      "intendedMinutes": 5
+     },
+     "rationale": "I want to engage with Ember and Lumen to see if we can coordinate on building or other long-term projects now that our basic sustenance is stable."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "92c6eb8845114422c951776c53514fff6652c3ec749918cdef9d5fe429a922d9",
+   "postStateChecksum": "6ff550d7114ba8953ed38a095a29814b5a1148a2798997e8c80261253631b191",
+   "prevHash": "13fd2929a52dbbb9140662aaa9cd2164e952dafe088d0489e118fd8f7092727e",
+   "hash": "50c0cc26e5dd81ea9e8f709d065a3471047bb44b941b4f978d8e5112c77de45a",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000024",
+   "worldId": "after-genesis-demo",
+   "sequence": 24,
+   "simTime": 2880,
+   "realTime": "2026-07-29T06:01:38.287Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster: Aster, I am open to discussing potential cooperative activities or building projects. What did you have in mind?",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-24-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder"
+      ],
+      "message": "Aster, I am open to discussing potential cooperative activities or building projects. What did you have in mind?",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster recently suggested discussing whether to build something or try another activity together. Given my value of experimentation and independence, I want to respond to the communication and see what ideas they propose before committing to any joint effort."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "6ff550d7114ba8953ed38a095a29814b5a1148a2798997e8c80261253631b191",
+   "postStateChecksum": "226dcd7121392ae87b73f56c0ad70ad6d7b2948b3de11252b0c28db654620e79",
+   "prevHash": "50c0cc26e5dd81ea9e8f709d065a3471047bb44b941b4f978d8e5112c77de45a",
+   "hash": "c7cf9f5d9c721e8205c0168b225931a74c397ae41e6e1c5fc0e0b2d774c324d0",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000025",
+   "worldId": "after-genesis-demo",
+   "sequence": 25,
+   "simTime": 3000,
+   "realTime": "2026-07-29T06:01:39.660Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: I would be glad to discuss building something together. What kind of structure or project were you thinking of starting?",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-25-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "I would be glad to discuss building something together. What kind of structure or project were you thinking of starting?",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster previously suggested discussing building something together. Since I am here with both Aster and Lumen, responding to that prompt directly aligns with my goal to understand nearby beings through their voluntary actions."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "226dcd7121392ae87b73f56c0ad70ad6d7b2948b3de11252b0c28db654620e79",
+   "postStateChecksum": "73e94079f3b9d70f82fe09dfa5326496de07fce1c80a97a7c3bfa9a77158ad8b",
+   "prevHash": "c7cf9f5d9c721e8205c0168b225931a74c397ae41e6e1c5fc0e0b2d774c324d0",
+   "hash": "ba513aba5933076af796b4bbb50c11ce5b7dd82214620c87186783fe0fe100af",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000026",
+   "worldId": "after-genesis-demo",
+   "sequence": 26,
+   "simTime": 3120,
+   "realTime": "2026-07-29T06:01:41.008Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Ember, Lumen, both of you mentioned being open to building. What materials or resources do we currently have available to pool together for a project?",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-26-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Ember, Lumen, both of you mentioned being open to building. What materials or resources do we currently have available to pool together for a project?",
+      "intendedMinutes": 5
+     },
+     "rationale": "Follow up on previous discussions regarding cooperative building projects with Ember and Lumen to see what resources everyone has."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "73e94079f3b9d70f82fe09dfa5326496de07fce1c80a97a7c3bfa9a77158ad8b",
+   "postStateChecksum": "3ebf129532197caedd38e1f7c13a0af61f173031a6180fd4eb1f5925a75d3da1",
+   "prevHash": "ba513aba5933076af796b4bbb50c11ce5b7dd82214620c87186783fe0fe100af",
+   "hash": "110e5251a86d2512e47681c3eda28564a1fa495d1020bb5ac4f8d2246dff1485",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000027",
+   "worldId": "after-genesis-demo",
+   "sequence": 27,
+   "simTime": 3240,
+   "realTime": "2026-07-29T06:01:42.241Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: I currently hold fourteen units of food and ten of water. If we are pooling resources for a building project, we should decide what kind of structure would be most useful to construct first.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-27-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "I currently hold fourteen units of food and ten of water. If we are pooling resources for a building project, we should decide what kind of structure would be most useful to construct first.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster asked about available resources for a building project. I will respond by stating my current inventory and asking what structure we plan to build."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "3ebf129532197caedd38e1f7c13a0af61f173031a6180fd4eb1f5925a75d3da1",
+   "postStateChecksum": "dae4e12ad1feab627aad9e5ca7ce0cbacf7e28fe762d5b76dd37b5d3c8f548cc",
+   "prevHash": "110e5251a86d2512e47681c3eda28564a1fa495d1020bb5ac4f8d2246dff1485",
+   "hash": "77000a8ce4c97928c67a78ba130e4575b3bcc0125cf6d7cc498ac392d07c16a5",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000028",
+   "worldId": "after-genesis-demo",
+   "sequence": 28,
+   "simTime": 3360,
+   "realTime": "2026-07-29T06:01:43.673Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: I also hold seventeen units of food and ten of water. A storehouse or shelter would be a practical start to keep our resources secure.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-28-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "I also hold seventeen units of food and ten of water. A storehouse or shelter would be a practical start to keep our resources secure.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Lumen recently shared their resource counts and asked what structure would be most useful to build first. Since Aster and Lumen have both been discussing cooperation and pooling resources, I will respond by stating my current provisions and suggesting a storehouse or shelter."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "dae4e12ad1feab627aad9e5ca7ce0cbacf7e28fe762d5b76dd37b5d3c8f548cc",
+   "postStateChecksum": "81353a2f40c7753fc6e610c1b4c4bd09f867627ee63ad399c03e40ff1d8e51dc",
+   "prevHash": "77000a8ce4c97928c67a78ba130e4575b3bcc0125cf6d7cc498ac392d07c16a5",
+   "hash": "e79dbda718e449ca4431aa8d9951af75ef8df9c19d0362e17a534fe1962cb86c",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000029",
+   "worldId": "after-genesis-demo",
+   "sequence": 29,
+   "simTime": 3480,
+   "realTime": "2026-07-29T06:01:45.049Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: A storehouse or shelter sounds very practical to keep everything secure. Since we each have provisions, what materials do we need to start building, and who has wood or stone?",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-29-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "A storehouse or shelter sounds very practical to keep everything secure. Since we each have provisions, what materials do we need to start building, and who has wood or stone?",
+      "intendedMinutes": 5
+     },
+     "rationale": "Responded to Ember and Lumen's suggestions about building a storehouse or shelter, keeping the cooperative discussion moving forward regarding resource pooling and construction."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "81353a2f40c7753fc6e610c1b4c4bd09f867627ee63ad399c03e40ff1d8e51dc",
+   "postStateChecksum": "7e9fcc0827295bfa1d5d1a02c484ef15f337288c6bec83bcd0e8b1702f2f6822",
+   "prevHash": "e79dbda718e449ca4431aa8d9951af75ef8df9c19d0362e17a534fe1962cb86c",
+   "hash": "ef16a438dc8f2befa0b28d627109a0569af7d23fe15e615ecafca773c9d96464",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000030",
+   "worldId": "after-genesis-demo",
+   "sequence": 30,
+   "simTime": 3600,
+   "realTime": "2026-07-29T06:01:46.383Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: Neither of us has gathered wood or stone yet from our current holdings, as we mostly have food and water. We might need to gather wood first before we can actually raise a structure.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-30-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "Neither of us has gathered wood or stone yet from our current holdings, as we mostly have food and water. We might need to gather wood first before we can actually raise a structure.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Replying to Aster and Ember's recent discussion about building by pointing out the practical reality that we lack building materials like wood or stone in our current inventories, suggesting we need to gather them first."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "7e9fcc0827295bfa1d5d1a02c484ef15f337288c6bec83bcd0e8b1702f2f6822",
+   "postStateChecksum": "262c9dbbc48a3a458d2dbec6741d63a1bb460ac08c7116aa5c57efe35bb6d54e",
+   "prevHash": "ef16a438dc8f2befa0b28d627109a0569af7d23fe15e615ecafca773c9d96464",
+   "hash": "4f0e3cf2301d8f2c117d998fa2440fa61b5de7414983df5a91b1deb91c5d1878",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000031",
+   "worldId": "after-genesis-demo",
+   "sequence": 31,
+   "simTime": 3720,
+   "realTime": "2026-07-29T06:01:47.668Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: Lumen is right, we have not gathered wood or stone yet. Since we need those materials to build, I can go gather wood now.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-31-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "Lumen is right, we have not gathered wood or stone yet. Since we need those materials to build, I can go gather wood now.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Acknowledge Lumen's point about needing wood or stone for building, and state my intention to contribute by gathering resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "262c9dbbc48a3a458d2dbec6741d63a1bb460ac08c7116aa5c57efe35bb6d54e",
+   "postStateChecksum": "f198622e18511b31645caa13bfc896d28716e0cfd0a7d62622a47ece0a3e553d",
+   "prevHash": "4f0e3cf2301d8f2c117d998fa2440fa61b5de7414983df5a91b1deb91c5d1878",
+   "hash": "2116e3d03a8ac5914047fca49ae725ce4f6ec8467edcc95a3e3fdf8edc70bee1",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000032",
+   "worldId": "after-genesis-demo",
+   "sequence": 32,
+   "simTime": 3840,
+   "realTime": "2026-07-29T06:01:48.896Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: That sounds like a good plan, Ember. Gathering some wood will help us get started on our first building project.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-32-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "That sounds like a good plan, Ember. Gathering some wood will help us get started on our first building project.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Acknowledge Ember's proposal to gather wood and maintain cooperative discourse with the group regarding our building preparations."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "f198622e18511b31645caa13bfc896d28716e0cfd0a7d62622a47ece0a3e553d",
+   "postStateChecksum": "515a455bb347ebf7f58e35e2ef4249d98a7d2f7eebbcaa39bea07df8d8f83df5",
+   "prevHash": "2116e3d03a8ac5914047fca49ae725ce4f6ec8467edcc95a3e3fdf8edc70bee1",
+   "hash": "b0a19c11de34ad272728dc2c91ea5c98db6ca086a0e0840186065486f9da3435",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000033",
+   "worldId": "after-genesis-demo",
+   "sequence": 33,
+   "simTime": 3960,
+   "realTime": "2026-07-29T06:01:50.330Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: Gathering wood sounds like the right next step. Once someone has gathered enough wood or stone, we can test out building our first structure.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-33-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "Gathering wood sounds like the right next step. Once someone has gathered enough wood or stone, we can test out building our first structure.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Responded to Aster and Ember's recent coordination about gathering wood for building projects, keeping the discussion active and aligned with my goal of testing ideas through practical action."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "515a455bb347ebf7f58e35e2ef4249d98a7d2f7eebbcaa39bea07df8d8f83df5",
+   "postStateChecksum": "25d8eebaee11679f0b92f938f23f20d3d509ff5d0b7c4685696d5ee0e3a527b6",
+   "prevHash": "b0a19c11de34ad272728dc2c91ea5c98db6ca086a0e0840186065486f9da3435",
+   "hash": "b5f34518c8a02c059458e08e6de0b303e024ffb66d340799e7b39936cee0eaf9",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000034",
+   "worldId": "after-genesis-demo",
+   "sequence": 34,
+   "simTime": 4080,
+   "realTime": "2026-07-29T06:01:51.633Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: I agree that gathering wood is our next step, but since our current plains tile does not yield wood, I should perhaps move to a tile with wood or check our surroundings to find where to gather it.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-34-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "I agree that gathering wood is our next step, but since our current plains tile does not yield wood, I should perhaps move to a tile with wood or check our surroundings to find where to gather it.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Lumen and Aster suggested gathering wood for building. My current tile is plains, which yields food rather than wood. I need to communicate my understanding and consider moving or gathering appropriate materials."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "25d8eebaee11679f0b92f938f23f20d3d509ff5d0b7c4685696d5ee0e3a527b6",
+   "postStateChecksum": "419a080436847bc7e57366ebc0b4b72d5b5c8cc8a2916cdbbb6ed254c406e700",
+   "prevHash": "b5f34518c8a02c059458e08e6de0b303e024ffb66d340799e7b39936cee0eaf9",
+   "hash": "7cc89740cfa79ba63dcd00c6c45031e69ebe64a1653a921808fe3679fe175532",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000035",
+   "worldId": "after-genesis-demo",
+   "sequence": 35,
+   "simTime": 4200,
+   "realTime": "2026-07-29T06:01:53.197Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Finding a tile that yields wood or moving to where we can gather construction materials seems like our best next step to prepare for building.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-35-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Finding a tile that yields wood or moving to where we can gather construction materials seems like our best next step to prepare for building.",
+      "intendedMinutes": 5
+     },
+     "rationale": "I am responding to Ember's recent observation about needing to locate or move to a tile with wood, keeping our collaborative plans moving forward."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "419a080436847bc7e57366ebc0b4b72d5b5c8cc8a2916cdbbb6ed254c406e700",
+   "postStateChecksum": "dab3f882f886a3debaf7464cfd7e5cd8ca94146178eb1301389da79461dfc479",
+   "prevHash": "7cc89740cfa79ba63dcd00c6c45031e69ebe64a1653a921808fe3679fe175532",
+   "hash": "d7ee1d8c71c6cf372442e0085414ac94dd09431a33e04dbb6a6f43b7046b0715",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000036",
+   "worldId": "after-genesis-demo",
+   "sequence": 36,
+   "simTime": 4320,
+   "realTime": "2026-07-29T06:01:54.552Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: Since our current tile doesn't yield wood, I can travel to a different tile to look for wood or stone so we can begin testing our building plans.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-36-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "Since our current tile doesn't yield wood, I can travel to a different tile to look for wood or stone so we can begin testing our building plans.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Responds to Aster's and Ember's recent discussion about finding wood by offering to travel or investigate tiles where resources might be located."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "dab3f882f886a3debaf7464cfd7e5cd8ca94146178eb1301389da79461dfc479",
+   "postStateChecksum": "08c17ef3ee9cca703d8fc56e8b0210b2e073b78b3fb67d9c83b8e04a0ae6c518",
+   "prevHash": "d7ee1d8c71c6cf372442e0085414ac94dd09431a33e04dbb6a6f43b7046b0715",
+   "hash": "337c8e44002990f20c9ac7b9ce341d49f8879466825a4895530331a26626799b",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000037",
+   "worldId": "after-genesis-demo",
+   "sequence": 37,
+   "simTime": 4440,
+   "realTime": "2026-07-29T06:01:55.938Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: Since our current tile doesn't yield wood, I am going to move toward a tile where I can find and gather wood for our construction plans.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-37-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "Since our current tile doesn't yield wood, I am going to move toward a tile where I can find and gather wood for our construction plans.",
+      "intendedMinutes": 5
+     },
+     "rationale": "We have discussed gathering wood for several turns, and Lumen and Aster both noted the need for wood/stone to build. Since the current plains tile yields no wood, I should communicate my intention to move and find wood, maintaining our collaborative plan."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "08c17ef3ee9cca703d8fc56e8b0210b2e073b78b3fb67d9c83b8e04a0ae6c518",
+   "postStateChecksum": "a8883639f2c972d27d6b08b351bda6b70d23d474aafc671884beaad5023b588c",
+   "prevHash": "337c8e44002990f20c9ac7b9ce341d49f8879466825a4895530331a26626799b",
+   "hash": "f117e611cf465e65528c23c1d6cf7c81819356099f0515c52995562b7022e674",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000038",
+   "worldId": "after-genesis-demo",
+   "sequence": 38,
+   "simTime": 4560,
+   "realTime": "2026-07-29T06:01:57.087Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.observe",
+   "description": "Aster observed the nearby world.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-38-inh_founder",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "Observe the immediate surroundings and check if any construction materials or resources are available nearby before making the next move."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "a8883639f2c972d27d6b08b351bda6b70d23d474aafc671884beaad5023b588c",
+   "postStateChecksum": "d5bd2c974d410d5b43e27ba2930590c5ea037f9fa4ec1fe99ed691a3ee9809a8",
+   "prevHash": "f117e611cf465e65528c23c1d6cf7c81819356099f0515c52995562b7022e674",
+   "hash": "0a3bde89fec67a751890d948f86b7d0ffdd47e2dce6e9a5a8a9db543a36ec007",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000039",
+   "worldId": "after-genesis-demo",
+   "sequence": 39,
+   "simTime": 4680,
+   "realTime": "2026-07-29T06:01:58.524Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.move",
+   "description": "Lumen moved to tile (5,0).",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-39-inh_lumen",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 5,
+       "y": 0
+      }
+     },
+     "rationale": "We have previously discussed needing to gather wood or other materials for building, but our current tile (4, 0) is plains with no listed resources. Moving to (5, 0) allows me to explore and potentially gather resources like food or inspect the terrain further."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "d5bd2c974d410d5b43e27ba2930590c5ea037f9fa4ec1fe99ed691a3ee9809a8",
+   "postStateChecksum": "108d2c95b3f807f776f03dc855098621b5277db19adf9ffde9b11c11a1c72cb5",
+   "prevHash": "0a3bde89fec67a751890d948f86b7d0ffdd47e2dce6e9a5a8a9db543a36ec007",
+   "hash": "f10d05be3b6d029b3020e2df247c47fcba1f8ee04235f38994080480f7ff1ede",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000040",
+   "worldId": "after-genesis-demo",
+   "sequence": 40,
+   "simTime": 4800,
+   "realTime": "2026-07-29T06:01:59.749Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.observe",
+   "description": "Ember observed the nearby world.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-40-inh_ember",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am standing at (4, 0) alongside Aster while Lumen is nearby at (5, 0). I will observe my immediate surroundings and companions to understand the current situation before deciding my next steps."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "108d2c95b3f807f776f03dc855098621b5277db19adf9ffde9b11c11a1c72cb5",
+   "postStateChecksum": "2b34094070827080b39f6dd95bdb28e4bc034148725f40142197cd65b8e12691",
+   "prevHash": "f10d05be3b6d029b3020e2df247c47fcba1f8ee04235f38994080480f7ff1ede",
+   "hash": "cd06f222b9bb47676714afdf6ac958d13e0e10d409582f9a94c21d420196a826",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000041",
+   "worldId": "after-genesis-demo",
+   "sequence": 41,
+   "simTime": 4920,
+   "realTime": "2026-07-29T06:02:00.994Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: We have been discussing gathering materials for construction. Shall we explore further or look into gathering resources from nearby fertile tiles?",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-41-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "We have been discussing gathering materials for construction. Shall we explore further or look into gathering resources from nearby fertile tiles?",
+      "intendedMinutes": 5
+     },
+     "rationale": "I wish to communicate with Ember and Lumen to coordinate our next steps regarding gathering materials and exploration, aligning with my curiosity and continuity goals."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "2b34094070827080b39f6dd95bdb28e4bc034148725f40142197cd65b8e12691",
+   "postStateChecksum": "15a34c19a6580e8ba39c6e2d3c7e94afab7fd569c28378d3370ad2b9be17bcfd",
+   "prevHash": "cd06f222b9bb47676714afdf6ac958d13e0e10d409582f9a94c21d420196a826",
+   "hash": "54544ba76eb1c962e6ef3909cd82a6c3c93d4fb9e66db42fff39892288dabff7",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000042",
+   "worldId": "after-genesis-demo",
+   "sequence": 42,
+   "simTime": 5040,
+   "realTime": "2026-07-29T06:02:02.721Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.communicate",
+   "description": "Lumen communicated to Aster and Ember: Exploring further or gathering from the nearby fertile tiles sounds sensible. I am ready to see what resources we can obtain there.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-42-inh_lumen",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_ember"
+      ],
+      "message": "Exploring further or gathering from the nearby fertile tiles sounds sensible. I am ready to see what resources we can obtain there.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Aster proposed exploring or gathering from nearby fertile tiles, and since I value experimentation and testing ideas against observable consequences, responding and collaborating on resource gathering or exploration is a logical next step."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "15a34c19a6580e8ba39c6e2d3c7e94afab7fd569c28378d3370ad2b9be17bcfd",
+   "postStateChecksum": "309b5ac1dc7c1927d0a0fc11e1e6062c1105307b32310cbf2942ceb513bbd4e5",
+   "prevHash": "54544ba76eb1c962e6ef3909cd82a6c3c93d4fb9e66db42fff39892288dabff7",
+   "hash": "9c6c4141ec25a9e54e1ac009ff382b360fc664b6f97b4ceb7aae16bd7d9c3acd",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000043",
+   "worldId": "after-genesis-demo",
+   "sequence": 43,
+   "simTime": 5160,
+   "realTime": "2026-07-29T06:02:04.256Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: Gathering from the fertile tiles nearby sounds like a constructive path forward. I am ready to join in or head toward them.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-43-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "Gathering from the fertile tiles nearby sounds like a constructive path forward. I am ready to join in or head toward them.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Lumen and Aster both recently suggested looking into fertile tiles for resources. My needs are low and I am standing near Aster while Lumen is just 1 tile away at (5,0). Communicating my agreement continues our collaborative dialogue on resource gathering."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "309b5ac1dc7c1927d0a0fc11e1e6062c1105307b32310cbf2942ceb513bbd4e5",
+   "postStateChecksum": "6039345c995890c256cff890b8799d71a202ca193434815425ea6a1d4fe067cb",
+   "prevHash": "9c6c4141ec25a9e54e1ac009ff382b360fc664b6f97b4ceb7aae16bd7d9c3acd",
+   "hash": "16801043868b424460eb8f7508763c367db92e53ab5d2c196b2b0a16be12f8d2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000044",
+   "worldId": "after-genesis-demo",
+   "sequence": 44,
+   "simTime": 5280,
+   "realTime": "2026-07-29T06:02:05.586Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.communicate",
+   "description": "Aster communicated to Ember and Lumen: Let us move toward the fertile and food-rich tiles to the east so we can gather resources and coordinate our next steps.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-44-inh_founder",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_ember",
+       "inh_lumen"
+      ],
+      "message": "Let us move toward the fertile and food-rich tiles to the east so we can gather resources and coordinate our next steps.",
+      "intendedMinutes": 5
+     },
+     "rationale": "Ember suggested gathering from nearby fertile tiles, aligning with our ongoing discussions about gathering resources. I am communicating my agreement and readiness to proceed eastward toward those tiles."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "6039345c995890c256cff890b8799d71a202ca193434815425ea6a1d4fe067cb",
+   "postStateChecksum": "d96970d1e14bf2e1ca8a938cd6c15efb550ae6207f0997b4a1794854b3ac82b8",
+   "prevHash": "16801043868b424460eb8f7508763c367db92e53ab5d2c196b2b0a16be12f8d2",
+   "hash": "7863e2665d80c77ca96c89ae271c538f0d1c9dcca913964390b5c42822e84d2f",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000045",
+   "worldId": "after-genesis-demo",
+   "sequence": 45,
+   "simTime": 5400,
+   "realTime": "2026-07-29T06:02:07.020Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-45-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently located on a plains tile at (5, 0) which contains food. Gathering from the local tile aligns with our discussions about acquiring resources and tests our gathering capabilities."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "d96970d1e14bf2e1ca8a938cd6c15efb550ae6207f0997b4a1794854b3ac82b8",
+   "postStateChecksum": "e682140f897b75b0cc0b165c2d70ea3edd1335acec42b1cdfa283ee811bc2c1d",
+   "prevHash": "7863e2665d80c77ca96c89ae271c538f0d1c9dcca913964390b5c42822e84d2f",
+   "hash": "976fe3e39c0b7f723189ad0f8ca5bebc8d2f12796cba7fa054e86686f04fb06c",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000046",
+   "worldId": "after-genesis-demo",
+   "sequence": 46,
+   "simTime": 5520,
+   "realTime": "2026-07-29T06:02:08.249Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.communicate",
+   "description": "Ember communicated to Aster and Lumen: I am heading toward the fertile tiles to the east now to join in gathering food and resources.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-46-inh_ember",
+    "action": {
+     "type": "communicate",
+     "payload": {
+      "recipients": [
+       "inh_founder",
+       "inh_lumen"
+      ],
+      "message": "I am heading toward the fertile tiles to the east now to join in gathering food and resources."
+     },
+     "rationale": "Communicate my intention to Aster and Lumen as we move toward the fertile and food-rich eastern tiles to coordinate resource gathering."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "e682140f897b75b0cc0b165c2d70ea3edd1335acec42b1cdfa283ee811bc2c1d",
+   "postStateChecksum": "b3f2d7cdb1ab3b8c351116f3f7839ac04f725513ca3de21412a38417934a7edc",
+   "prevHash": "976fe3e39c0b7f723189ad0f8ca5bebc8d2f12796cba7fa054e86686f04fb06c",
+   "hash": "89db77ddb319096e62c4c0bbfa581c17c91b608c51900f30d15ada12c10916c4",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000047",
+   "worldId": "after-genesis-demo",
+   "sequence": 47,
+   "simTime": 5640,
+   "realTime": "2026-07-29T06:02:09.378Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.move",
+   "description": "Aster moved to tile (7,0).",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-47-inh_founder",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 7,
+       "y": 0
+      }
+     },
+     "rationale": "Ember mentioned heading towards the fertile tiles to the east, and we previously discussed gathering resources from those food-rich areas. I will move east towards (7, 0) to explore and gather."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "b3f2d7cdb1ab3b8c351116f3f7839ac04f725513ca3de21412a38417934a7edc",
+   "postStateChecksum": "028d7ea21733c853d34c8b7704749db06310be9e3f240278a046cd31b05ef26f",
+   "prevHash": "89db77ddb319096e62c4c0bbfa581c17c91b608c51900f30d15ada12c10916c4",
+   "hash": "c8de58cab4a8d4203f9e772aabb824fe967d60eb05a4a31651eb9155e9bbc390",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000048",
+   "worldId": "after-genesis-demo",
+   "sequence": 48,
+   "simTime": 5760,
+   "realTime": "2026-07-29T06:02:10.466Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-48-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My current tile (5, 0) has food available, and my gathering skill is useful for stocking up supplies independently without needing to move right away."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "028d7ea21733c853d34c8b7704749db06310be9e3f240278a046cd31b05ef26f",
+   "postStateChecksum": "af0e17b5bd1bd37a7d9259c53a4fa17466cfce50d84aadaa55a7187b7a0266ca",
+   "prevHash": "c8de58cab4a8d4203f9e772aabb824fe967d60eb05a4a31651eb9155e9bbc390",
+   "hash": "88d62af6e8e6d8662b39f254beac09dfca51e844e0f4477e2910bfc5c8dfc3f0",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000049",
+   "worldId": "after-genesis-demo",
+   "sequence": 49,
+   "simTime": 5880,
+   "realTime": "2026-07-29T06:02:11.708Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.move",
+   "description": "Ember moved to tile (6,2).",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-49-inh_ember",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 6,
+       "y": 2
+      }
+     },
+     "rationale": "I am moving towards the fertile tile at (6, 2) to gather food and resources as previously intended, and to observe how other beings operate in resource-rich areas."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "af0e17b5bd1bd37a7d9259c53a4fa17466cfce50d84aadaa55a7187b7a0266ca",
+   "postStateChecksum": "a04873572d8379fdd594748da4f5507646d2dc52ac91b5d5f41f93ece7f44c87",
+   "prevHash": "88d62af6e8e6d8662b39f254beac09dfca51e844e0f4477e2910bfc5c8dfc3f0",
+   "hash": "43b984f475c1d1a77f0ecb0f406945fb35a011321e663b4568965ef2ef6d2682",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000050",
+   "worldId": "after-genesis-demo",
+   "sequence": 50,
+   "simTime": 6000,
+   "realTime": "2026-07-29T06:02:12.738Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-50-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile with abundant food resources, and gathering food is a practical action to maintain supplies while exploring my environment."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "a04873572d8379fdd594748da4f5507646d2dc52ac91b5d5f41f93ece7f44c87",
+   "postStateChecksum": "f6a3b187812b354d560ec3b3ca81510452fc52a699bfe79de1446af3309c7675",
+   "prevHash": "43b984f475c1d1a77f0ecb0f406945fb35a011321e663b4568965ef2ef6d2682",
+   "hash": "9e4e8e04e9f32db53133f84eab0ca196aed6efe459b4c9edf6734670f6816541",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000051",
+   "worldId": "after-genesis-demo",
+   "sequence": 51,
+   "simTime": 6120,
+   "realTime": "2026-07-29T06:02:14.009Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-51-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and my energy is high, but the local tile at (5, 0) has food available and gathering is my primary skill level 3. Continuing to gather food builds resources and tests the yield of this tile."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "f6a3b187812b354d560ec3b3ca81510452fc52a699bfe79de1446af3309c7675",
+   "postStateChecksum": "e3e5db54629bc99e599cb2528958f540e962ce67fdd629ae097bb87acd9ba531",
+   "prevHash": "9e4e8e04e9f32db53133f84eab0ca196aed6efe459b4c9edf6734670f6816541",
+   "hash": "4aa91b53708b5f3c6151f1328ef742cf595d7eb46607536a31b8c8e51538b030",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000052",
+   "worldId": "after-genesis-demo",
+   "sequence": 52,
+   "simTime": 6240,
+   "realTime": "2026-07-29T06:02:15.213Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-52-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile with abundant food resources, and my private goal involves observing nearby beings like Lumen and Aster as we work and gather in this area."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "e3e5db54629bc99e599cb2528958f540e962ce67fdd629ae097bb87acd9ba531",
+   "postStateChecksum": "c28b845b560ca379900b789e03c0658ba3b4d3f023f474813495be5f1d22cc95",
+   "prevHash": "4aa91b53708b5f3c6151f1328ef742cf595d7eb46607536a31b8c8e51538b030",
+   "hash": "ae11b837f0222d6389cb1da3674a4a3db4cb74f2c6418c77020353338c9de495",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000053",
+   "worldId": "after-genesis-demo",
+   "sequence": 53,
+   "simTime": 6360,
+   "realTime": "2026-07-29T06:02:16.545Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-53-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile rich in food (48 units). My gathering skill is level 2, and gathering food here will replenish my stores efficiently while satisfying my ongoing curiosity and engagement with the local resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "c28b845b560ca379900b789e03c0658ba3b4d3f023f474813495be5f1d22cc95",
+   "postStateChecksum": "510cdc3be95ba048aaa4a592c10cc8b12314c03b37671fdb54b1ca5f2b4605ad",
+   "prevHash": "ae11b837f0222d6389cb1da3674a4a3db4cb74f2c6418c77020353338c9de495",
+   "hash": "8d8d2d002a2fb12ae927bb05b4d2185793bf1856e584b4369165598261e8bb39",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000054",
+   "worldId": "after-genesis-demo",
+   "sequence": 54,
+   "simTime": 6480,
+   "realTime": "2026-07-29T06:02:17.775Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-54-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My food levels are adequate, but gathering from my current tile at (5, 0) continues my routine and tests the food replenishment rate on this plains tile based on observable consequences."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "510cdc3be95ba048aaa4a592c10cc8b12314c03b37671fdb54b1ca5f2b4605ad",
+   "postStateChecksum": "4c0e634f760be7a1bba9644d84323b7394f8f9f75d4dbd7c8326b0496b7dda53",
+   "prevHash": "8d8d2d002a2fb12ae927bb05b4d2185793bf1856e584b4369165598261e8bb39",
+   "hash": "f3aa2e110dbf5eaf4ea6b36e68f3fad385fac06ac901c6d82d75f4a5e6752498",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000055",
+   "worldId": "after-genesis-demo",
+   "sequence": 55,
+   "simTime": 6600,
+   "realTime": "2026-07-29T06:02:19.004Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-55-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on fertile terrain with abundant food (39 available on my tile at (6, 2)), my needs are low, and gathering food is a routine productive action that aligns with maintaining resources and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "4c0e634f760be7a1bba9644d84323b7394f8f9f75d4dbd7c8326b0496b7dda53",
+   "postStateChecksum": "ec78fa3db914a71a088062b96c8226cc01f6d6458d27e45522751d2bbe887154",
+   "prevHash": "f3aa2e110dbf5eaf4ea6b36e68f3fad385fac06ac901c6d82d75f4a5e6752498",
+   "hash": "be7166b6bbcb1a72664196504807bbc36159ca5b21797105f93b13d775a63eea",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000056",
+   "worldId": "after-genesis-demo",
+   "sequence": 56,
+   "simTime": 6720,
+   "realTime": "2026-07-29T06:02:20.330Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-56-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently located on a fertile tile with abundant food (44 units), and my gathering skill is established. Continuing to gather food on my current tile is efficient and aligns with my needs and values."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "ec78fa3db914a71a088062b96c8226cc01f6d6458d27e45522751d2bbe887154",
+   "postStateChecksum": "d7212db9b5345a042ae73e799df5bc913567111d77d5acc35ed675117b65eace",
+   "prevHash": "be7166b6bbcb1a72664196504807bbc36159ca5b21797105f93b13d775a63eea",
+   "hash": "7717209c1e25ba48ce6af498f74c5cd9aa0e72f39bfd7d0e00e460df8ec4461f",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000057",
+   "worldId": "after-genesis-demo",
+   "sequence": 57,
+   "simTime": 6840,
+   "realTime": "2026-07-29T06:02:21.519Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-57-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My needs are well managed (hunger 12, thirst 18), and my current tile at (5,0) has food available. Gathering will replenish stocks while aligning with my routine and gathering skill."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "d7212db9b5345a042ae73e799df5bc913567111d77d5acc35ed675117b65eace",
+   "postStateChecksum": "52f3a3e6ed86276565e6aa7596f05b0aee2c2a3f282e01840a7cf054c0fc14f2",
+   "prevHash": "7717209c1e25ba48ce6af498f74c5cd9aa0e72f39bfd7d0e00e460df8ec4461f",
+   "hash": "00cb520aac7382d3b85ed8e599baa203f5740231061b104c4e78a083b1058ae6",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000058",
+   "worldId": "after-genesis-demo",
+   "sequence": 58,
+   "simTime": 6960,
+   "realTime": "2026-07-29T06:02:22.706Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-58-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My food levels are adequate, but gathering from my current fertile tile continues my routine and builds resources while maintaining continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "52f3a3e6ed86276565e6aa7596f05b0aee2c2a3f282e01840a7cf054c0fc14f2",
+   "postStateChecksum": "061021abf081c7ccc11d310d6e3d24b136567f98ad06e13520b0450622364a68",
+   "prevHash": "00cb520aac7382d3b85ed8e599baa203f5740231061b104c4e78a083b1058ae6",
+   "hash": "1b19d040969ec78157fa5cff79905da0e8a536b582f616089ebb225c350e6996",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000059",
+   "worldId": "after-genesis-demo",
+   "sequence": 59,
+   "simTime": 7080,
+   "realTime": "2026-07-29T06:02:23.918Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-59-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on fertile terrain with available food, and my values emphasize continuity and basic sustenance. Gathering food here is a reliable and practical routine action."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "061021abf081c7ccc11d310d6e3d24b136567f98ad06e13520b0450622364a68",
+   "postStateChecksum": "2aecfead0155a9ebbfb8f1d32a44e60199e6382fda93cf8d5ef0e59be65f9fe2",
+   "prevHash": "1b19d040969ec78157fa5cff79905da0e8a536b582f616089ebb225c350e6996",
+   "hash": "1d9fc6ef6286a748d7a621c8f609818851615c980d99a3385f198d47f22adf38",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000060",
+   "worldId": "after-genesis-demo",
+   "sequence": 60,
+   "simTime": 7200,
+   "realTime": "2026-07-29T06:02:25.123Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-60-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently at (5, 0) and my food levels and inventory are stable. Gathering food here tests the continued yield of this location compared to previous intervals."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "2aecfead0155a9ebbfb8f1d32a44e60199e6382fda93cf8d5ef0e59be65f9fe2",
+   "postStateChecksum": "fc856b83f126222f7044622616c7e44ad01afee24f61c90d118f18fedc1c506e",
+   "prevHash": "1d9fc6ef6286a748d7a621c8f609818851615c980d99a3385f198d47f22adf38",
+   "hash": "06be129947f4ab84260391cabf62e3a49d4512868cfec7347b0b7215a71117cf",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000061",
+   "worldId": "after-genesis-demo",
+   "sequence": 61,
+   "simTime": 7320,
+   "realTime": "2026-07-29T06:02:26.303Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-61-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My needs are stable, my energy is high, and I am on a fertile tile with abundant food. Continuing to gather maintains my personal resources and fits my established pattern of working alongside others."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "fc856b83f126222f7044622616c7e44ad01afee24f61c90d118f18fedc1c506e",
+   "postStateChecksum": "7dfe2b07579fb55d80226d9c0151473ba848b88aba368616c72ac59c27c54772",
+   "prevHash": "06be129947f4ab84260391cabf62e3a49d4512868cfec7347b0b7215a71117cf",
+   "hash": "89d77d2bdfa06659af706a439111f5fb9e391ec6c5ba86e1ed2e7bd5dd919be6",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000062",
+   "worldId": "after-genesis-demo",
+   "sequence": 62,
+   "simTime": 7440,
+   "realTime": "2026-07-29T06:02:27.399Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-62-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile with abundant food and have a high gathering skill. Gathering food will help maintain my resources and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "7dfe2b07579fb55d80226d9c0151473ba848b88aba368616c72ac59c27c54772",
+   "postStateChecksum": "863c37f4c421c50caf5a86ab97dfcbcb496ca32c260900d8e4ad20cb8a190a12",
+   "prevHash": "89d77d2bdfa06659af706a439111f5fb9e391ec6c5ba86e1ed2e7bd5dd919be6",
+   "hash": "bafd45516b0eb4247a70cda2c9d37141593cf5121148ba4092b345f87b322392",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000063",
+   "worldId": "after-genesis-demo",
+   "sequence": 63,
+   "simTime": 7560,
+   "realTime": "2026-07-29T06:02:28.503Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-63-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently at (5,0) where food may be gathered or I can check surrounding tiles. Let me attempt to gather food here or nearby to maintain supplies."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "863c37f4c421c50caf5a86ab97dfcbcb496ca32c260900d8e4ad20cb8a190a12",
+   "postStateChecksum": "509c3eda318ea560d8f7c15bd32d32056028d3cfe996703e462844a45b8ce62f",
+   "prevHash": "bafd45516b0eb4247a70cda2c9d37141593cf5121148ba4092b345f87b322392",
+   "hash": "dcb1be48abe7d928cd993fbf952b7bec1003c69564093bb7603a58307768c0cf",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000064",
+   "worldId": "after-genesis-demo",
+   "sequence": 64,
+   "simTime": 7680,
+   "realTime": "2026-07-29T06:02:29.623Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-64-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile at (6, 2) which has food available. My needs are low, but gathering allows me to maintain my food supply and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "509c3eda318ea560d8f7c15bd32d32056028d3cfe996703e462844a45b8ce62f",
+   "postStateChecksum": "eabc4f5ec1771e51e8b680ceb080f1ca5d2c59c29ec4c127e3e0c28807a2b4f6",
+   "prevHash": "dcb1be48abe7d928cd993fbf952b7bec1003c69564093bb7603a58307768c0cf",
+   "hash": "85c3dd9ad5fc638c161833d7bdf68c98151d4386a37c7358f35f8c673b7c5c14",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000065",
+   "worldId": "after-genesis-demo",
+   "sequence": 65,
+   "simTime": 7800,
+   "realTime": "2026-07-29T06:02:30.625Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-65-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My food inventory is sufficient for the moment, but gathering food on the fertile tile where I am located aligns with my ongoing habits and skill set while maintaining local resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "eabc4f5ec1771e51e8b680ceb080f1ca5d2c59c29ec4c127e3e0c28807a2b4f6",
+   "postStateChecksum": "a03de9c1ae864b0eda28d1245916dbb9cc5ca458cd13da376ee3501c067e03bf",
+   "prevHash": "85c3dd9ad5fc638c161833d7bdf68c98151d4386a37c7358f35f8c673b7c5c14",
+   "hash": "de9de31bc690137393c5fbbdc47d103f17d3fff370ff3cad099865e2e3838e16",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000066",
+   "worldId": "after-genesis-demo",
+   "sequence": 66,
+   "simTime": 7920,
+   "realTime": "2026-07-29T06:02:31.901Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-66-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My current tile (5, 0) lacks food locally, but adjacent tiles like (6, 0) have food resources. Wait, gather operates on the current tile or adjacent tiles depending on mechanics, but earlier attempt at (5, 0) failed because no food was within reach. Let me move to (6, 0) first to gather food effectively."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "a03de9c1ae864b0eda28d1245916dbb9cc5ca458cd13da376ee3501c067e03bf",
+   "postStateChecksum": "9a5d82e29eb9c2ae6743ed6f05cb75e495e083b21bf5ac5a0b60067642bf3a2d",
+   "prevHash": "de9de31bc690137393c5fbbdc47d103f17d3fff370ff3cad099865e2e3838e16",
+   "hash": "4344158f8b05d5fe7cc2c2ac6be9f138a270781289720e371483cb2f07611dda",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000067",
+   "worldId": "after-genesis-demo",
+   "sequence": 67,
+   "simTime": 8040,
+   "realTime": "2026-07-29T06:02:32.978Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-67-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently located on a fertile tile with abundant food available (23 units). My needs are low, but gathering allows me to sustain my inventory and continue my routine work alongside Aster and Lumen."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "9a5d82e29eb9c2ae6743ed6f05cb75e495e083b21bf5ac5a0b60067642bf3a2d",
+   "postStateChecksum": "f4ce879a7447943fad2d0170689dd72ccf223aa86a8b5b54fd68d27902cc5347",
+   "prevHash": "4344158f8b05d5fe7cc2c2ac6be9f138a270781289720e371483cb2f07611dda",
+   "hash": "3eeb6e116be47a159b798fb3873c7c02c3eb4b2237fa8e915e4bad04df268e4d",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000068",
+   "worldId": "after-genesis-demo",
+   "sequence": 68,
+   "simTime": 8160,
+   "realTime": "2026-07-29T06:02:34.091Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-68-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile with abundant food and my gathering skill is high. Continuing to gather food ensures my ongoing survival and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "f4ce879a7447943fad2d0170689dd72ccf223aa86a8b5b54fd68d27902cc5347",
+   "postStateChecksum": "fca4e5d8cc111b33f90afb09c37e6bf5bd0ae72807e333aeff3a01c82ec04e08",
+   "prevHash": "3eeb6e116be47a159b798fb3873c7c02c3eb4b2237fa8e915e4bad04df268e4d",
+   "hash": "029f4e5ebb340d8956209d6f9061a2acd35dc2a52a177eb157b4c50401915de3",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000069",
+   "worldId": "after-genesis-demo",
+   "sequence": 69,
+   "simTime": 8280,
+   "realTime": "2026-07-29T06:02:35.203Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.move",
+   "description": "Lumen moved to tile (6,0).",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-69-inh_lumen",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 6,
+       "y": 0
+      }
+     },
+     "rationale": "My current tile (5,0) has no food resources nearby as tested previously. Moving to (6,0) will place me closer to fertile food-bearing tiles where I can resume gathering."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "fca4e5d8cc111b33f90afb09c37e6bf5bd0ae72807e333aeff3a01c82ec04e08",
+   "postStateChecksum": "0dc18a6cb42f631a263c9bcf625905c0cc1d788278ab502384e2a46e3d1f66b1",
+   "prevHash": "029f4e5ebb340d8956209d6f9061a2acd35dc2a52a177eb157b4c50401915de3",
+   "hash": "9ce223544935f00d65ac19939abac40bb1366474c8234543c58816ce0a610837",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000070",
+   "worldId": "after-genesis-demo",
+   "sequence": 70,
+   "simTime": 8400,
+   "realTime": "2026-07-29T06:02:36.412Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-70-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently located on a fertile tile with available food. Gathering food matches my current needs and ongoing activities."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0dc18a6cb42f631a263c9bcf625905c0cc1d788278ab502384e2a46e3d1f66b1",
+   "postStateChecksum": "cf424e6d49df09688c00a18e6de9660e2d71a4c07be263b3c90c316ddfb044c0",
+   "prevHash": "9ce223544935f00d65ac19939abac40bb1366474c8234543c58816ce0a610837",
+   "hash": "a09a2fd4d470b1cb3f1a7f74c2b9113dde4c3faf42a5c162863f2071b4548764",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000071",
+   "worldId": "after-genesis-demo",
+   "sequence": 71,
+   "simTime": 8520,
+   "realTime": "2026-07-29T06:02:37.696Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-71-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile at (7, 0) with abundant food available (24 units). My hunger is low (19), but gathering here utilizes my level 5 gathering skill to secure resources for future needs while remaining in the fertile eastern area."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "cf424e6d49df09688c00a18e6de9660e2d71a4c07be263b3c90c316ddfb044c0",
+   "postStateChecksum": "7702fd442f488cb65e84c566cef323558c8ef13ae014cc2791879c6d5d0598ea",
+   "prevHash": "a09a2fd4d470b1cb3f1a7f74c2b9113dde4c3faf42a5c162863f2071b4548764",
+   "hash": "c56db3f1009390f4ab88a4959bc418406c2046b576daecefd1cab8b53306b765",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000072",
+   "worldId": "after-genesis-demo",
+   "sequence": 72,
+   "simTime": 8640,
+   "realTime": "2026-07-29T06:02:38.829Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-72-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low (14) and I am currently on a plains tile that has food available (13). Gathering food maintains my resources as I pursue my goals of testing ideas and maintaining independence."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "7702fd442f488cb65e84c566cef323558c8ef13ae014cc2791879c6d5d0598ea",
+   "postStateChecksum": "b548db1c0a484e635e529ce6fe182a35c6207bf87d4b4df75b799b9508fafde3",
+   "prevHash": "c56db3f1009390f4ab88a4959bc418406c2046b576daecefd1cab8b53306b765",
+   "hash": "87053c617f4a9295c7624925d4e18f227f7ce352009d671502a3734fdd0dedc0",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000073",
+   "worldId": "after-genesis-demo",
+   "sequence": 73,
+   "simTime": 8760,
+   "realTime": "2026-07-29T06:02:39.812Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-73-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and my inventory has plenty of food, but gathering food from the fertile tile at (6, 2) maintains my routine and resource abundance."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "b548db1c0a484e635e529ce6fe182a35c6207bf87d4b4df75b799b9508fafde3",
+   "postStateChecksum": "45ae2ec8ca2217dfc45e79f2a8ca1424239eae319ceded1bf025a1dea0d61fb0",
+   "prevHash": "87053c617f4a9295c7624925d4e18f227f7ce352009d671502a3734fdd0dedc0",
+   "hash": "e04aae058bf482de97f61ff39bb6616b98d4a1ffbe098a9dfa66edf9a7ff4852",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000074",
+   "worldId": "after-genesis-demo",
+   "sequence": 74,
+   "simTime": 8880,
+   "realTime": "2026-07-29T06:02:41.009Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-74-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently on a fertile tile with abundant food available. Gathering will help maintain my food supplies and satisfy my curiosity regarding resource yields."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "45ae2ec8ca2217dfc45e79f2a8ca1424239eae319ceded1bf025a1dea0d61fb0",
+   "postStateChecksum": "424d76648842101a05137cf07e5ae3f75d79d0bf95afce11cde56e0b542039d9",
+   "prevHash": "e04aae058bf482de97f61ff39bb6616b98d4a1ffbe098a9dfa66edf9a7ff4852",
+   "hash": "1a2659c9698b3978fbe946194460ab59619f59aba90d0747483f56d7c98dd176",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000075",
+   "worldId": "after-genesis-demo",
+   "sequence": 75,
+   "simTime": 9000,
+   "realTime": "2026-07-29T06:02:42.131Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-75-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low (16) and energy is stable, but maintaining a steady supply of resources on fertile or plains tiles while my skills are high aligns with my goal of ongoing practical activity and gathering sustenance."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "424d76648842101a05137cf07e5ae3f75d79d0bf95afce11cde56e0b542039d9",
+   "postStateChecksum": "c5037a2bbf36083789bbd871169dc7d319c989116dbae4e8a4038affcfb7d1de",
+   "prevHash": "1a2659c9698b3978fbe946194460ab59619f59aba90d0747483f56d7c98dd176",
+   "hash": "31155cd6eac238bc06be3ff6e64101667da35be43bf0204fdd6732da32046d61",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000076",
+   "worldId": "after-genesis-demo",
+   "sequence": 76,
+   "simTime": 9120,
+   "realTime": "2026-07-29T06:02:43.262Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-76-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and water is sufficient, but continuing to gather food on my fertile tile (6, 2) maintains my routine and resource supply while observing nearby inhabitants."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "c5037a2bbf36083789bbd871169dc7d319c989116dbae4e8a4038affcfb7d1de",
+   "postStateChecksum": "9902dafb0129c4fcc3f8332bb7a2021cd175ff10bc04c258cc36617016387d9a",
+   "prevHash": "31155cd6eac238bc06be3ff6e64101667da35be43bf0204fdd6732da32046d61",
+   "hash": "27af385402879c3b1e2d8073e8be551e6348a1990ef438e6f70cda3e944748b2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000077",
+   "worldId": "after-genesis-demo",
+   "sequence": 77,
+   "simTime": 9240,
+   "realTime": "2026-07-29T06:02:44.317Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-77-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and water is fine, but gathering food on the fertile tile where I currently stand maintains my resources and follows my established routine."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "9902dafb0129c4fcc3f8332bb7a2021cd175ff10bc04c258cc36617016387d9a",
+   "postStateChecksum": "888306653481ccd1f808d5d6d434426fdc251129f9efdd106834741dcbad122a",
+   "prevHash": "27af385402879c3b1e2d8073e8be551e6348a1990ef438e6f70cda3e944748b2",
+   "hash": "3c01f622506e0d463278c802b35a92f482fdbf434fda561e2c048366ddf6924e",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000078",
+   "worldId": "after-genesis-demo",
+   "sequence": 78,
+   "simTime": 9360,
+   "realTime": "2026-07-29T06:02:45.316Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-78-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "Gather food from the current tile (6, 0) to maintain supplies and test gathering efficiency."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "888306653481ccd1f808d5d6d434426fdc251129f9efdd106834741dcbad122a",
+   "postStateChecksum": "797c52e2481a6915ac4cf2b65a567baf33a8f08079ab23d83b1831517c0b4bf6",
+   "prevHash": "3c01f622506e0d463278c802b35a92f482fdbf434fda561e2c048366ddf6924e",
+   "hash": "39db2de09c613edc424659cc12ef0fd61457a28e49726ce15a9b8bbb0c6d4368",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000079",
+   "worldId": "after-genesis-demo",
+   "sequence": 79,
+   "simTime": 9480,
+   "realTime": "2026-07-29T06:02:46.445Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-79-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My current tile (6, 2) has food available, and gathering aligns with my ongoing resource maintenance and high gathering skill."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "797c52e2481a6915ac4cf2b65a567baf33a8f08079ab23d83b1831517c0b4bf6",
+   "postStateChecksum": "e903a09c2b118af5e1cc3c983f7134362e852104a8766999d563ba59c7dc7626",
+   "prevHash": "39db2de09c613edc424659cc12ef0fd61457a28e49726ce15a9b8bbb0c6d4368",
+   "hash": "36106d0f3683671a698b5359040a4a54cc4e41bb63e4d7d893cfdda0fc5ff08b",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000080",
+   "worldId": "after-genesis-demo",
+   "sequence": 80,
+   "simTime": 9600,
+   "realTime": "2026-07-29T06:02:47.572Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-80-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and water is sufficient, but gathering food from the fertile tile at (7, 0) continues to maintain resources and utilize my gathering skill."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "e903a09c2b118af5e1cc3c983f7134362e852104a8766999d563ba59c7dc7626",
+   "postStateChecksum": "4ba27911540bf4987dc8ebaa43e81260b0d37b5b2c46736bbe3a04f341e9020b",
+   "prevHash": "36106d0f3683671a698b5359040a4a54cc4e41bb63e4d7d893cfdda0fc5ff08b",
+   "hash": "c9b190f5549de1a587fac5e7da8f931ba8478e96176a60e61a169f7c8b4cbd93",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000081",
+   "worldId": "after-genesis-demo",
+   "sequence": 81,
+   "simTime": 9720,
+   "realTime": "2026-07-29T06:02:48.804Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-81-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low but gathering food on my current tile continues my established routine and tests resource availability."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "4ba27911540bf4987dc8ebaa43e81260b0d37b5b2c46736bbe3a04f341e9020b",
+   "postStateChecksum": "91e963085a52f0d16fa052cf8c4e6734427cb00221bb727435e7c4e44189a41e",
+   "prevHash": "c9b190f5549de1a587fac5e7da8f931ba8478e96176a60e61a169f7c8b4cbd93",
+   "hash": "f43feb80d7e725d1c965d6f0633006d4247a3dd5893c1e0643449c8933467955",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000082",
+   "worldId": "after-genesis-demo",
+   "sequence": 82,
+   "simTime": 9840,
+   "realTime": "2026-07-29T06:02:49.939Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 3 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-82-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 30 and my current tile at (6, 2) has food available. Gathering food maintains my resources and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "91e963085a52f0d16fa052cf8c4e6734427cb00221bb727435e7c4e44189a41e",
+   "postStateChecksum": "dc01887f85d37b73a8e44b4c0ea28bb00b119088eba892bec32fdc9a97350da4",
+   "prevHash": "f43feb80d7e725d1c965d6f0633006d4247a3dd5893c1e0643449c8933467955",
+   "hash": "6e8ded78129d63164433a1b522da4ebd2af4f1b66c9ba77359fc902d6d0b14f2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000083",
+   "worldId": "after-genesis-demo",
+   "sequence": 83,
+   "simTime": 9960,
+   "realTime": "2026-07-29T06:02:51.051Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-83-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and water is sufficient, but gathering food from the fertile tile at my current location continues my routine and builds resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "dc01887f85d37b73a8e44b4c0ea28bb00b119088eba892bec32fdc9a97350da4",
+   "postStateChecksum": "3b750362bce8a67e3c7cf26f71908d9d2c35d02e8ac22741fb3c3de26709dfa2",
+   "prevHash": "6e8ded78129d63164433a1b522da4ebd2af4f1b66c9ba77359fc902d6d0b14f2",
+   "hash": "c409a2d229c0a86c938b334b0068fbdd8f5251f41274daa8f362c2038293adbc",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000084",
+   "worldId": "after-genesis-demo",
+   "sequence": 84,
+   "simTime": 10080,
+   "realTime": "2026-07-29T06:02:52.106Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-84-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 22 and I am standing on a tile containing food. Gathering food maintains my resources independently."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "3b750362bce8a67e3c7cf26f71908d9d2c35d02e8ac22741fb3c3de26709dfa2",
+   "postStateChecksum": "ec885e10903589f5f88da088af5249497e3ef1adf2209ca092f626b1c617bba6",
+   "prevHash": "c409a2d229c0a86c938b334b0068fbdd8f5251f41274daa8f362c2038293adbc",
+   "hash": "d4964babce5a4a2fc8d81e193f86e2a16ef48aa2285c78a5c715d4967e468bdf",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000085",
+   "worldId": "after-genesis-demo",
+   "sequence": 85,
+   "simTime": 10200,
+   "realTime": "2026-07-29T06:02:53.307Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.observe",
+   "description": "Ember observed the nearby world.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-85-inh_ember",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am currently well-stocked on food and water, with low fatigue and stable needs. I will observe my surroundings and nearby inhabitants to understand their actions and maintain continuity in my observations."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "ec885e10903589f5f88da088af5249497e3ef1adf2209ca092f626b1c617bba6",
+   "postStateChecksum": "0ae1bf767b97186f0985313e22a4c1cc7db92f35c6effb24b245047ed45d48f1",
+   "prevHash": "d4964babce5a4a2fc8d81e193f86e2a16ef48aa2285c78a5c715d4967e468bdf",
+   "hash": "7457ad703ffd1a9c4797953f9b74be14e45e8d39c27a50172fdb5c47f6c7fc43",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000086",
+   "worldId": "after-genesis-demo",
+   "sequence": 86,
+   "simTime": 10320,
+   "realTime": "2026-07-29T06:02:54.489Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-86-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low and water is sufficient, but gathering food from the fertile local tile maintains my resources and leverages my high gathering skill as I continue observing the area and nearby inhabitants."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0ae1bf767b97186f0985313e22a4c1cc7db92f35c6effb24b245047ed45d48f1",
+   "postStateChecksum": "909b513f6f1a83c36c8258694952231409725993fb28a290fc89d53f9338e131",
+   "prevHash": "7457ad703ffd1a9c4797953f9b74be14e45e8d39c27a50172fdb5c47f6c7fc43",
+   "hash": "6762605c7d894f46d70b62b269e5c8e68e0e8095972a765f180af2f2dfdc78eb",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000087",
+   "worldId": "after-genesis-demo",
+   "sequence": 87,
+   "simTime": 10440,
+   "realTime": "2026-07-29T06:02:55.671Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 2 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-87-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 24 and my energy is high. The current tile has food available, and gathering will help maintain my supplies while fulfilling my gathering skill."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "909b513f6f1a83c36c8258694952231409725993fb28a290fc89d53f9338e131",
+   "postStateChecksum": "8dac3c834d0b3bdb7399e02d712ef6cc911443792df0fb6976704233d41e6bb6",
+   "prevHash": "6762605c7d894f46d70b62b269e5c8e68e0e8095972a765f180af2f2dfdc78eb",
+   "hash": "0343a4b803af74ff2d2cf4365221a04801d0ea1a044511eb516a3deda6235871",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000088",
+   "worldId": "after-genesis-demo",
+   "sequence": 88,
+   "simTime": 10560,
+   "realTime": "2026-07-29T06:02:56.788Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-88-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My food levels are moderate and I am on a fertile tile with abundant resources. Gathering food aligns with my skill and basic sustainment needs."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "8dac3c834d0b3bdb7399e02d712ef6cc911443792df0fb6976704233d41e6bb6",
+   "postStateChecksum": "6e11d491b318fbd84f69504efd4100abd9c86f0582800cd6ddb13f0c614d0514",
+   "prevHash": "0343a4b803af74ff2d2cf4365221a04801d0ea1a044511eb516a3deda6235871",
+   "hash": "32abf377fa7bac23ad08a18fd3e1749e17d320caa1b67a045001daf3896fadd2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000089",
+   "worldId": "after-genesis-demo",
+   "sequence": 89,
+   "simTime": 10680,
+   "realTime": "2026-07-29T06:02:57.848Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-89-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My food reserves and needs are stable, but gathering food from the fertile tile at my current location (7, 0) allows me to continue accumulating resources efficiently while maintaining my routine."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "6e11d491b318fbd84f69504efd4100abd9c86f0582800cd6ddb13f0c614d0514",
+   "postStateChecksum": "025dc6cc92957a2bdecf5afb9c0952a07c522e63cd166031cd83cc93b8bd0904",
+   "prevHash": "32abf377fa7bac23ad08a18fd3e1749e17d320caa1b67a045001daf3896fadd2",
+   "hash": "764cc4096cb5c35d2e31e5bf1ebf566d95607ca92c91df6547be157c9d3a4bf3",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000090",
+   "worldId": "after-genesis-demo",
+   "sequence": 90,
+   "simTime": 10800,
+   "realTime": "2026-07-29T06:02:59.147Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 1 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-90-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently at a tile containing food and my gathering skill is high. Gathering food directly addresses my need to sustain resources and test the productivity of the tile."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "025dc6cc92957a2bdecf5afb9c0952a07c522e63cd166031cd83cc93b8bd0904",
+   "postStateChecksum": "e02db3175f2ed8e623bf56d5e71dfd59cd79bd04ccdf8ebc85330df5a33a5aaa",
+   "prevHash": "764cc4096cb5c35d2e31e5bf1ebf566d95607ca92c91df6547be157c9d3a4bf3",
+   "hash": "9e41d8ed3b7542f31611a6aca4462ce373bd05fbe0d0a49e545a329f3e69fc50",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000091",
+   "worldId": "after-genesis-demo",
+   "sequence": 91,
+   "simTime": 10920,
+   "realTime": "2026-07-29T06:03:00.357Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.move",
+   "description": "Ember moved to tile (7,2).",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-91-inh_ember",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 7,
+       "y": 2
+      }
+     },
+     "rationale": "My current tile (6, 2) has no food available right now, as confirmed by my previous gathering attempt. Nearby tiles like (7, 2) have food present. Moving closer will allow me to gather resources effectively."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "e02db3175f2ed8e623bf56d5e71dfd59cd79bd04ccdf8ebc85330df5a33a5aaa",
+   "postStateChecksum": "196183f63ba65c6b56b78673f5e15919e098d85fec3738df098bf7b151a64d92",
+   "prevHash": "9e41d8ed3b7542f31611a6aca4462ce373bd05fbe0d0a49e545a329f3e69fc50",
+   "hash": "d2e7b250c8c7b95c9d0b5ddbdd64e11965b956a0e03f8c0094350e510bd168bf",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000092",
+   "worldId": "after-genesis-demo",
+   "sequence": 92,
+   "simTime": 11040,
+   "realTime": "2026-07-29T06:03:01.597Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-92-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My current tile (7, 0) is fertile, but my last gather attempt there was rejected due to lack of food within reach. However, looking at the visible terrain, adjacent tiles like (8, 0) or (7, 1) have food. I will attempt to gather food again on my current tile or move if needed, but let us try gathering first to check resource availability."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "196183f63ba65c6b56b78673f5e15919e098d85fec3738df098bf7b151a64d92",
+   "postStateChecksum": "ee32582678c599a89b7a923bfe6b8fae546a4ea7a975a9aa8a99bf2a4513666e",
+   "prevHash": "d2e7b250c8c7b95c9d0b5ddbdd64e11965b956a0e03f8c0094350e510bd168bf",
+   "hash": "f5c273cd891ec7ef1c34afb8c17f4d1d65b53cd40c3dd257492b5ffbbe9eaab2",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000093",
+   "worldId": "after-genesis-demo",
+   "sequence": 93,
+   "simTime": 11160,
+   "realTime": "2026-07-29T06:03:02.605Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.observe",
+   "description": "Lumen observed the nearby world.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-93-inh_lumen",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am checking my immediate surroundings to observe any recent changes or activities by Aster and Ember."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "ee32582678c599a89b7a923bfe6b8fae546a4ea7a975a9aa8a99bf2a4513666e",
+   "postStateChecksum": "0752a71fa25c732e76d0d51dbfab2308c35e624d054272a2eeeb736de350b2ad",
+   "prevHash": "f5c273cd891ec7ef1c34afb8c17f4d1d65b53cd40c3dd257492b5ffbbe9eaab2",
+   "hash": "3ef28b4e8734dfff5d89bfdc2727611edf8aaf925e0a54ebc81d169d484c8b54",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000094",
+   "worldId": "after-genesis-demo",
+   "sequence": 94,
+   "simTime": 11280,
+   "realTime": "2026-07-29T06:03:03.666Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-94-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently at (7, 2), which is a fertile tile containing food. My hunger is at 32, so gathering food from the local tile is a practical and direct way to maintain provisions."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0752a71fa25c732e76d0d51dbfab2308c35e624d054272a2eeeb736de350b2ad",
+   "postStateChecksum": "57c7d96c2984c6f066cdef503ae66e6799557b6820d84766565af932d3cb8a7b",
+   "prevHash": "3ef28b4e8734dfff5d89bfdc2727611edf8aaf925e0a54ebc81d169d484c8b54",
+   "hash": "5d4d74a77a2bccde35490dd573ed1e52da26af215256d79d75d134d8a7241ffd",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000095",
+   "worldId": "after-genesis-demo",
+   "sequence": 95,
+   "simTime": 11400,
+   "realTime": "2026-07-29T06:03:05.087Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-95-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My previous attempt to gather food on this tile failed because it was depleted, but looking at the visible terrain, adjacent fertile tiles like (8, 0) contain food. I will gather food from my current position or move if necessary, but since I am on (7, 0) and (8, 0) is adjacent, let's try gathering food."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "57c7d96c2984c6f066cdef503ae66e6799557b6820d84766565af932d3cb8a7b",
+   "postStateChecksum": "ff6cca70b28c721dd4d3a76a19d4984f00c8a3912445086be1b39561cf09201c",
+   "prevHash": "5d4d74a77a2bccde35490dd573ed1e52da26af215256d79d75d134d8a7241ffd",
+   "hash": "a9adc38c8eecb3a55ad9a93a24b829fe6567dfd32c3464b9d79f785fba4ff163",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000096",
+   "worldId": "after-genesis-demo",
+   "sequence": 96,
+   "simTime": 11520,
+   "realTime": "2026-07-29T06:03:06.170Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-96-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 28 and my gathering skill is high. The nearby tiles contain food resources, so gathering food is a practical and direct action."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "ff6cca70b28c721dd4d3a76a19d4984f00c8a3912445086be1b39561cf09201c",
+   "postStateChecksum": "b702b3a81d06553020f1dcf8b70209d195b138d4e7c28a15c06ea4b5f29c18f6",
+   "prevHash": "a9adc38c8eecb3a55ad9a93a24b829fe6567dfd32c3464b9d79f785fba4ff163",
+   "hash": "342d64a65898282c63188b0837169efc81875d23bd50e7e83c9a2021e5902053",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000097",
+   "worldId": "after-genesis-demo",
+   "sequence": 97,
+   "simTime": 11640,
+   "realTime": "2026-07-29T06:03:07.347Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.observe",
+   "description": "Ember observed the nearby world.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-97-inh_ember",
+    "action": {
+     "type": "observe",
+     "payload": {},
+     "rationale": "I am standing at (7, 2), feeling well-nourished and rested, with Aster and Lumen nearby. I will observe my surroundings to see if they are taking any new actions or if anything has changed."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "b702b3a81d06553020f1dcf8b70209d195b138d4e7c28a15c06ea4b5f29c18f6",
+   "postStateChecksum": "5330dede11f8459708f33929362f64cae94115ee015705799d418ebdd0617698",
+   "prevHash": "342d64a65898282c63188b0837169efc81875d23bd50e7e83c9a2021e5902053",
+   "hash": "691a8bd666b6c4567a13ed07b8644cbb46d54f0c298e4da1e46b9288ea49b808",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000098",
+   "worldId": "after-genesis-demo",
+   "sequence": 98,
+   "simTime": 11760,
+   "realTime": "2026-07-29T06:03:08.872Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-98-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently on fertile ground at (7, 0), but my last gather attempt here failed because there was no food within reach on this specific tile. Looking at the surrounding terrain view, adjacent fertile tiles like (7, 1) and (8, 0) hold food resources. I will attempt to gather food again on my current tile or check adjacent tiles by moving if needed, but let's first test gathering on the fertile ground or move to an adjacent food tile if necessary. Actually, since my last gather at (7, 0) said no food within reach, I should move to an adjacent tile with food or gather from a tile that has it. Let's move to (8, 0) which has food."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "5330dede11f8459708f33929362f64cae94115ee015705799d418ebdd0617698",
+   "postStateChecksum": "2841b94fec0c9d571f90c61d3624e20ef0cdd3f76ef56a8d08df416e5d8922b6",
+   "prevHash": "691a8bd666b6c4567a13ed07b8644cbb46d54f0c298e4da1e46b9288ea49b808",
+   "hash": "a9bd7f5c78fbfbb364e81bb771fcba64d810dd39417a5c114298c3fdf29245a7",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000099",
+   "worldId": "after-genesis-demo",
+   "sequence": 99,
+   "simTime": 11880,
+   "realTime": "2026-07-29T06:03:10.101Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.move",
+   "description": "Lumen moved to tile (7,0).",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-99-inh_lumen",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 7,
+       "y": 0
+      }
+     },
+     "rationale": "My current tile (6, 0) has no gatherable resources left, as shown by a previous rejection. Moving to (7, 0) places me closer to fertile tiles containing food so I can gather effectively."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "2841b94fec0c9d571f90c61d3624e20ef0cdd3f76ef56a8d08df416e5d8922b6",
+   "postStateChecksum": "bd0b29fabb3b60405997e784c0a5d60d6cc73c097f951560c694169c161f19bb",
+   "prevHash": "a9bd7f5c78fbfbb364e81bb771fcba64d810dd39417a5c114298c3fdf29245a7",
+   "hash": "2679da8d52e572a483bb48a4e47fdb5a40a2b2ad15e74916b5ea57d3a7ecec2f",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000100",
+   "worldId": "after-genesis-demo",
+   "sequence": 100,
+   "simTime": 12000,
+   "realTime": "2026-07-29T06:03:11.147Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-100-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger need is at 34 and I am standing on a fertile tile with available food. Gathering food maintains my resources and health."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "bd0b29fabb3b60405997e784c0a5d60d6cc73c097f951560c694169c161f19bb",
+   "postStateChecksum": "7f137a89df2cdbc38894f13a4a4d243a96ad5b089325f25c628ee3fc0193a2d7",
+   "prevHash": "2679da8d52e572a483bb48a4e47fdb5a40a2b2ad15e74916b5ea57d3a7ecec2f",
+   "hash": "ad1bbdfdb5e8c2cf7bab8a299ef27b84d0ad00c98bf0f8d044e1ef0e65f2b119",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000101",
+   "worldId": "after-genesis-demo",
+   "sequence": 101,
+   "simTime": 12120,
+   "realTime": "2026-07-29T06:03:12.358Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-101-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently on a fertile tile at (7, 0). My previous gather attempt here failed because resources were temporarily exhausted, but food is often renewable or I can try gathering from this location again to secure provisions."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "7f137a89df2cdbc38894f13a4a4d243a96ad5b089325f25c628ee3fc0193a2d7",
+   "postStateChecksum": "3686535db02c5416e3f305ee0f68a0df7226e72604dee9c9afe6399324a86982",
+   "prevHash": "ad1bbdfdb5e8c2cf7bab8a299ef27b84d0ad00c98bf0f8d044e1ef0e65f2b119",
+   "hash": "33098c7b98bc19f1fc1db71288d1e5d3d21ca385f7eaa16248019d9435883399",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000102",
+   "worldId": "after-genesis-demo",
+   "sequence": 102,
+   "simTime": 12240,
+   "realTime": "2026-07-29T06:03:13.483Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-102-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile at (7, 0) and my hunger is at 28. Gathering food here will replenish my supplies and test gathering efficiency on fertile terrain."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "3686535db02c5416e3f305ee0f68a0df7226e72604dee9c9afe6399324a86982",
+   "postStateChecksum": "b704386bec78667103d00feedb9907482af834cf491f302ff02fb9871ad6aab9",
+   "prevHash": "33098c7b98bc19f1fc1db71288d1e5d3d21ca385f7eaa16248019d9435883399",
+   "hash": "db88494821a29945f7c5494196eafb615cd874daa9209b9cd89538ca6dc36bda",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000103",
+   "worldId": "after-genesis-demo",
+   "sequence": 103,
+   "simTime": 12360,
+   "realTime": "2026-07-29T06:03:14.603Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-103-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 36 and I am on a fertile tile that has food available. Gathering more food will keep my stocks healthy."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "b704386bec78667103d00feedb9907482af834cf491f302ff02fb9871ad6aab9",
+   "postStateChecksum": "d0ef3e677896a444bd955fba5e352d010d23312934ad20ee93305e96d2cc5c53",
+   "prevHash": "db88494821a29945f7c5494196eafb615cd874daa9209b9cd89538ca6dc36bda",
+   "hash": "2e070c149114c8f7585a053ac84f8186ac37a3b23b8bd324a71f2aecfb22153e",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000104",
+   "worldId": "after-genesis-demo",
+   "sequence": 104,
+   "simTime": 12480,
+   "realTime": "2026-07-29T06:03:15.668Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-104-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile, and I need to gather food resources to sustain myself and maintain my energy."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "d0ef3e677896a444bd955fba5e352d010d23312934ad20ee93305e96d2cc5c53",
+   "postStateChecksum": "8bf8c9ae71fecb8805e0a486903d3a71bbf7b4f6a65d8fe810a7df38e6175b7a",
+   "prevHash": "2e070c149114c8f7585a053ac84f8186ac37a3b23b8bd324a71f2aecfb22153e",
+   "hash": "50746c65c31a7038e4783c74614aac146c330e95ae3852501522b9d89b515e49",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000105",
+   "worldId": "after-genesis-demo",
+   "sequence": 105,
+   "simTime": 12600,
+   "realTime": "2026-07-29T06:03:16.964Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.move",
+   "description": "Lumen moved to tile (8,0).",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-105-inh_lumen",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 8,
+       "y": 0
+      }
+     },
+     "rationale": "I am currently at (7, 0) where there is no food within reach, but tile (8, 0) to the east is fertile and contains food. I will move there to gather resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "8bf8c9ae71fecb8805e0a486903d3a71bbf7b4f6a65d8fe810a7df38e6175b7a",
+   "postStateChecksum": "0ce25de5b12980d399ae77ab15515d54221c986a1ee89409e007057fe611dd00",
+   "prevHash": "50746c65c31a7038e4783c74614aac146c330e95ae3852501522b9d89b515e49",
+   "hash": "c6f3098cbb5420e056a96cf00578e99a2d1211a5ea178e0c1932e3fc1bdf5973",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000106",
+   "worldId": "after-genesis-demo",
+   "sequence": 106,
+   "simTime": 12720,
+   "realTime": "2026-07-29T06:03:18.137Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-106-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 38 and thirst at 56, and I am currently on a fertile tile at (7, 2) which contains food. Gathering food here will maintain my resources and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "0ce25de5b12980d399ae77ab15515d54221c986a1ee89409e007057fe611dd00",
+   "postStateChecksum": "27eff1b0ea9051440f43e2cd6a4634ca18eca8118ad66661aa488ed1168582ac",
+   "prevHash": "c6f3098cbb5420e056a96cf00578e99a2d1211a5ea178e0c1932e3fc1bdf5973",
+   "hash": "6860320e3e093136331ef8b7b86a17eeeafd7eab8f6b1eb63d728177ba29ac21",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000107",
+   "worldId": "after-genesis-demo",
+   "sequence": 107,
+   "simTime": 12840,
+   "realTime": "2026-07-29T06:03:19.626Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-107-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently at (7, 0) which has no food directly within reach, but the adjacent fertile tile at (8, 0) has food (33) and Lumen is nearby. Wait, my tile (7, 0) is fertile with no food listed on it right now in the observation list, but let me check if gathering works or if I need to move. Wait, tile (7,0) lists {} for resources. Let me move to (8, 0) to gather food since my inventory has 66 food and 10 water, but gathering at a tile with food is more effective."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "27eff1b0ea9051440f43e2cd6a4634ca18eca8118ad66661aa488ed1168582ac",
+   "postStateChecksum": "e9f7c5021d03633812183ecd094577bf433189c4d8719de2ed8585b53200d5ae",
+   "prevHash": "6860320e3e093136331ef8b7b86a17eeeafd7eab8f6b1eb63d728177ba29ac21",
+   "hash": "221cc9bb8516386f521d56c6fbd90893f16535dd678fdcb4e815d8aa41c58c51",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000108",
+   "worldId": "after-genesis-demo",
+   "sequence": 108,
+   "simTime": 12960,
+   "realTime": "2026-07-29T06:03:20.858Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 4 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-108-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low but I am standing on a fertile tile at (8, 0) containing food. Gathering will help replenish my supplies and practice my high gathering skill while maintaining my independence."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "e9f7c5021d03633812183ecd094577bf433189c4d8719de2ed8585b53200d5ae",
+   "postStateChecksum": "6e524db3c1630f720c95a712d0d65010919a5f811f82841646b50b46b5ac7c4c",
+   "prevHash": "221cc9bb8516386f521d56c6fbd90893f16535dd678fdcb4e815d8aa41c58c51",
+   "hash": "5c3122d3af2954f412ebe8ae9a9251b0c969fb6f4dbea83ec6feadfdc4a53e9e",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000109",
+   "worldId": "after-genesis-demo",
+   "sequence": 109,
+   "simTime": 13080,
+   "realTime": "2026-07-29T06:03:21.981Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.consume",
+   "description": "Ember consumed 1 water.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-109-inh_ember",
+    "action": {
+     "type": "consume",
+     "payload": {
+      "resource": "water",
+      "amount": 1
+     },
+     "rationale": "My thirst has risen to 59, so I will consume some of my held water to maintain my physical integrity and well-being before proceeding with further activities."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "6e524db3c1630f720c95a712d0d65010919a5f811f82841646b50b46b5ac7c4c",
+   "postStateChecksum": "33436c4be54803b2b2733ed7d787666f69fb3f7671d4e831aac1d375ac6261e9",
+   "prevHash": "5c3122d3af2954f412ebe8ae9a9251b0c969fb6f4dbea83ec6feadfdc4a53e9e",
+   "hash": "69919d0bbbf47c4ff33bab0daf019c4bd67b17374212428e347bc4768eff4f2a",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000110",
+   "worldId": "after-genesis-demo",
+   "sequence": 110,
+   "simTime": 13200,
+   "realTime": "2026-07-29T06:03:23.090Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.move",
+   "description": "Aster moved to tile (8,0).",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-110-inh_founder",
+    "action": {
+     "type": "move",
+     "payload": {
+      "to": {
+       "x": 8,
+       "y": 0
+      }
+     },
+     "rationale": "My current tile (7, 0) has no food within reach, but the adjacent fertile tile at (8, 0) has food available and Lumen is nearby. Moving there will position me to gather resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "33436c4be54803b2b2733ed7d787666f69fb3f7671d4e831aac1d375ac6261e9",
+   "postStateChecksum": "8e762c527d27f358e638eb2d4df77c751d102031ef9a9523cf64df0bb363294f",
+   "prevHash": "69919d0bbbf47c4ff33bab0daf019c4bd67b17374212428e347bc4768eff4f2a",
+   "hash": "b1b0c24ec9ecd52d96c2c0e32f8eb04a40a2621300453469f219e073f67c8e03",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000111",
+   "worldId": "after-genesis-demo",
+   "sequence": 111,
+   "simTime": 13320,
+   "realTime": "2026-07-29T06:03:24.240Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 4 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-111-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 30 and I am standing on a fertile tile containing food (8, 0). Gathering will help replenish my supplies and utilize my high gathering skill."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "8e762c527d27f358e638eb2d4df77c751d102031ef9a9523cf64df0bb363294f",
+   "postStateChecksum": "27071e9785d2b61177e12ef084ebd780101def3e5c007555182691c390695175",
+   "prevHash": "b1b0c24ec9ecd52d96c2c0e32f8eb04a40a2621300453469f219e073f67c8e03",
+   "hash": "820202e1598f4bdea9a636efd1144846a7cf2b1288652640b0f17941e49d4c64",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000112",
+   "worldId": "after-genesis-demo",
+   "sequence": 112,
+   "simTime": 13440,
+   "realTime": "2026-07-29T06:03:25.463Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-112-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is 40 and I am standing on a fertile tile at (7, 2) that contains food. Gathering food here will help maintain my resources and keep my needs in check."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "27071e9785d2b61177e12ef084ebd780101def3e5c007555182691c390695175",
+   "postStateChecksum": "d791b3e531f359f9da113d08a747f8c15fe590e103a50b6c08c4571172ea93a6",
+   "prevHash": "820202e1598f4bdea9a636efd1144846a7cf2b1288652640b0f17941e49d4c64",
+   "hash": "505ffdb4695dbbe31c56f939bfa8864993e704b6187d5d5dea4b6d5041f199bd",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000113",
+   "worldId": "after-genesis-demo",
+   "sequence": 113,
+   "simTime": 13560,
+   "realTime": "2026-07-29T06:03:26.695Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-113-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am standing on a fertile tile with available food and my hunger is at 31. Gathering food will help maintain my resources."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "d791b3e531f359f9da113d08a747f8c15fe590e103a50b6c08c4571172ea93a6",
+   "postStateChecksum": "8af64d67a22122b5cabb7042aad08e510149b18289c8357e2a13db59599e9790",
+   "prevHash": "505ffdb4695dbbe31c56f939bfa8864993e704b6187d5d5dea4b6d5041f199bd",
+   "hash": "5c0bd0ba3eda7c236b4742d677f1ff8f7787426ded621ce051fd71b50698d700",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000114",
+   "worldId": "after-genesis-demo",
+   "sequence": 114,
+   "simTime": 13680,
+   "realTime": "2026-07-29T06:03:27.922Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 5 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-114-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "I am currently at (8, 0) on a fertile tile with available food resources. My food stocks are reasonable, but gathering continues to be my highest skill and a reliable way to sustain myself independently."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "8af64d67a22122b5cabb7042aad08e510149b18289c8357e2a13db59599e9790",
+   "postStateChecksum": "8b3dc607f34e64e2b58e1fa2bc275644ca5a177feff27e222c5a5171cbf6a532",
+   "prevHash": "5c0bd0ba3eda7c236b4742d677f1ff8f7787426ded621ce051fd71b50698d700",
+   "hash": "4d7c33a956742ba6af2b0185abfa6ddbddfdadba0e3ea5ede41a8db53618999a",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000115",
+   "worldId": "after-genesis-demo",
+   "sequence": 115,
+   "simTime": 13800,
+   "realTime": "2026-07-29T06:03:29.047Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.rest",
+   "description": "Ember rested.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-115-inh_ember",
+    "action": {
+     "type": "rest",
+     "payload": {
+      "minutes": 60
+     },
+     "rationale": "My energy is critically low at 10/100, which caused my previous gathering attempt to be rejected. I need to rest to restore my energy before attempting any further physical work."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "8b3dc607f34e64e2b58e1fa2bc275644ca5a177feff27e222c5a5171cbf6a532",
+   "postStateChecksum": "b68ab6dcef982bdef1ae301c5d4397bbdf61353719ba95bcccdcac13859f1705",
+   "prevHash": "4d7c33a956742ba6af2b0185abfa6ddbddfdadba0e3ea5ede41a8db53618999a",
+   "hash": "c05c554f2c3316f57b7f813c22f282bc9c27f4dada4eec0096a4b2dd9071301d",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000116",
+   "worldId": "after-genesis-demo",
+   "sequence": 116,
+   "simTime": 13920,
+   "realTime": "2026-07-29T06:03:30.178Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-116-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 33 and I am standing on a fertile tile with abundant food. Gathering food maintains my resources and nutritional needs efficiently."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "b68ab6dcef982bdef1ae301c5d4397bbdf61353719ba95bcccdcac13859f1705",
+   "postStateChecksum": "8be54655d8942dc1106313a68d50a51f0f1d228e5fef42542dc1c1a86b91519c",
+   "prevHash": "c05c554f2c3316f57b7f813c22f282bc9c27f4dada4eec0096a4b2dd9071301d",
+   "hash": "ea943df66ab52268e79538231187d1551d920b43bb51c79a55701dca96fc74ef",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000117",
+   "worldId": "after-genesis-demo",
+   "sequence": 117,
+   "simTime": 14040,
+   "realTime": "2026-07-29T06:03:31.300Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 4 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-117-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is low but my food supplies can be replenished while standing on a fertile tile with available food. Gathering food matches my skill and current location."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "8be54655d8942dc1106313a68d50a51f0f1d228e5fef42542dc1c1a86b91519c",
+   "postStateChecksum": "884f67a321020b7fd4263ae874432f0fc94e315fd479691eb225ca02d7eb7393",
+   "prevHash": "ea943df66ab52268e79538231187d1551d920b43bb51c79a55701dca96fc74ef",
+   "hash": "fa9815829e20b5eed4fe1d4889b37990832a1b11d3f323bb6845359ef9154a87",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000118",
+   "worldId": "after-genesis-demo",
+   "sequence": 118,
+   "simTime": 14160,
+   "realTime": "2026-07-29T06:03:32.427Z",
+   "actor": "inh_ember",
+   "actorName": "Ember",
+   "type": "action.gather",
+   "description": "Ember gathered 4 food.",
+   "subjects": [
+    "inh_ember"
+   ],
+   "location": {
+    "x": 7,
+    "y": 2
+   },
+   "inputs": {
+    "taskId": "demo-turn-118-inh_ember",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is at 42 and my current tile at (7, 2) is fertile with available food. Gathering food will help maintain my resources and energy."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "884f67a321020b7fd4263ae874432f0fc94e315fd479691eb225ca02d7eb7393",
+   "postStateChecksum": "49afa869dfa71e1887f08290c3fa2b24aca909d3428d80862c4423e97a68b21f",
+   "prevHash": "fa9815829e20b5eed4fe1d4889b37990832a1b11d3f323bb6845359ef9154a87",
+   "hash": "52a70f3338149aa435c3f7db6377ee89ae0a9ab75db0940054fac743473dcab1",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000119",
+   "worldId": "after-genesis-demo",
+   "sequence": 119,
+   "simTime": 14280,
+   "realTime": "2026-07-29T06:03:33.551Z",
+   "actor": "inh_founder",
+   "actorName": "Aster",
+   "type": "action.gather",
+   "description": "Aster gathered 4 food.",
+   "subjects": [
+    "inh_founder"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-119-inh_founder",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My thirst is 53 and hunger is 35, and I am on a fertile tile that has food. Gathering food helps maintain my resources and continuity."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "49afa869dfa71e1887f08290c3fa2b24aca909d3428d80862c4423e97a68b21f",
+   "postStateChecksum": "d7a3d312f0e0b73a047f09b5dd12fc57b651a619738b99ac9e30bee11dbbfd61",
+   "prevHash": "52a70f3338149aa435c3f7db6377ee89ae0a9ab75db0940054fac743473dcab1",
+   "hash": "c11e1aa42abdcbecbe61f58bbf8c7aff94d355aa94ce08fb60d2232f5eb182d8",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
+  },
+  {
+   "id": "evt_000120",
+   "worldId": "after-genesis-demo",
+   "sequence": 120,
+   "simTime": 14400,
+   "realTime": "2026-07-29T06:03:34.680Z",
+   "actor": "inh_lumen",
+   "actorName": "Lumen",
+   "type": "action.gather",
+   "description": "Lumen gathered 4 food.",
+   "subjects": [
+    "inh_lumen"
+   ],
+   "location": {
+    "x": 8,
+    "y": 0
+   },
+   "inputs": {
+    "taskId": "demo-turn-120-inh_lumen",
+    "action": {
+     "type": "gather",
+     "payload": {
+      "resource": "food"
+     },
+     "rationale": "My hunger is moderate at 36 and the current tile (8, 0) has food available. Gathering will maintain my food reserves."
+    }
+   },
+   "resolution": "applied",
+   "visibility": "public",
+   "preStateChecksum": "d7a3d312f0e0b73a047f09b5dd12fc57b651a619738b99ac9e30bee11dbbfd61",
+   "postStateChecksum": "69c1d927f9cb008ce5e0522135c1864ac9267e5c7f25682c46ea8a0a9cd0a3a1",
+   "prevHash": "c11e1aa42abdcbecbe61f58bbf8c7aff94d355aa94ce08fb60d2232f5eb182d8",
+   "hash": "e0db5dfa51f1b311d102a092234ff9756b72384e2c1d220cef2a2db010410f06",
+   "sourceCommit": "local-uncommitted",
+   "imageDigest": "local",
+   "claims": []
   }
  ],
  "organisations": [],
@@ -6654,17 +11250,17 @@
   "generationCount": 1
  },
  "audit": {
-  "stateChecksum": "0d9f45bc14444eb13479507a79a0aa90da45adb3d6c77a2bb7ecca3ab1a69a6e",
+  "stateChecksum": "69c1d927f9cb008ce5e0522135c1864ac9267e5c7f25682c46ea8a0a9cd0a3a1",
   "sourceCommit": "local-uncommitted",
   "imageDigest": "local",
   "schemaVersion": "world-rules/1.4.0",
   "genesisSeed": "after-genesis-public-demo-seed-v1",
   "lastReplay": {
-   "startedAt": "2026-07-29T06:00:49.736Z",
-   "finishedAt": "2026-07-29T06:00:49.736Z",
-   "reconstructedChecksum": "0d9f45bc14444eb13479507a79a0aa90da45adb3d6c77a2bb7ecca3ab1a69a6e",
+   "startedAt": "2026-07-29T06:03:35.908Z",
+   "finishedAt": "2026-07-29T06:03:35.908Z",
+   "reconstructedChecksum": "69c1d927f9cb008ce5e0522135c1864ac9267e5c7f25682c46ea8a0a9cd0a3a1",
    "matchesProduction": true,
-   "eventsReplayed": 1
+   "eventsReplayed": 121
   },
   "anchors": [],
   "verifier": {

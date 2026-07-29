@@ -23,8 +23,8 @@
  * spoken in an inhabitant's own voice here:
  *
  *   - `dialogue` is used **only** when a segment is `disclosed`, its action is
- *     a speech action, and it has exactly one speaking participant. That is a
- *     canonical record of that inhabitant saying something.
+ *     a speech action, and it carries exact canonical words. The activity's
+ *     actor is the speaker; other participants are listeners or witnesses.
  *   - Everything else is `narration`, spoken by the world narrator, using the
  *     segment's neutral caption. A caption is derived text (see chronicle.ts),
  *     so putting it in an inhabitant's voice would be inventing a quotation.
@@ -94,15 +94,14 @@ export function canonicalSpeech(segment: ChronicleSegment): string | null {
 }
 
 /**
- * The single inhabitant whose speech a segment records, or null.
+ * The inhabitant whose speech a segment records.
  *
- * A conversation with two participants has no single speaker in the canonical
- * envelope — the record says they conversed, not who said which line. Voicing
- * it as one of them would be a guess, so it falls through to narration.
+ * Exact speech is stored on the actor's activity. Recipients also appear in
+ * `participants`, but they did not speak this line; treating them as speakers
+ * would hide every real conversation from the voice renderer.
  */
-function soleSpeaker(segment: ChronicleSegment): string | null {
-  if (segment.participants.length === 1) return segment.participants[0] ?? null;
-  return segment.participants.length === 0 ? segment.inhabitantId : null;
+function speechSpeaker(segment: ChronicleSegment): string {
+  return segment.inhabitantId;
 }
 
 export interface SelectOptions {
@@ -147,7 +146,7 @@ export function selectVoiceLines(
       if (segment.disclosure !== "disclosed") continue;
 
       const speech = canonicalSpeech(segment);
-      const speakerId = speech === null ? null : soleSpeaker(segment);
+      const speakerId = speech === null ? null : speechSpeaker(segment);
       const speaker = speakerId === null ? null : speakerOf(speakerId);
 
       const names = [...new Set([segment.inhabitantId, ...segment.participants])]

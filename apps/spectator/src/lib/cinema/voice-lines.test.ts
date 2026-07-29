@@ -121,9 +121,9 @@ describe("selectVoiceLines", () => {
     expect(line?.speaker).toBeNull();
   });
 
-  it("does not attribute a two-participant conversation to one of them (§11G)", () => {
-    // The envelope records that they conversed, not who said what. Picking one
-    // and voicing the caption as their line would invent a canonical fact.
+  it("does not turn a two-participant caption into dialogue (§11G)", () => {
+    // The envelope records that they conversed, not exact words. Picking one
+    // and voicing the caption as their line would invent a canonical quote.
     const lines = linesFor([activity({ participants: ["inh_a", "inh_b"] })]);
     expect(lines.every((line) => line.kind === "narration")).toBe(true);
   });
@@ -146,7 +146,7 @@ describe("selectVoiceLines", () => {
     const source = run({
       activities: [
         activity({
-          participants: ["inh_a"],
+          participants: ["inh_a", "inh_b"],
           contentsDisclosed: true,
         }),
       ] as never,
