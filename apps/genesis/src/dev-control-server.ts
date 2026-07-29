@@ -166,6 +166,20 @@ function startProviderJob(provider: CognitionProvider, job: () => Promise<void>)
   startJob(job);
 }
 
+function cognitionEnv(provider: CognitionProvider): NodeJS.ProcessEnv {
+  if (provider === "offline") return {};
+  const deliberatePriceConfigured =
+    process.env.AG_PRICE_DELIBERATE_INPUT_MICROS_PER_M !== undefined &&
+    process.env.AG_PRICE_DELIBERATE_OUTPUT_MICROS_PER_M !== undefined &&
+    process.env.AG_PRICE_DELIBERATE_VERIFIED_ON !== undefined;
+  return {
+    AG_SPEND_ENFORCEMENT: "freeze",
+    ...(!deliberatePriceConfigured
+      ? { AG_MODEL_DELIBERATE: process.env.AG_MODEL_ROUTINE ?? "gemini-3.5-flash-lite" }
+      : {}),
+  };
+}
+
 function stopJob(): void {
   stopRequested = true;
   lastOutput = `${lastOutput}\n[dev-control] stop requested\n`.slice(-12_000);
@@ -222,19 +236,23 @@ async function reset(): Promise<void> {
   for (const path of GENERATED_BY_A_DEV_RUN) {
     await rm(resolve(ROOT, path), { recursive: true, force: true });
   }
-  await run("npm", [
-    "run",
-    "world",
-    "--",
-    "demo",
-    "--reset",
-    "--turns",
-    "0",
-    "--provider",
-    activeProvider,
-    "--output",
-    RUN_DIR,
-  ]);
+  await run(
+    "npm",
+    [
+      "run",
+      "world",
+      "--",
+      "demo",
+      "--reset",
+      "--turns",
+      "0",
+      "--provider",
+      activeProvider,
+      "--output",
+      RUN_DIR,
+    ],
+    cognitionEnv(activeProvider),
+  );
   await exportFixtures();
   await publishVoice();
 }
@@ -251,19 +269,23 @@ async function advance(params: URLSearchParams): Promise<void> {
   for (let turn = 1; turn <= turns; turn++) {
     if (stopRequested) throw new Error("dev controller job stopped");
     const started = Date.now();
-    await run("npm", [
-      "run",
-      "world",
-      "--",
-      "demo",
-      "--resume",
-      "--turns",
-      "1",
-      "--provider",
-      activeProvider,
-      "--output",
-      RUN_DIR,
-    ]);
+    await run(
+      "npm",
+      [
+        "run",
+        "world",
+        "--",
+        "demo",
+        "--resume",
+        "--turns",
+        "1",
+        "--provider",
+        activeProvider,
+        "--output",
+        RUN_DIR,
+      ],
+      cognitionEnv(activeProvider),
+    );
     await exportFixtures();
     await publishVoice();
     lastOutput = `${lastOutput}\n[dev-clock] published turn ${turn}/${turns}\n`.slice(-12_000);
@@ -372,7 +394,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/fast-forward") {
-      startProviderJob(parseProvider(url.searchParams), () => fastForward(url.searchParams));
+      startProviderJob("offline", () => fastForward(url.searchParams));
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/stop") {
