@@ -11,6 +11,7 @@ loadEnvFile(resolve(ROOT, ".env"));
 
 const PORT = Number(process.env.AG_DEV_CONTROL_PORT ?? 8787);
 const RUN_DIR = process.env.AG_DEV_RUN_DIR ?? ".worlds/dev-rehearsal";
+const MAX_PAID_RUN_USD = process.env.AG_DEV_MAX_SPEND_USD ?? "5";
 
 /**
  * Where this controller publishes the world it drives. Untracked, and separate
@@ -248,6 +249,7 @@ async function reset(): Promise<void> {
       "0",
       "--provider",
       activeProvider,
+      ...(activeProvider === "gemini" ? ["--max-spend-usd", MAX_PAID_RUN_USD] : []),
       "--output",
       RUN_DIR,
     ],
@@ -281,6 +283,7 @@ async function advance(params: URLSearchParams): Promise<void> {
         "1",
         "--provider",
         activeProvider,
+        ...(activeProvider === "gemini" ? ["--max-spend-usd", MAX_PAID_RUN_USD] : []),
         "--output",
         RUN_DIR,
       ],
@@ -300,19 +303,24 @@ async function fastForward(params: URLSearchParams): Promise<void> {
     throw new Error("fast-forward days must be an integer from 1 to 833");
   }
 
-  await run("npm", [
-    "run",
-    "world",
-    "--",
-    "demo",
-    "--resume",
-    "--days",
-    String(days),
-    "--provider",
-    activeProvider,
-    "--output",
-    RUN_DIR,
-  ]);
+  await run(
+    "npm",
+    [
+      "run",
+      "world",
+      "--",
+      "demo",
+      "--resume",
+      "--days",
+      String(days),
+      "--provider",
+      activeProvider,
+      ...(activeProvider === "gemini" ? ["--max-spend-usd", MAX_PAID_RUN_USD] : []),
+      "--output",
+      RUN_DIR,
+    ],
+    cognitionEnv(activeProvider),
+  );
   await exportFixtures();
 
   // Fast-forward is for inspecting long-horizon canonical data. Rendering a
@@ -394,7 +402,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/fast-forward") {
-      startProviderJob("offline", () => fastForward(url.searchParams));
+      startProviderJob(parseProvider(url.searchParams), () => fastForward(url.searchParams));
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/stop") {

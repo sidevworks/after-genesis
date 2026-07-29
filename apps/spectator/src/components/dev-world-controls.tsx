@@ -99,7 +99,7 @@ export function DevWorldControls() {
   }
 
   function fastForward(daysToRun: number) {
-    void post(`/fast-forward?days=${daysToRun}&provider=offline`);
+    void post(`/fast-forward?days=${daysToRun}&provider=${provider}`);
   }
 
   useEffect(() => {
@@ -222,7 +222,9 @@ export function DevWorldControls() {
           Run live
         </button>
         <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
-        <span className="eyebrow text-dim">Fast-forward · offline</span>
+        <span className="eyebrow text-dim">
+          Fast-forward{provider === "gemini" ? " · paid Gemini" : " · offline"}
+        </span>
         {[1, 10, 100].map((daysToRun) => (
           <button
             key={daysToRun}
