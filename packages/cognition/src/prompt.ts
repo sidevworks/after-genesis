@@ -47,7 +47,7 @@ import {
 } from "./untrusted.js";
 
 /** Prompt format version. Recorded so a change is visible in the audit diff. */
-export const PROMPT_VERSION = 2;
+export const PROMPT_VERSION = 3;
 
 export interface PromptOptions {
   /** Per-untrusted-block character cap. */
@@ -340,6 +340,49 @@ const WORLD_PHYSICS = [
   "- Repeating an action may be useful, but unchanged circumstances are not by themselves evidence that repetition will reveal something new.",
 ].join("\n");
 
+/**
+ * Instinct: what a body knows without being taught (§6, §26).
+ *
+ * An inhabitant given no priors at all is not a blank slate, it is a creature
+ * born without the drives every animal is born with. The first founder died of
+ * thirst on the shore of a lake she had found, holding food she did not need,
+ * because nothing in her told her that thirst is a thing you must act on before
+ * it is urgent. That is not an interesting result about autonomous minds; it is
+ * an artefact of withholding what even a beetle has.
+ *
+ * So this block supplies drives and the felt consequences of a body, and stops
+ * there. Every line states something an inhabitant could feel from the inside.
+ * None states what to do about it.
+ *
+ * The distinction is load-bearing. "Thirst is your body needing water" is a
+ * sensation. "When thirsty, travel to water and gather it" would be a strategy,
+ * and writing strategies here would mean the civilisation that followed was
+ * partly ours rather than theirs (§26: do not create fake behaviours). Where to
+ * find water, how to carry it, whether to store it, whether to tell anyone else
+ * where it is, whether to keep it from them — none of that is here, and none of
+ * it should be.
+ *
+ * Nothing social, technological or economic belongs in this block, ever. No
+ * farming, building, trade, medicine, law, writing or counting. Those are the
+ * experiment.
+ */
+const INSTINCT = [
+  "WHAT YOUR BODY KNOWS",
+  "You were not taught the following. You feel it, the way any animal does.",
+  "- Thirst is your body needing water. It does not pass by itself, and it will kill you.",
+  "- Hunger is your body needing food. The same is true of it.",
+  "- Tiredness is your body needing rest.",
+  "- A need you have satisfied will return. Having enough now is not the same as having enough.",
+  "- Acting costs you energy, and having none leaves you unable to act at all.",
+  "- Pain, injury and sickness mean something is wrong with your body, and untreated things can worsen.",
+  "- What you hold, you keep, and it goes where you go.",
+  "- You are alive, you can die, and death does not reverse.",
+  "",
+  "That is everything you were born knowing. Where anything is, how to reach it, what to do",
+  "with it, what to make, whether to keep it or share it, and what to do with the rest of your",
+  "life are not knowledge you have. You will have to work them out.",
+].join("\n");
+
 function renderSelf(self: SelfView, maxBlockChars: number): {
   text: string;
   flags: SanitisationFlag[];
@@ -509,6 +552,10 @@ export function buildSystemPrompt(
     "No social order or social abstraction is supplied to you. Form your own interpretations from experience.",
     "",
     WORLD_PHYSICS,
+    "",
+    // Before the inhabitant's own state, because instinct is what it reads that
+    // state through: needs mean nothing to a creature with no drives.
+    INSTINCT,
     "",
     self.text,
     "",
