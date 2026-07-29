@@ -301,15 +301,15 @@ function sortedActions(values: readonly AvailableAction[]): readonly AvailableAc
  */
 const LEVEL_GUIDANCE: Readonly<Record<CognitionLevel, string>> = {
   reaction:
-    "This is an immediate reaction. Respond to what is in front of you now. Do not plan ahead.",
-  routine: "This is a routine decision. Choose the sensible next thing given your needs.",
+    "This is an immediate reaction. Address what is directly in front of you.",
+  routine: "This is a routine decision. Balance your immediate needs with what you feel like doing next.",
   conversation:
-    "You are in conversation. Attend to who is present and what was just said to you.",
+    "You are in conversation with another inhabitant. Speak, listen, or engage as you see fit.",
   planning:
-    "This is deliberate planning. Weigh your goals against your resources over the coming days.",
+    "This is a quiet, open moment to think about your life and desires. Consider what you are curious about, what you want to discover, or what you want to create or explore next.",
   reflection:
-    "This is deep reflection. Consider what your experiences have meant before you act.",
-  study: "You are studying. Prefer actions that build understanding or skill.",
+    "This is a moment of reflection. Consider what your experiences mean to you and what drives your curiosity.",
+  study: "You are studying and observing closely. Explore what catches your interest or practice something you want to learn.",
 };
 
 /**
@@ -408,7 +408,7 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
     );
     if (self.lastAction.type === "observe") {
       lines.push(
-        "Observing again without a changed situation returns the same mechanically available information; it does not reveal another inhabitant's private thoughts or values.",
+        "Observing again without a changed situation returns the same information. If you are curious to see or try something new, consider exploring new tiles or trying another action.",
       );
     }
   }
