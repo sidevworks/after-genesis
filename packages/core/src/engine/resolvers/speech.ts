@@ -59,13 +59,13 @@ export const communicateResolver: Resolver = (ctx, payload): ResolutionResult =>
     interruption: COMMUNICATE.interruption,
     resourceCost: COMMUNICATE.baseCost,
   }).state;
-  const participantIds = [ctx.actor.id, ...input.recipients].sort();
   const detail = {
     recipients: [...input.recipients].sort(),
     messageRecorded: true,
     recipientsAreNotAssumedToAgree: true,
     minutes: input.intendedMinutes,
   };
+  const participantIds = [ctx.actor.id, ...input.recipients].sort();
   return {
     outcome: { status: "resolved", detail },
     state: next,

@@ -12,6 +12,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   buildNarrationRequest,
   dayPartOf,
+  documentaryFallback,
   extractLine,
   isStyleable,
   spanOf,
@@ -29,6 +30,21 @@ const context: NarrationContext = {
 
 const check = (line: string, over: Partial<NarrationContext> = {}) =>
   validateNarration(line, { ...context, ...over });
+
+const respond = (...texts: string[]) => {
+  let call = 0;
+  return vi.fn<StyleDeps["generate"]>(async () => {
+    const rawText = texts[Math.min(call, texts.length - 1)] ?? "";
+    call += 1;
+    return {
+      rawText,
+      modelId: "gemini-3.5-flash-lite",
+      inputTokens: 10,
+      outputTokens: 5,
+      finishReason: "stop",
+    };
+  });
+};
 
 describe("validateNarration accepts a faithful rewrite", () => {
   it("accepts a plain sentence about the recorded activity", () => {
@@ -151,15 +167,6 @@ describe("buildNarrationRequest", () => {
 });
 
 describe("styleNarration", () => {
-  const respond = (...texts: string[]) => {
-    let call = 0;
-    return vi.fn<StyleDeps["generate"]>(async () => {
-      const rawText = texts[Math.min(call, texts.length - 1)] ?? "";
-      call += 1;
-      return { rawText, modelId: "gemini-3.5-flash-lite", inputTokens: 10, outputTokens: 5, finishReason: "stop" };
-    });
-  };
-
   it("uses a valid rewrite and records its provenance (§16)", async () => {
     const generate = respond("Aleth spent the morning gathering food.");
     const result = await styleNarration(context, { generate, modelId: "gemini-3.5-flash-lite" });
@@ -185,25 +192,26 @@ describe("styleNarration", () => {
     expect(generate.mock.calls[1]?.[0]?.userPrompt).toContain("rejected");
   });
 
-  it("falls back to the canonical caption after two bad replies (§14)", async () => {
+  it("falls back to a documentary-safe spoken line after two bad replies (§14)", async () => {
     const generate = respond("Aleth gathered food, hoping to feed everyone.");
     const result = await styleNarration(context, { generate, modelId: "m" });
 
     expect(generate).toHaveBeenCalledTimes(2);
     expect(result.styled).toBe(false);
-    // The always-safe result: what actually happened.
-    expect(result.text).toBe(context.canonical);
+    expect(result.text).toBe("Aleth gathers food.");
+    expect(result.canonical).toBe(context.canonical);
     expect(result.rejections).toHaveLength(2);
   });
 
-  it("falls back to the caption when the provider fails, without throwing", async () => {
+  it("falls back to a documentary-safe spoken line when the provider fails", async () => {
     const generate = vi.fn(async () => {
       throw new Error("503 unavailable");
     });
     const result = await styleNarration(context, { generate, modelId: "m" });
 
     expect(result.styled).toBe(false);
-    expect(result.text).toBe(context.canonical);
+    expect(result.text).toBe("Aleth gathers food.");
+    expect(result.canonical).toBe(context.canonical);
     expect(result.rejections[0]).toContain("503");
   });
 
@@ -215,7 +223,8 @@ describe("styleNarration", () => {
     );
 
     expect(generate).not.toHaveBeenCalled();
-    expect(result.text).toBe(context.canonical);
+    expect(result.text).not.toContain("(14, 17)");
+    expect(result.canonical).toBe(context.canonical);
   });
 
   it("strips the wrapping a chat model adds", async () => {
@@ -240,6 +249,30 @@ describe("styleNarration", () => {
 
     expect(styled.canonical).toBe(context.canonical);
     expect(fell.canonical).toBe(context.canonical);
+  });
+});
+
+describe("documentaryFallback removes audit-only fields without adding facts", () => {
+  it("turns a coordinate-heavy caption into a speakable line", () => {
+    const line = documentaryFallback({
+      ...context,
+      dayPart: "morning",
+      span: "briefly",
+    });
+
+    expect(line).toBe("Aleth gathers food through the morning.");
+    expect(line).not.toMatch(/\d|\(|\)/);
+    expect(validateNarration(line, context).ok).toBe(true);
+  });
+
+  it("keeps the exact canonical caption separately when fallback is used", async () => {
+    const result = await styleNarration(context, {
+      generate: respond("Aleth gathered food because everyone was hungry."),
+      modelId: "m",
+    });
+
+    expect(result.text).toBe("Aleth gathers food.");
+    expect(result.canonical).toBe("Gathered 6 food at (14, 17) over 30 minutes.");
   });
 });
 

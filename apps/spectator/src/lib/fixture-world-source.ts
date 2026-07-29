@@ -13,6 +13,9 @@
  */
 
 import fixture from "../fixtures/world.json";
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import { verifyEventChain } from "./event-hash";
 import type { WorldSource } from "./world-source";
 import type {
@@ -46,6 +49,12 @@ const world = fixture as unknown as WorldFixture;
 
 const DEFAULT_LIMIT = 50;
 
+function liveFixturePath(): string {
+  const fromApp = resolve(process.cwd(), "src/fixtures/world.json");
+  if (existsSync(fromApp)) return fromApp;
+  return resolve(process.cwd(), "apps/spectator/src/fixtures/world.json");
+}
+
 function matches(event: WorldEvent, filter: NonNullable<EventQuery["filter"]>): boolean {
   if (filter.types && filter.types.length > 0 && !filter.types.includes(event.type)) {
     return false;
@@ -72,16 +81,22 @@ export class FixtureWorldSource implements WorldSource {
     this.#world = data;
   }
 
+  async #read(): Promise<WorldFixture> {
+    if (process.env.NEXT_PUBLIC_DEV_WORLD_CONTROLS !== "true") return this.#world;
+    const raw = await readFile(liveFixturePath(), "utf8");
+    return JSON.parse(raw) as WorldFixture;
+  }
+
   async getWorldSummary(): Promise<WorldSummary> {
-    return this.#world.summary;
+    return (await this.#read()).summary;
   }
 
   async getMap(): Promise<WorldMap> {
-    return this.#world.map;
+    return (await this.#read()).map;
   }
 
   async getInhabitants(): Promise<InhabitantSummary[]> {
-    return this.#world.inhabitants.map((i) => {
+    return (await this.#read()).inhabitants.map((i) => {
       const summary: InhabitantSummary = {
         id: i.id,
         name: i.name,
@@ -101,14 +116,15 @@ export class FixtureWorldSource implements WorldSource {
   }
 
   async getInhabitant(id: string): Promise<Inhabitant | null> {
-    return this.#world.inhabitants.find((i) => i.id === id) ?? null;
+    return (await this.#read()).inhabitants.find((i) => i.id === id) ?? null;
   }
 
   async getEvents(query: EventQuery = {}): Promise<EventPage> {
+    const world = await this.#read();
     const filter = query.filter ?? {};
     const limit = Math.max(1, Math.min(query.limit ?? DEFAULT_LIMIT, 500));
 
-    const filtered = this.#world.events
+    const filtered = world.events
       .filter((event) => matches(event, filter))
       .sort((a, b) => b.sequence - a.sequence);
 
@@ -131,27 +147,28 @@ export class FixtureWorldSource implements WorldSource {
   }
 
   async getOrganisations(): Promise<Organisation[]> {
-    return this.#world.organisations;
+    return (await this.#read()).organisations;
   }
 
   async getArtifacts(): Promise<Artifact[]> {
-    return this.#world.artifacts;
+    return (await this.#read()).artifacts;
   }
 
   async getEconomy(): Promise<EconomySnapshot> {
-    return this.#world.economy;
+    return (await this.#read()).economy;
   }
 
   async getLineage(): Promise<Lineage> {
-    return this.#world.lineage;
+    return (await this.#read()).lineage;
   }
 
   async getAuditStatus(): Promise<AuditStatus> {
     // Recomputed, not read from the fixture. If the committed log were altered
     // by hand, this is where it would show up.
-    const chain = verifyEventChain(this.#world.events);
+    const world = await this.#read();
+    const chain = verifyEventChain(world.events);
     return {
-      ...this.#world.audit,
+      ...world.audit,
       chain: { ...chain, computedAt: new Date().toISOString() },
     };
   }

@@ -366,7 +366,7 @@ export interface WorldEvent {
   description: string;
   subjects: string[];
   location?: Coord;
-  inputs: Record<string, string | number | boolean>;
+  inputs: Record<string, unknown>;
   resolution: "applied" | "rejected" | "partial";
   /** Why the engine rejected or partially applied the action. */
   resolutionNote?: string;
@@ -636,5 +636,10 @@ export interface AuditStatus {
     notes: string[];
   };
   /** Categories of record the public export deliberately withholds. */
-  withheld: Array<{ category: string; reason: string; releaseCondition: string }>;
+  withheld: Array<{
+    category?: string;
+    kind?: string;
+    reason: string;
+    releaseCondition?: string;
+  }>;
 }

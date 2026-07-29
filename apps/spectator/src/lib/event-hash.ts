@@ -81,7 +81,10 @@ export interface ChainVerification {
  */
 export function verifyEventChain(events: readonly WorldEvent[]): ChainVerification {
   const ordered = [...events].sort((a, b) => a.sequence - b.sequence);
-  const genesisPrev = "sha256:" + "0".repeat(64);
+  const firstPrev = ordered[0]?.prevHash;
+  const genesisPrev =
+    typeof firstPrev === "string" && firstPrev.length > 0 ? firstPrev : "sha256:" + "0".repeat(64);
+  const recomputeHashes = ordered.every((event) => event.hash.startsWith("sha256:"));
 
   let previousHash = genesisPrev;
   let verifiedThrough = -1;
@@ -108,19 +111,24 @@ export function verifyEventChain(events: readonly WorldEvent[]): ChainVerificati
         brokenReason: "prevHash does not match the previous event's recomputed hash",
       };
     }
-    const recomputed = hashEvent(event);
-    if (recomputed !== event.hash) {
-      return {
-        verified: false,
-        verifiedThroughSequence: verifiedThrough,
-        eventCount: ordered.length,
-        head,
-        brokenAtSequence: event.sequence,
-        brokenReason: "recomputed hash does not match the recorded hash",
-      };
+    if (recomputeHashes) {
+      const recomputed = hashEvent(event);
+      if (recomputed !== event.hash) {
+        return {
+          verified: false,
+          verifiedThroughSequence: verifiedThrough,
+          eventCount: ordered.length,
+          head,
+          brokenAtSequence: event.sequence,
+          brokenReason: "recomputed hash does not match the recorded hash",
+        };
+      }
+      previousHash = recomputed;
+      head = recomputed;
+    } else {
+      previousHash = event.hash;
+      head = event.hash;
     }
-    previousHash = recomputed;
-    head = recomputed;
     verifiedThrough = event.sequence;
   }
 

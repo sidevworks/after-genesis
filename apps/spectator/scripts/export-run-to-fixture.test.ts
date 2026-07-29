@@ -6,8 +6,10 @@ import type { CanonicalEvent, WorldState } from "@after-genesis/core";
 
 describe("Export simulation run to Spectator fixture", () => {
   it("converts 2,001-turn simulation run into world.json fixture", () => {
-    const RUN_DIR = resolve(".worlds/3-month-run");
-    const OUTPUT_FILE = resolve("apps/spectator/src/fixtures/world-run-test.json");
+    const RUN_DIR = resolve(process.env.AG_EXPORT_RUN_DIR ?? ".worlds/3-month-run");
+    const OUTPUT_FILE = resolve(
+      process.env.AG_EXPORT_OUTPUT_FILE ?? "apps/spectator/src/fixtures/world-run-test.json",
+    );
 
     const eventsPath = join(RUN_DIR, "events", "after-genesis-demo.jsonl");
     if (!existsSync(eventsPath)) {
@@ -40,14 +42,16 @@ describe("Export simulation run to Spectator fixture", () => {
     const state: WorldState = replay.state!;
     const lastEvent = events[events.length - 1]!;
 
-    const livingInhabitants = Object.values(state.inhabitants).filter((i) => i.status === "active");
+    const livingInhabitants = Object.values(state.inhabitants).filter(
+      (i) => i.status === "active" || i.status === "alive",
+    );
     const deceasedInhabitants = Object.values(state.inhabitants).filter((i) => i.status === "deceased");
 
     const formattedInhabitants = Object.values(state.inhabitants).map((i) => ({
       id: i.id,
       name: i.displayName,
       generation: i.generation,
-      status: i.status,
+      status: i.status === "alive" ? "active" : i.status,
       at: i.location,
       birthSimTime: i.birthTime,
       creationEventId: `evt_${i.creationSequence.toString().padStart(6, "0")}`,
@@ -97,12 +101,12 @@ describe("Export simulation run to Spectator fixture", () => {
         actor: e.actor,
         actorName: actorInhabitant?.displayName ?? e.actor,
         type: e.type,
-        description: formatEventDescription(e),
+        description: formatEventDescription(e, state),
         subjects: e.actor ? [e.actor] : [],
         location: actorInhabitant?.location,
-        inputs: e.inputs as Record<string, string | number | boolean>,
+        inputs: e.inputs as Record<string, unknown>,
         resolution: "applied" as const,
-        visibility: e.visibility.kind === "public" ? "public" : "restricted",
+        visibility: "public",
         preStateChecksum: e.preStateChecksum,
         postStateChecksum: e.postStateChecksum,
         prevHash: e.prevHash,
@@ -158,9 +162,17 @@ describe("Export simulation run to Spectator fixture", () => {
         (s) => s.location.x === x && s.location.y === y,
       );
       return {
-        coord: { x, y },
+        x,
+        y,
         terrain: terrainKind,
-        deposits: tileDeposits,
+        ...(tileDeposits[0]
+          ? {
+              deposit: {
+                resource: tileDeposits[0].resource,
+                remaining: tileDeposits[0].remaining,
+              },
+            }
+          : {}),
         ...(structOnTile ? { structureId: structOnTile.id } : {}),
       };
     });
@@ -192,7 +204,7 @@ describe("Export simulation run to Spectator fixture", () => {
         id: i.id,
         name: i.displayName,
         at: i.location,
-        status: i.status,
+        status: i.status === "alive" ? "active" : i.status,
         generation: i.generation,
       })),
     };
@@ -204,7 +216,7 @@ describe("Export simulation run to Spectator fixture", () => {
         generation: i.generation,
         parentIds: i.parentIds,
         childIds: i.childIds,
-        status: i.status,
+        status: i.status === "alive" ? "active" : i.status,
         birthSimTime: i.birthTime,
         creationEventId: `evt_${i.creationSequence.toString().padStart(6, "0")}`,
         ...(i.deceasedAt !== undefined ? { deathSimTime: i.deceasedAt } : {}),
@@ -233,12 +245,19 @@ describe("Export simulation run to Spectator fixture", () => {
         exportUrl: `https://storage.after-genesis.example/exports/world-${state.worldId}.jsonl`,
         notes: ["Verifier checks hash chain continuity and state checksum recomputation."],
       },
-      withheld: [],
+      withheld: [
+        {
+          kind: "model-audit",
+          reason:
+            "This offline rehearsal did not write a separate model audit directory. Run with a provider/audit store to expose raw model prompts and responses.",
+        },
+      ],
     };
 
     const fixture = {
       generatedBy: "apps/spectator/scripts/export-run-to-fixture.test.ts",
-      note: "Generated directly from 2,001-event simulation run.",
+      note:
+        "Generated directly from a 2,001-event simulation run. This rehearsal export is transparent: all event visibility is opened for spectator inspection.",
       summary,
       map,
       inhabitants: formattedInhabitants,
@@ -295,22 +314,124 @@ describe("Export simulation run to Spectator fixture", () => {
   });
 });
 
-function formatEventDescription(e: CanonicalEvent): string {
+function actorName(e: CanonicalEvent, state: WorldState): string {
+  if (e.actor === null) return "The world engine";
+  return state.inhabitants[e.actor]?.displayName ?? e.actor;
+}
+
+function coordText(coord: unknown): string | null {
+  if (typeof coord !== "object" || coord === null) return null;
+  const value = coord as { readonly x?: unknown; readonly y?: unknown };
+  return typeof value.x === "number" && typeof value.y === "number"
+    ? `tile (${value.x},${value.y})`
+    : null;
+}
+
+function payloadOf(e: CanonicalEvent): Record<string, unknown> {
+  const inputs = e.inputs as Record<string, unknown>;
+  const action = inputs.action;
+  if (typeof action === "object" && action !== null) {
+    const actionPayload = (action as Record<string, unknown>).payload;
+    if (typeof actionPayload === "object" && actionPayload !== null) {
+      return actionPayload as Record<string, unknown>;
+    }
+  }
+  const payload = inputs.payload;
+  return typeof payload === "object" && payload !== null
+    ? (payload as Record<string, unknown>)
+    : inputs;
+}
+
+function textAt(record: Readonly<Record<string, unknown>>, key: string): string | null {
+  const value = record[key];
+  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
+}
+
+function numberAt(record: Readonly<Record<string, unknown>>, key: string): number | null {
+  const value = record[key];
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function listNames(ids: readonly string[], state: WorldState): string {
+  const names = ids.map((id) => state.inhabitants[id]?.displayName ?? id);
+  if (names.length <= 1) return names[0] ?? "";
+  return `${names.slice(0, -1).join(", ")} and ${names.at(-1)}`;
+}
+
+function formatEventDescription(e: CanonicalEvent, state: WorldState): string {
   if (e.type === "genesis") return "Genesis — the world is spoken into being.";
-  const actor = e.actor ?? "Engine";
-  if (e.type === "move") {
-    const to = (e.inputs as { payload?: { to?: { x: number; y: number } } })?.payload?.to;
-    return `${actor} moved${to ? ` to tile (${to.x},${to.y})` : ""}.`;
+  const actor = actorName(e, state);
+  const payload = payloadOf(e);
+  const detail = (e.resolution as { readonly detail?: unknown } | undefined)?.detail;
+  const outcome = (e.resolution as { readonly outcome?: { readonly detail?: unknown } } | undefined)
+    ?.outcome;
+  const outcomeDetail = outcome?.detail;
+  const resolved =
+    typeof outcomeDetail === "object" && outcomeDetail !== null
+      ? (outcomeDetail as Record<string, unknown>)
+      : typeof detail === "object" && detail !== null
+        ? (detail as Record<string, unknown>)
+        : {};
+  const actionType = e.type.replace(/^action\./, "");
+
+  if (actionType === "move") {
+    const to = coordText(payload.to) ?? coordText(payload.destination) ?? coordText(resolved.to);
+    return `${actor} moved${to === null ? "" : ` to ${to}`}.`;
   }
-  if (e.type === "gather") {
-    const res = (e.inputs as { payload?: { resource?: string } })?.payload?.resource ?? "resources";
-    return `${actor} gathered ${res}.`;
+  if (actionType === "gather") {
+    const resource = textAt(payload, "resource") ?? textAt(resolved, "resource") ?? "resources";
+    const amount = numberAt(resolved, "amount") ?? numberAt(payload, "amount");
+    const amountText = amount === null ? "" : `${amount} `;
+    return `${actor} gathered ${amountText}${resource}.`;
   }
-  if (e.type === "rest") {
+  if (actionType === "consume") {
+    const resource = textAt(payload, "resource") ?? textAt(resolved, "resource") ?? "resources";
+    const amount = numberAt(payload, "amount");
+    return `${actor} consumed${amount === null ? "" : ` ${amount}`} ${resource}.`;
+  }
+  if (actionType === "rest") {
     return `${actor} rested.`;
   }
-  if (e.type === "wait") {
+  if (actionType === "wait") {
     return `${actor} waited.`;
+  }
+  if (actionType === "observe") {
+    return `${actor} observed the nearby world.`;
+  }
+  if (actionType === "communicate" || actionType === "announce" || actionType === "perform") {
+    const message = textAt(payload, "message") ?? textAt(resolved, "message");
+    const recipients = Array.isArray(payload.recipients)
+      ? payload.recipients.filter((id): id is string => typeof id === "string")
+      : [];
+    const audience = recipients.length > 0 ? ` to ${listNames(recipients, state)}` : "";
+    return message === null
+      ? `${actor} communicated${audience}.`
+      : `${actor} communicated${audience}: ${message}`;
+  }
+  if (actionType === "study") {
+    const skill = textAt(payload, "skill") ?? textAt(resolved, "skill") ?? "a subject";
+    return `${actor} studied ${skill}.`;
+  }
+  if (actionType === "teach") {
+    const students = Array.isArray(payload.studentIds)
+      ? payload.studentIds.filter((id): id is string => typeof id === "string")
+      : [];
+    const skill = textAt(payload, "skill") ?? "a skill";
+    const studentText = students.length > 0 ? ` to ${listNames(students, state)}` : "";
+    return `${actor} taught ${skill}${studentText}.`;
+  }
+  if (actionType === "create_artifact") {
+    const title = textAt(payload, "title") ?? textAt(resolved, "title") ?? "an artifact";
+    return `${actor} created ${title}.`;
+  }
+  if (actionType === "create_inhabitant") {
+    const childId = textAt(resolved, "childId") ?? textAt(payload, "childId");
+    const child = childId === null ? "a new inhabitant" : (state.inhabitants[childId]?.displayName ?? childId);
+    return `${actor} created ${child}.`;
+  }
+  if (actionType === "build") {
+    const structure = textAt(payload, "name") ?? textAt(resolved, "structureId") ?? "a structure";
+    return `${actor} built ${structure}.`;
   }
   return `${actor} performed ${e.type}.`;
 }

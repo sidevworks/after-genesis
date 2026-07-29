@@ -23,6 +23,12 @@ function shade(hex: string, amount: number): string {
   return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
 }
 
+function fertilityOf(tile: Tile): number | null {
+  return typeof tile.fertility === "number" && Number.isFinite(tile.fertility)
+    ? tile.fertility
+    : null;
+}
+
 function StructureGlyph({ structure }: { structure: Structure }) {
   const { x, y } = structure.at;
   const cx = x + 0.5;
@@ -291,7 +297,7 @@ export function WorldMapView({
                   y={tile.y}
                   width={1}
                   height={1}
-                  fill={shade(TERRAIN_COLOUR[tile.terrain], (tile.fertility - 0.4) * 0.28)}
+                  fill={shade(TERRAIN_COLOUR[tile.terrain], ((fertilityOf(tile) ?? 0.4) - 0.4) * 0.28)}
                 />
               ))}
 
@@ -408,7 +414,7 @@ export function WorldMapView({
                   />
                   {TERRAIN_LABEL[activeTile.terrain]}
                   <span className="mono text-xs text-dim">
-                    fertility {percent(activeTile.fertility)}
+                    fertility {fertilityOf(activeTile) === null ? "unrecorded" : percent(fertilityOf(activeTile)!)}
                   </span>
                 </p>
               </div>

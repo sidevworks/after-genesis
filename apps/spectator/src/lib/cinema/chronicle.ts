@@ -657,6 +657,7 @@ function buildTrackSegments(
  *   base                    1
  *   shared activity         +4 per participant beyond the first
  *   first of its type       +3 (world) or +1 (this inhabitant only)
+ *   rare developmental act  +1..6 by canonical action type
  *   duration                +1 per hour, capped at +4
  *
  * Shared beats solitary because §11A makes a shared activity cost every
@@ -676,6 +677,18 @@ const BEAT_WORLD_FIRST_WEIGHT = 3;
 const BEAT_SUBJECT_FIRST_WEIGHT = 1;
 const BEAT_HOUR_WEIGHT = 1;
 const BEAT_DURATION_CAP = 4;
+const BEAT_ACTION_WEIGHT: Readonly<Record<string, number>> = Object.freeze({
+  create_inhabitant: 6,
+  create_artifact: 5,
+  build: 4,
+  teach: 4,
+  communicate: 3,
+  announce: 3,
+  perform: 3,
+  study: 2,
+  craft: 2,
+  transfer: 2,
+});
 
 function roundWeight(weight: number): number {
   return Math.round(weight * 1000) / 1000;
@@ -721,6 +734,11 @@ function buildBeats(envelopes: readonly ActivityEnvelope[], known: ReadonlySet<s
       reasons.push(
         `First canonical ${envelope.actionType.replaceAll("_", " ")} recorded for this inhabitant.`,
       );
+    }
+    const actionWeight = BEAT_ACTION_WEIGHT[envelope.actionType] ?? 0;
+    if (actionWeight > 0) {
+      weight += actionWeight;
+      reasons.push(`Canonical action type ${envelope.actionType.replaceAll("_", " ")} changes the public record.`);
     }
     const durationWeight = Math.min((minutes / 60) * BEAT_HOUR_WEIGHT, BEAT_DURATION_CAP);
     weight += durationWeight;

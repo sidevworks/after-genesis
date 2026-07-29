@@ -15,6 +15,7 @@ export const NAV_ITEMS = [
   { href: "/map", label: "World Map", category: "World" },
   { href: "/economy", label: "Economy", category: "World" },
   { href: "/artifacts", label: "Artifacts", category: "World" },
+  { href: "/proof", label: "Proof", category: "Verification" },
   { href: "/audit", label: "Audit", category: "Verification" },
 ];
 

@@ -20,7 +20,7 @@
 import { useId, useState } from "react";
 
 import { useAuth } from "./auth-context";
-import { REQUIRED_ENV_VARS } from "@/lib/firebase/config";
+import { missingFirebaseEnvVars } from "@/lib/firebase/config";
 
 type Mode = "signin" | "register";
 
@@ -92,6 +92,7 @@ export function SignInPanel({
   }
 
   const emailReady = email.trim().length > 0 && password.length > 0;
+  const missingEnvVars = missingFirebaseEnvVars();
 
   function submitEmail() {
     if (!emailReady || busy) return;
@@ -111,9 +112,9 @@ export function SignInPanel({
           created or restored. The world itself is unaffected — it does not know this application
           exists.
         </p>
-        <p className="mt-3 text-xs text-dim">Set these and rebuild:</p>
+        <p className="mt-3 text-xs text-dim">Set {missingEnvVars.length === 1 ? "this" : "these"} and rebuild:</p>
         <ul className="mono mt-1.5 space-y-0.5 text-xs text-amber">
-          {REQUIRED_ENV_VARS.map((name) => (
+          {missingEnvVars.map((name) => (
             <li key={name}>{name}</li>
           ))}
         </ul>

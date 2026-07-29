@@ -27,7 +27,7 @@
  */
 
 import { existsSync } from "node:fs";
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, rename, writeFile } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -77,6 +77,7 @@ const limit = Number.parseInt(arg("limit", "0"), 10) || Number.POSITIVE_INFINITY
  * for an audit recording.
  */
 const plain = process.argv.includes("--plain");
+const live = process.argv.includes("--live");
 
 /**
  * Load `.env` without a dependency.
@@ -145,6 +146,12 @@ async function loadNarrationCache(path: string): Promise<NarrationCache> {
   }
 }
 
+async function writeJsonAtomically(path: string, value: unknown): Promise<void> {
+  const temporary = `${path}.${process.pid}.tmp`;
+  await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`);
+  await rename(temporary, path);
+}
+
 interface Reel {
   readonly name: string;
   readonly run: ObservatoryRun;
@@ -165,7 +172,14 @@ async function main(): Promise<void> {
   for (const { name, run } of reels()) {
     const chronicle = buildChronicle(run);
     const lookup = speakerLookupFor(run);
-    const selected = selectVoiceLines(chronicle, lookup);
+    const selectedBase = selectVoiceLines(chronicle, lookup);
+    const selected = live
+      ? [...selectedBase].sort((left, right) => {
+          const leftPriority = left.kind === "dialogue" ? 0 : 1;
+          const rightPriority = right.kind === "dialogue" ? 0 : 1;
+          return leftPriority - rightPriority || left.segmentId.localeCompare(right.segmentId);
+        })
+      : selectedBase;
 
     const outputRoot = join(APP_ROOT, "public", "voice", name);
     const cachePath = join(outputRoot, "narration.json");
@@ -231,7 +245,7 @@ async function main(): Promise<void> {
     if (styler !== null && !dryRun && stylingCalls > 0) {
       const next: NarrationCache = { ...EMPTY_NARRATION_CACHE, entries };
       await mkdir(outputRoot, { recursive: true });
-      await writeFile(cachePath, `${JSON.stringify(next, null, 2)}\n`);
+      await writeJsonAtomically(cachePath, next);
       console.log(
         `[${name}] styled ${stylingCalls} new line(s), ${stylingRefusals} fell back to the canonical caption`,
       );
@@ -269,10 +283,7 @@ async function main(): Promise<void> {
       onProgress: (message) => console.log(`  ${message}`),
     });
 
-    await writeFile(
-      join(outputRoot, "manifest.json"),
-      `${JSON.stringify(report.manifest, null, 2)}\n`,
-    );
+    await writeJsonAtomically(join(outputRoot, "manifest.json"), report.manifest);
 
     console.log(
       `[${name}] synthesized ${report.synthesized}, reused ${report.reused}, failed ${report.failed}, ` +

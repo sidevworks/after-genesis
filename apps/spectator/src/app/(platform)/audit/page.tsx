@@ -148,13 +148,20 @@ export default async function AuditPage() {
 
       <Panel eyebrow="Honesty" title="What this export deliberately withholds">
         <ul className="divide-y divide-line-soft">
-          {audit.withheld.map((item) => (
-            <li key={item.category} className="px-4 py-3">
-              <p className="text-sm text-ink">{item.category}</p>
+          {audit.withheld.map((item, index) => {
+            const category = item.category ?? item.kind ?? `withheld-${index}`;
+            return (
+            <li key={`${category}-${index}`} className="px-4 py-3">
+              <p className="text-sm text-ink">{category}</p>
               <p className="mt-0.5 text-xs leading-relaxed text-muted">{item.reason}</p>
-              <p className="mono mt-1 text-[0.65rem] text-dim">Release: {item.releaseCondition}</p>
+              {item.releaseCondition && (
+                <p className="mono mt-1 text-[0.65rem] text-dim">
+                  Release: {item.releaseCondition}
+                </p>
+              )}
             </li>
-          ))}
+          );
+          })}
         </ul>
       </Panel>
 

@@ -41,6 +41,7 @@ import type { TerrainMap } from "@/lib/stage/terrain";
 import type { SettlementProjectionSource } from "@/lib/city/project-settlement";
 import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 import { buildVitals, type VitalsSeries } from "@/lib/cinema/vitals";
+import type { ObservatoryRun } from "@/lib/observatory-types";
 import { observatorySource } from "@/lib/observatory-source";
 import { Stage } from "@/lib/stage/stage";
 import { CinemaCaption } from "./caption";
@@ -68,6 +69,7 @@ export interface CinemaViewportProps {
   readonly initialTick?: number;
   readonly initialRate?: number;
   readonly chronicleOverride?: Chronicle;
+  readonly runOverride?: ObservatoryRun;
   readonly mapOverride?: TerrainMap;
   readonly settlementSource?: SettlementProjectionSource;
   readonly broadcast?: boolean;
@@ -173,6 +175,7 @@ export function CinemaViewport({
   initialTick,
   initialRate = 240,
   chronicleOverride,
+  runOverride,
   mapOverride,
   settlementSource,
   broadcast = false,
@@ -195,7 +198,10 @@ export function CinemaViewport({
   const intervalsRef = useRef(intervals);
   intervalsRef.current = intervals;
 
-  const vitals = useMemo(() => buildVitals(observatorySource.getRun()), []);
+  const vitals = useMemo(
+    () => buildVitals(runOverride ?? observatorySource.getRun()),
+    [runOverride],
+  );
   const [vitalsSeries, setVitalsSeries] = useState<VitalsSeries | null>(null);
 
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -218,13 +224,14 @@ export function CinemaViewport({
   const tickRef = useRef(
     initialTick ?? (chronicleOverride === undefined ? openingTick(subjectId) : overrideOpening),
   );
+  const totalDays = Math.max(1, Math.ceil(endTick / MINUTES_PER_DAY));
   const playingRef = useRef(false);
   const rateRef = useRef(initialRate);
   const skipIdleRef = useRef(true);
 
   const [hud, setHud] = useState<CinemaHud>(() => ({
     tick: tickRef.current,
-    day: Math.floor(tickRef.current / MINUTES_PER_DAY) + 1,
+    day: Math.min(totalDays, Math.floor(tickRef.current / MINUTES_PER_DAY) + 1),
     clock: clockOf(tickRef.current),
     subject: null,
     shotKind: "ESTABLISH",
@@ -365,7 +372,7 @@ export function CinemaViewport({
 
       setHud((current) => ({
         tick,
-        day: Math.floor(tick / MINUTES_PER_DAY) + 1,
+        day: Math.min(totalDays, Math.floor(tick / MINUTES_PER_DAY) + 1),
         clock: clockOf(tick),
         subject,
         shotKind: shot?.kind ?? "ESTABLISH",
@@ -385,7 +392,7 @@ export function CinemaViewport({
     sync();
     const timer = window.setInterval(sync, HUD_INTERVAL_MS);
     return () => window.clearInterval(timer);
-  }, [endTick, subjectId, vitals]);
+  }, [endTick, subjectId, totalDays, vitals]);
 
   /* --------------------------------------------------------------------- */
   /* Transport — all of it writes to refs, none of it reaches the world.    */

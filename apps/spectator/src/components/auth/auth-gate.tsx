@@ -27,6 +27,9 @@ export function AuthGate({ children }: { children: ReactNode }) {
   const { viewer, ready, configured } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const skipGate = process.env.NEXT_PUBLIC_SKIP_AUTH_GATE === "true";
+
+  if (skipGate) return <>{children}</>;
 
   const blocked = ready && viewer === null && configured;
 

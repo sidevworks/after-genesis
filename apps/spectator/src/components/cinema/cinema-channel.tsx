@@ -17,6 +17,7 @@ import { CinemaViewport } from "./cinema-viewport";
 import { MINUTES_PER_DAY } from "@/lib/cinema/types";
 import { ActivityBrowser } from "./activity-browser";
 import type { Chronicle } from "@/lib/cinema/types";
+import type { ObservatoryRun } from "@/lib/observatory-types";
 import type { TerrainMap } from "@/lib/stage/terrain";
 import type { SettlementProjectionSource } from "@/lib/city/project-settlement";
 
@@ -43,6 +44,7 @@ export function CinemaChannel({
   activities,
   endTick,
   chronicle,
+  run,
   map,
   settlementSource,
   initialSubjectId = null,
@@ -52,6 +54,7 @@ export function CinemaChannel({
   readonly activities: readonly ChannelActivity[];
   readonly endTick: number;
   readonly chronicle?: Chronicle;
+  readonly run?: ObservatoryRun;
   readonly map?: TerrainMap;
   readonly settlementSource?: SettlementProjectionSource;
   readonly initialSubjectId?: string | null;
@@ -63,7 +66,7 @@ export function CinemaChannel({
   const [jumpKey, setJumpKey] = useState(0);
   const [dayDraft, setDayDraft] = useState("");
   const [broadcast, setBroadcast] = useState(false);
-  const maxDay = Math.floor(endTick / MINUTES_PER_DAY) + 1;
+  const maxDay = Math.max(1, Math.ceil(endTick / MINUTES_PER_DAY));
   const jump = (tick: number) => {
     setJumpTick(Math.max(0, Math.min(tick, endTick)));
     setJumpKey((value) => value + 1);
@@ -156,6 +159,7 @@ export function CinemaChannel({
         {...(jumpTick === undefined ? {} : { initialTick: jumpTick })}
         initialRate={60}
         {...(chronicle === undefined ? {} : { chronicleOverride: chronicle })}
+        {...(run === undefined ? {} : { runOverride: run })}
         {...(map === undefined ? {} : { mapOverride: map })}
         {...(settlementSource === undefined ? {} : { settlementSource })}
         broadcast={broadcast}

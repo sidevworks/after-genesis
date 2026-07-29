@@ -55,9 +55,11 @@ export function ElevenLabsVoicePlayer({
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState("Ready");
+  const [playbackSrc, setPlaybackSrc] = useState<string | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastPlayedRef = useRef<string | null>(null);
+  const playingKindRef = useRef<VoiceClip["kind"] | null>(null);
 
   const segmentId = subject?.segment.id ?? null;
   const clip: VoiceClip | null =
@@ -70,29 +72,43 @@ export function ElevenLabsVoicePlayer({
 
   const stop = () => {
     audioRef.current?.pause();
+    playingKindRef.current = null;
     setIsPlaying(false);
   };
 
-  const play = () => {
-    const element = audioRef.current;
-    if (element === null || clipSrc === null) return;
+  const dialogueIsPlaying = () =>
+    playingKindRef.current === "dialogue" &&
+    audioRef.current !== null &&
+    !audioRef.current.ended &&
+    !audioRef.current.paused;
 
-    void element
-      .play()
-      .then(() => {
-        setIsPlaying(true);
-        setAudioStatus("Playing rendered ElevenLabs audio");
-      })
-      .catch((cause: unknown) => {
-        // Browsers reject playback until the user has interacted with the page.
-        // Reporting it is better than an animation that implies sound.
-        setIsPlaying(false);
-        setAudioStatus(
-          cause instanceof Error && cause.name === "NotAllowedError"
-            ? "Blocked by the browser — press Play"
-            : "Audio failed to start",
-        );
-      });
+  const play = () => {
+    if (clipSrc === null) return;
+    setPlaybackSrc(clipSrc);
+
+    window.setTimeout(() => {
+      const element = audioRef.current;
+      if (element === null) return;
+
+      void element
+        .play()
+        .then(() => {
+          playingKindRef.current = clip?.kind ?? null;
+          setIsPlaying(true);
+          setAudioStatus("Playing rendered ElevenLabs audio");
+        })
+        .catch((cause: unknown) => {
+          // Browsers reject playback until the user has interacted with the page.
+          // Reporting it is better than an animation that implies sound.
+          setIsPlaying(false);
+          playingKindRef.current = null;
+          setAudioStatus(
+            cause instanceof Error && cause.name === "NotAllowedError"
+              ? "Blocked by the browser — press Play"
+              : "Audio failed to start",
+          );
+        });
+    }, 0);
   };
 
   const unlockAudio = () => {
@@ -106,11 +122,13 @@ export function ElevenLabsVoicePlayer({
   useEffect(() => {
     if (!isPro || !autoplay || !isAudioUnlocked || !isVideoPlaying) return;
     if (clipSrc === null) {
+      if (dialogueIsPlaying()) return;
       stop();
       lastPlayedRef.current = null;
       return;
     }
     if (lastPlayedRef.current === clipSrc) return;
+    if (dialogueIsPlaying()) return;
     lastPlayedRef.current = clipSrc;
     play();
     // `play` and `stop` close over refs and setters only.
@@ -174,17 +192,18 @@ export function ElevenLabsVoicePlayer({
 
   return (
     <div className="mx-auto max-w-[84rem] relative overflow-hidden rounded-md border border-amber/30 bg-panel/90 p-4 shadow-xl backdrop-blur-md">
-      {clipSrc !== null && (
+      {playbackSrc !== null && (
         <audio
-          key={clipSrc}
           ref={audioRef}
-          src={clipSrc}
+          src={playbackSrc}
           preload="auto"
           onEnded={() => {
+            playingKindRef.current = null;
             setIsPlaying(false);
             setAudioStatus("Playback complete");
           }}
           onError={() => {
+            playingKindRef.current = null;
             setIsPlaying(false);
             setAudioStatus("Audio file missing from this build");
           }}

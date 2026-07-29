@@ -19,7 +19,8 @@
     "test:watch": "vitest",
     "lint": "tsc --build --force",
     "verify": "tsx packages/audit/src/cli.ts",
-    "world": "tsx apps/genesis/src/cli.ts"
+    "world": "tsx apps/genesis/src/cli.ts",
+    "dev:world-control": "tsx apps/genesis/src/dev-control-server.ts"
   },
   "devDependencies": {
     "@firebase/rules-unit-testing": "^5.0.1",

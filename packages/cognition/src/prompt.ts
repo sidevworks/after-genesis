@@ -489,6 +489,9 @@ const OUTPUT_FORMAT = [
   "- Include no keys other than type, payload and rationale.",
   "- Your answer is a PROPOSAL. The world engine decides what actually happens, and may reject it.",
   "- You cannot change the world by describing a change. Only the action you propose has any effect.",
+  "- If you communicate, write words one inhabitant would plausibly say to another inhabitant.",
+  "- Do not use communication to recite your coordinates, tile numbers, simulated minute, need scores or action syntax unless another inhabitant specifically asked for those technical facts.",
+  "- Keep rationale concise. Do not debate with yourself or repeat the same uncertainty.",
 ].join("\n");
 
 export function buildSystemPrompt(

@@ -119,6 +119,15 @@ describe("available actions", () => {
   });
 });
 
+describe("communication guidance", () => {
+  it("tells inhabitants not to use speech as coordinate telemetry", () => {
+    const built = build(makeObservation());
+
+    expect(built.systemPrompt).toContain("If you communicate");
+    expect(built.systemPrompt).toContain("Do not use communication to recite your coordinates");
+  });
+});
+
 describe("minimal social ontology", () => {
   it("supplies physics without pre-installing social abstractions", () => {
     const built = build(makeObservation());

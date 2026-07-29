@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { worldSource } from "@/lib/world-source";
-import { observatorySource } from "@/lib/observatory-source";
 import { HeaderWorldStatus } from "./header-world-status";
+import { DevWorldControls } from "./dev-world-controls";
 import { NavGroups } from "./nav-groups";
 import { TierBadge } from "./tier-badge";
 import { ViewerBadge } from "./auth/viewer-badge";
@@ -23,7 +23,6 @@ export const NAV = [
 
 export async function SiteHeader() {
   const summary = await worldSource.getWorldSummary();
-  const observatory = observatorySource.getRun();
 
   // `TierProvider` deliberately lives in the root layout rather than here.
   // Wrapping only the header put every page body outside the context, so
@@ -47,12 +46,11 @@ export async function SiteHeader() {
                 status: summary.status,
               }}
               observatory={{
-                worldId: "W001",
-                simTime: observatory.world.simTime,
-                living: observatory.inhabitants.filter((inhabitant) => inhabitant.status === "alive")
-                  .length,
-                total: observatory.inhabitants.length,
-                status: "completed",
+                worldId: summary.worldId,
+                simTime: summary.simTime,
+                living: summary.population.living,
+                total: summary.population.total,
+                status: summary.status,
               }}
             />
           </div>
@@ -65,6 +63,7 @@ export async function SiteHeader() {
           </div>
         </div>
       </header>
+      <DevWorldControls />
     </>
   );
 }

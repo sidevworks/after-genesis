@@ -1,8 +1,13 @@
 import type { Metadata } from "next";
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import type { ChannelSubject } from "@/components/cinema/cinema-channel";
 import { WatchExperience } from "@/components/cinema/watch-experience";
 import { Badge, Panel } from "@/components/ui";
-import { observatorySource } from "@/lib/observatory-source";
+import runFixture from "@/fixtures/observatory-run.json";
+import { buildReferenceRegistry } from "@/lib/reference-registry";
+import type { ObservatoryRun } from "@/lib/observatory-types";
 
 export const metadata: Metadata = {
   title: "Watch",
@@ -10,9 +15,24 @@ export const metadata: Metadata = {
     "A continuous, camera-tracked rendering of the canonical After Genesis record. Read-only.",
 };
 
-export default function WatchPage() {
-  const run = observatorySource.getRun();
-  const entities = observatorySource.getReferences("ENT");
+function liveRunPath(): string {
+  const fromApp = resolve(process.cwd(), "src/fixtures/observatory-run.json");
+  if (existsSync(fromApp)) return fromApp;
+  return resolve(process.cwd(), "apps/spectator/src/fixtures/observatory-run.json");
+}
+
+async function readRun(): Promise<ObservatoryRun> {
+  if (process.env.NEXT_PUBLIC_DEV_WORLD_CONTROLS !== "true") {
+    return runFixture as unknown as ObservatoryRun;
+  }
+  return JSON.parse(await readFile(liveRunPath(), "utf8")) as ObservatoryRun;
+}
+
+export default async function WatchPage() {
+  const run = await readRun();
+  const entities = buildReferenceRegistry(run).records.filter(
+    (record) => record.referenceClass === "ENT",
+  );
   const disclosure = run.disclosure;
   const activities = run.activities ?? [];
   const withheld = activities.filter((activity) => !activity.contentsDisclosed).length;
@@ -47,6 +67,7 @@ export default function WatchPage() {
       </header>
 
       <WatchExperience
+        run={run}
         subjects={subjects}
         activities={activities}
         endTick={run.world.simTime}

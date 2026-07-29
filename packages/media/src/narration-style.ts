@@ -113,6 +113,74 @@ export interface NarrationContext {
   readonly span?: string;
 }
 
+function firstAllowedName(context: NarrationContext): string | null {
+  return context.allowedNames[0]?.trim() || null;
+}
+
+function subjectOf(context: NarrationContext): string {
+  return firstAllowedName(context) ?? "Someone";
+}
+
+function resourceOf(canonical: string): string | null {
+  const match = canonical.match(
+    /\b(?:gathered|consumed)\s+\d+\s+([a-z_ -]+?)(?:\s+(?:at|from|over|for)\b|[.])/i,
+  );
+  const value = match?.[1]?.trim().toLowerCase().replace(/[^\p{L}_ -]/gu, "") ?? "";
+  return value.length === 0 ? null : value;
+}
+
+/**
+ * A provider-free spoken line that removes the audit-only numbers from a
+ * canonical caption without adding facts.
+ *
+ * This is deliberately plainer than the model-styled line. Its job is to keep
+ * a public documentary reel listenable when the model is unavailable or its
+ * reply is rejected, while leaving the exact canonical caption beside it in
+ * the manifest and UI.
+ */
+export function documentaryFallback(context: NarrationContext): string {
+  const subject = subjectOf(context);
+  const dayPart = context.dayPart === undefined ? "" : ` through the ${context.dayPart}`;
+  const span = context.span === undefined ? "" : ` ${context.span}`;
+  const resource = resourceOf(context.canonical);
+
+  switch (context.actionType) {
+    case "gather":
+      return `${subject} gathers${resource === null ? "" : ` ${resource}`}${dayPart}.`;
+    case "move":
+      return `${subject} moves across the settlement${dayPart}.`;
+    case "build":
+      return `${subject} builds${span}.`;
+    case "craft":
+      return `${subject} crafts${span}.`;
+    case "rest":
+      return `${subject} rests${dayPart}.`;
+    case "consume":
+      return `${subject} ${resource === "water" ? "drinks" : "eats"}${dayPart}.`;
+    case "study":
+      return `${subject} studies${span}.`;
+    case "teach":
+      return `${subject} teaches${span}.`;
+    case "observe":
+      return `${subject} observes${dayPart}.`;
+    case "communicate":
+      return `${subject} speaks with others${dayPart}.`;
+    case "announce":
+      return `${subject} addresses the settlement${dayPart}.`;
+    case "perform":
+      return `${subject} performs${dayPart}.`;
+    case "transfer":
+      return `${subject} transfers supplies${dayPart}.`;
+    default:
+      return `${subject} continues the recorded activity${dayPart}.`;
+  }
+}
+
+function safeFallback(context: NarrationContext): string {
+  const candidate = documentaryFallback(context);
+  return validateNarration(candidate, context).ok ? candidate : context.canonical;
+}
+
 /** The canonical start time of a segment, in words. */
 export function dayPartOf(minuteOfDay: number): string {
   const minute = ((Math.floor(minuteOfDay) % 1440) + 1440) % 1440;
@@ -294,6 +362,21 @@ export function unstyled(canonical: string, rejections: readonly string[] = []):
   };
 }
 
+function fallbackNarration(
+  context: NarrationContext,
+  rejections: readonly string[],
+): StyledNarration {
+  return {
+    text: safeFallback(context),
+    canonical: context.canonical,
+    styled: false,
+    modelId: null,
+    requestHash: null,
+    responseHash: null,
+    rejections,
+  };
+}
+
 /**
  * The schema the reply must satisfy.
  *
@@ -364,7 +447,7 @@ export async function styleNarration(
   deps: StyleDeps,
 ): Promise<StyledNarration> {
   if (!isStyleable(context.actionType)) {
-    return unstyled(context.canonical, [`action "${context.actionType}" is not styleable`]);
+    return fallbackNarration(context, [`action "${context.actionType}" is not styleable`]);
   }
 
   const request = buildNarrationRequest(context, deps.modelId);
@@ -384,7 +467,7 @@ export async function styleNarration(
       );
     } catch (cause) {
       rejections.push(`provider error: ${cause instanceof Error ? cause.message : String(cause)}`);
-      return unstyled(context.canonical, rejections);
+      return fallbackNarration(context, rejections);
     }
 
     const candidate = extractLine(response.rawText);
@@ -404,5 +487,5 @@ export async function styleNarration(
     rejections.push(`${check.reason}: ${check.detail}`);
   }
 
-  return unstyled(context.canonical, rejections);
+  return fallbackNarration(context, rejections);
 }

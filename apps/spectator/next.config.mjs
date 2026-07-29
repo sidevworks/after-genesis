@@ -1,3 +1,9 @@
+import nextEnv from "@next/env";
+import { fileURLToPath } from "node:url";
+
+const { loadEnvConfig } = nextEnv;
+loadEnvConfig(fileURLToPath(new URL("../..", import.meta.url)));
+
 /**
  * After Genesis — spectator application.
  *

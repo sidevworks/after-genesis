@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { existsSync } from "node:fs";
-import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import {
   CanonicalEventSchema,
@@ -48,8 +48,10 @@ interface ParsedArgs {
   readonly command: "demo" | "replay" | "bootstrap-staging" | "teardown-staging";
   readonly output: string;
   readonly turns: number;
+  readonly turnDelayMs: number;
   readonly provider: "offline" | "gemini";
   readonly resume: boolean;
+  readonly reset: boolean;
   readonly maxSpendUsd: string | null;
   readonly worldId: string;
 }
@@ -64,13 +66,16 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
   ) {
     throw new Error(
       "usage: npm run world -- <demo|replay|bootstrap-staging|teardown-staging> [--output <directory>] " +
-        "[--world-id <id>] [--turns <n>] [--provider <offline|gemini>] [--resume] [--max-spend-usd <amount>]",
+        "[--world-id <id>] [--turns <n>] [--days <n>] [--day-duration <1s|10s|1m|10m|1h>] " +
+        "[--provider <offline|gemini>] [--resume] [--reset] [--max-spend-usd <amount>]",
     );
   }
   let output = DEFAULT_OUTPUT;
   let turns = 6;
+  let turnDelayMs = 0;
   let provider: "offline" | "gemini" = "offline";
   let resume = false;
+  let reset = false;
   let maxSpendUsd: string | null = null;
   let worldId = "staging-test-fixture";
   for (let i = 1; i < argv.length; i++) {
@@ -87,10 +92,31 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       worldId = value.trim();
     } else if (arg === "--turns") {
       const value = Number(argv[++i]);
-      if (!Number.isSafeInteger(value) || value < 1 || value > 10_000) {
-        throw new Error("--turns must be an integer from 1 to 10000");
+      if (!Number.isSafeInteger(value) || value < 0 || value > 10_000) {
+        throw new Error("--turns must be an integer from 0 to 10000");
       }
       turns = value;
+    } else if (arg === "--days") {
+      const value = Number(argv[++i]);
+      if (!Number.isSafeInteger(value) || value < 1 || value > 833) {
+        throw new Error("--days must be an integer from 1 to 833");
+      }
+      turns = value * 12;
+    } else if (arg === "--day-duration") {
+      const value = argv[++i];
+      if (value === "1s") {
+        turnDelayMs = 83;
+      } else if (value === "10s") {
+        turnDelayMs = 833;
+      } else if (value === "1m") {
+        turnDelayMs = 5_000;
+      } else if (value === "10m") {
+        turnDelayMs = 50_000;
+      } else if (value === "1h") {
+        turnDelayMs = 300_000;
+      } else {
+        throw new Error("--day-duration must be one of: 1s, 10s, 1m, 10m, 1h");
+      }
     } else if (arg === "--provider") {
       const value = argv[++i];
       if (value !== "offline" && value !== "gemini") {
@@ -99,6 +125,8 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       provider = value;
     } else if (arg === "--resume") {
       resume = true;
+    } else if (arg === "--reset") {
+      reset = true;
     } else if (arg === "--max-spend-usd") {
       const value = argv[++i];
       if (value === undefined || usdToMicros(value) <= 0) {
@@ -109,10 +137,27 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
       throw new Error(`unknown argument: ${arg}`);
     }
   }
-  return { command, output: resolve(output), turns, provider, resume, maxSpendUsd, worldId };
+  if (reset && resume) {
+    throw new Error("--reset cannot be used with --resume");
+  }
+
+  return {
+    command,
+    output: resolve(output),
+    turns,
+    turnDelayMs,
+    provider,
+    resume,
+    reset,
+    maxSpendUsd,
+    worldId,
+  };
 }
 
-function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
+function demoConfig(
+  modelId: string = "offline-instinct-cognition-v2",
+  mechanicalTest = true,
+): GenesisConfig {
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
@@ -124,32 +169,36 @@ function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisC
       modelId,
       sex: "female",
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-      traits: { curiosity: 75, patience: 60 },
-      values: ["curiosity", "continuity"],
-      privateGoals: ["remain alive and decide through experience what matters"],
+      traits: mechanicalTest ? { curiosity: 75, patience: 60 } : {},
+      values: mechanicalTest ? ["curiosity", "continuity"] : [],
+      privateGoals: mechanicalTest
+        ? ["remain alive and decide through experience what matters"]
+        : [],
     },
-    inhabitants: [
-      {
-        id: "inh_ember",
-        displayName: "Ember",
-        modelId,
-        sex: "male",
-        inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-        traits: { curiosity: 55, patience: 80 },
-        values: ["continuity", "patience"],
-        privateGoals: ["understand nearby beings through their voluntary actions"],
-      },
-      {
-        id: "inh_lumen",
-        displayName: "Lumen",
-        modelId,
-        sex: "female",
-        inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-        traits: { curiosity: 85, patience: 45 },
-        values: ["experimentation", "independence"],
-        privateGoals: ["test ideas against observable consequences"],
-      },
-    ],
+    inhabitants: mechanicalTest
+      ? [
+          {
+            id: "inh_ember",
+            displayName: "Ember",
+            modelId,
+            sex: "male",
+            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+            traits: { curiosity: 55, patience: 80 },
+            values: ["continuity", "patience"],
+            privateGoals: ["understand nearby beings through their voluntary actions"],
+          },
+          {
+            id: "inh_lumen",
+            displayName: "Lumen",
+            modelId,
+            sex: "female",
+            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+            traits: { curiosity: 85, patience: 45 },
+            values: ["experimentation", "independence"],
+            privateGoals: ["test ideas against observable consequences"],
+          },
+        ]
+      : [],
   };
 }
 
@@ -289,7 +338,33 @@ function mechanicalCognition(): CognitionService {
         const neighbour = observation.inhabitants.find(
           (other) => other.status === "alive" && other.distance <= 2,
         );
+        const pulse = input.sequence % 36;
 
+        if (pulse === 5 && neighbour !== undefined) {
+          return {
+            type: "communicate",
+            payload: {
+              recipients: [neighbour.id],
+              message: `I can see ${neighbour.displayName} nearby.`,
+              intendedMinutes: 15,
+            },
+          };
+        }
+        if (pulse === 17 || pulse === 23) {
+          return {
+            type: "create_artifact",
+            payload: {
+              kind: "research_note",
+              title: `Field note ${input.sequence}`,
+              content: `Recorded a visible change at minute ${observation.simTime}.`,
+              collaboratorIds: [],
+              materials: {},
+              derivedFromArtifactId: null,
+              organisationId: null,
+              revisesArtifactId: null,
+            },
+          };
+        }
         if (chance > 0.94 && neighbour !== undefined) {
           return {
             type: "communicate",
@@ -307,6 +382,11 @@ function mechanicalCognition(): CognitionService {
               kind: "research_note",
               title: `Record ${input.sequence}`,
               content: `Observed ${observation.tiles.length} tiles at minute ${observation.simTime}.`,
+              collaboratorIds: [],
+              materials: {},
+              derivedFromArtifactId: null,
+              organisationId: null,
+              revisesArtifactId: null,
             },
           };
         }
@@ -321,23 +401,6 @@ function mechanicalCognition(): CognitionService {
             },
           };
         }
-        if (chance > 0.85 && neighbour !== undefined) {
-          return {
-            type: "teach",
-            payload: {
-              studentIds: [neighbour.id],
-              skill: "gathering",
-              lessonSummary: "Where the deposits are and how quickly they run out.",
-            },
-          };
-        }
-        if (chance > 0.83) {
-          return { type: "study", payload: { skill: "gathering" } };
-        }
-        if (chance > 0.81 && held("food") >= 20 && held("water") >= 20 && self.energy > 600) {
-          return { type: "create_inhabitant", payload: {} };
-        }
-
         // 5. Otherwise stock up on whatever is nearest, and look around when
         //    there is nothing within reach.
         for (const resource of ["water", "food", "wood", "stone"]) {
@@ -419,6 +482,14 @@ async function runDemo(args: ParsedArgs): Promise<void> {
   await mkdir(args.output, { recursive: true });
   const eventsDirectory = resolve(args.output, "events");
   const statesDirectory = resolve(args.output, "state");
+  const auditDirectory = resolve(args.output, "model-audit");
+  if (args.reset) {
+    await rm(eventsDirectory, { recursive: true, force: true });
+    await rm(statesDirectory, { recursive: true, force: true });
+    await rm(auditDirectory, { recursive: true, force: true });
+    await rm(resolve(args.output, "public-snapshot.json"), { force: true });
+    await rm(resolve(args.output, "audit-report.json"), { force: true });
+  }
   const eventStore = await FileEventStore.open(eventsDirectory);
   const stateStore = await FileStateStore.open<WorldState>(statesDirectory, {
     checksum: computeStateChecksum,
@@ -426,7 +497,6 @@ async function runDemo(args: ParsedArgs): Promise<void> {
   const clock = args.resume
     ? new SystemClock()
     : new FixedClock("2026-01-01T00:00:00.000Z");
-  const auditDirectory = resolve(args.output, "model-audit");
   const auditStore = await FileModelAuditStore.open(auditDirectory, {
     clock,
   });
@@ -441,12 +511,14 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       args.provider === "offline"
         ? "offline-instinct-cognition-v2"
         : resolveModelRouting(process.env).routine;
-    const config = demoConfig(modelId);
+    const config = demoConfig(modelId, true);
     if (!args.resume) {
       await commitGenesis(
         { eventStore, stateStore, clock, provenance: PROVENANCE },
         config,
       );
+    } else {
+      await repairStateFromEventLog(eventsDirectory, stateStore, config.worldId);
     }
     const startingSnapshot = await stateStore.load(DEFAULT_WORLD_ID);
     if (startingSnapshot === null) {
@@ -461,11 +533,21 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       provenance: PROVENANCE,
     };
 
-    const actorIds = Object.keys(startingSnapshot.state.inhabitants).sort();
     const startingSequence = startingSnapshot.sequence;
     const startingSimTime = startingSnapshot.state.simTime;
     for (let offset = 1; offset <= args.turns; offset++) {
+      if (args.turnDelayMs > 0 && offset > 1) await sleep(args.turnDelayMs);
       if (clock instanceof FixedClock) clock.advanceSeconds(1);
+      const current = await stateStore.load(config.worldId);
+      if (current === null) throw new Error(`world ${config.worldId} has no state`);
+      const actorIds = Object.values(current.state.inhabitants)
+        .filter((inhabitant) => inhabitant.status === "alive")
+        .map((inhabitant) => inhabitant.id)
+        .sort();
+      if (actorIds.length === 0) {
+        process.stdout.write(`[dev-clock] no living inhabitants remain after ${offset - 1} turn(s)\n`);
+        break;
+      }
       const sequence = startingSequence + offset;
       const actorId = actorIds[(sequence - 1) % actorIds.length]!;
       const result = await executeTurn(deps, {
@@ -477,6 +559,12 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       });
       if (result.status !== "committed") {
         throw new Error(`turn ${sequence} did not commit: ${result.status} ${result.reason}`);
+      }
+      if (args.turnDelayMs > 0 && offset % 12 === 0) {
+        process.stdout.write(
+          `[dev-clock] simulated day ${offset / 12}; ` +
+            `${offset}/${args.turns} turns; sequence ${sequence}\n`,
+        );
       }
     }
   } finally {
@@ -522,6 +610,36 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       `Output: ${args.output}`,
     ].join("\n") + "\n",
   );
+}
+
+async function repairStateFromEventLog(
+  eventsDirectory: string,
+  stateStore: FileStateStore<WorldState>,
+  worldId: string,
+): Promise<void> {
+  const eventsPath = resolve(eventsDirectory, `${worldId}.jsonl`);
+  if (!existsSync(eventsPath)) return;
+
+  const events = await readEvents(eventsPath);
+  if (events.length === 0) return;
+
+  const replay = replayHistory(events);
+  if (!replay.ok || replay.state === null || replay.finalChecksum === null) {
+    throw new Error(
+      `cannot resume ${worldId}: event log replay failed; first mismatch ` +
+        `${JSON.stringify(replay.mismatches[0] ?? null)}`,
+    );
+  }
+
+  const snapshot = await stateStore.load(worldId);
+  const head = events.at(-1)!;
+  if (snapshot?.sequence === head.sequence && snapshot.checksum === replay.finalChecksum) return;
+
+  await stateStore.save(worldId, replay.state, head.sequence, replay.finalChecksum);
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
 function productionCognition(

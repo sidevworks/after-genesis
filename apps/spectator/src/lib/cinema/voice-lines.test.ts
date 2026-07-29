@@ -142,6 +142,47 @@ describe("selectVoiceLines", () => {
     });
   });
 
+  it("voices disclosed canonical speech verbatim in the speaker's assigned voice", () => {
+    const source = run({
+      activities: [
+        activity({
+          participants: ["inh_a"],
+          contentsDisclosed: true,
+        }),
+      ] as never,
+      events: [
+        {
+          sequence: 1,
+          simTime: 100,
+          realTimestamp: "2026-01-01T00:00:00.000Z",
+          canonicalType: "action.communicate",
+          actorId: "inh_a",
+          visibility: "public",
+          location: { x: 0, y: 0 },
+          outcomeStatus: "resolved",
+          detail: { message: "I found water beyond the ridge." },
+          hash: "sha256:event",
+          prevHash: "sha256:genesis",
+        },
+      ],
+    });
+
+    const dialogue = selectVoiceLines(
+      buildChronicle(source),
+      speakerLookupFor(source),
+      { notableOnly: true },
+    ).find((line) => line.kind === "dialogue");
+
+    expect(dialogue).toMatchObject({
+      text: "I found water beyond the ridge.",
+      speaker: {
+        id: "inh_a",
+        displayName: "Aster",
+        voiceHandle: "voice_f04",
+      },
+    });
+  });
+
   it("returns lines in a stable order across repeated selection", () => {
     // The renderer's budget truncates this list. An unstable order would
     // render a different subset on every build.

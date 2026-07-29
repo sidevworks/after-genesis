@@ -42,36 +42,46 @@ export function useVoiceManifest(reel: string, enabled: boolean): VoiceManifestS
     // Guards against a reel switch resolving out of order and installing a
     // stale manifest over a newer one.
     let active = true;
-    setState({ manifest: null, status: "loading" });
+    setState((current) =>
+      current.manifest === null ? { manifest: null, status: "loading" } : current,
+    );
 
-    fetch(`/voice/${reel}/manifest.json`)
-      .then(async (response) => {
-        if (!active) return;
-        // A reel with no render yet is an ordinary state, not a failure: the
-        // player shows that nothing has been rendered and stays silent.
-        if (response.status === 404) {
-          setState({ manifest: null, status: "missing" });
-          return;
-        }
-        if (!response.ok) {
-          setState({ manifest: null, status: "error" });
-          return;
-        }
+    const load = () => {
+      fetch(`/voice/${reel}/manifest.json?live=${Date.now()}`, { cache: "no-store" })
+        .then(async (response) => {
+          if (!active) return;
+          // A reel with no render yet is an ordinary state, not a failure: the
+          // player shows that nothing has been rendered and stays silent.
+          if (response.status === 404) {
+            setState({ manifest: null, status: "missing" });
+            return;
+          }
+          if (!response.ok) {
+            setState((current) => ({ manifest: current.manifest, status: "error" }));
+            return;
+          }
 
-        const parsed: unknown = await response.json();
-        if (!active) return;
-        setState(
-          isPlayableManifest(parsed)
-            ? { manifest: parsed, status: "ready" }
-            : { manifest: null, status: "error" },
-        );
-      })
-      .catch(() => {
-        if (active) setState({ manifest: null, status: "error" });
-      });
+          const parsed: unknown = await response.json();
+          if (!active) return;
+          setState(
+            isPlayableManifest(parsed)
+              ? { manifest: parsed, status: "ready" }
+              : { manifest: null, status: "error" },
+          );
+        })
+        .catch(() => {
+          if (active) {
+            setState((current) => ({ manifest: current.manifest, status: "error" }));
+          }
+        });
+    };
+
+    load();
+    const timer = window.setInterval(load, 2_000);
 
     return () => {
       active = false;
+      window.clearInterval(timer);
     };
   }, [reel, enabled]);
 

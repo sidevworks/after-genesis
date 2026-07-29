@@ -274,7 +274,7 @@ function projectObservation(
           : type === "create_artifact"
             ? {
                 payloadHint:
-                  '{ "kind": "written_work"|"design"|"research_note"|"other", "title": <text>, "content": <text>, "materials": {} }',
+                  '{ "kind": "written_work"|"design"|"research_note"|"other", "title": <text>, "content": <text>, "collaboratorIds": [], "materials": {}, "derivedFromArtifactId": null, "organisationId": null, "revisesArtifactId": null }',
               }
             : type === "copy_artifact"
               ? { payloadHint: '{ "sourceArtifactId": <readable artifact id>, "title": <optional text> }' }

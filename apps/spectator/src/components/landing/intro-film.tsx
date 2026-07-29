@@ -6,10 +6,10 @@
  * Behaviour worth stating, because it is easy to get subtly wrong:
  *
  *  - Autoplay with sound is blocked by every current browser unless the origin
- *    already has a media-engagement history. So the film always *starts* muted
- *    and unmutes immediately afterwards if the reader has previously chosen
- *    sound on. If that unmute is rejected, we fall back to muted playback and
- *    show the control rather than failing the whole intro.
+ *    already has a media-engagement history. So the film always starts and
+ *    stays muted until the reader clicks the sound control. Remembering "sound
+ *    on" records the preference for that control; it must never stop the video
+ *    from playing.
  *  - Muted autoplay is *usually* permitted but is not guaranteed. When even
  *    that is refused, a play button appears over the poster; without it the
  *    reader is left facing a still frame with nothing to click.
@@ -55,6 +55,7 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   const [soundOn, setSoundOn] = useState(false);
+  const [preferredSoundOn, setPreferredSoundOn] = useState(() => readStored(SOUND_KEY) === "on");
   const [rememberSound, setRememberSound] = useState(() => readStored(SOUND_KEY) !== null);
   const [rememberSkip, setRememberSkip] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -78,7 +79,7 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
     onFinished();
   }, [onFinished]);
 
-  /* Apply the remembered sound preference once the element exists. ---------- */
+  /* Start playback once the element exists. -------------------------------- */
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
@@ -88,18 +89,15 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
       return;
     }
 
-    const wantsSound = readStored(SOUND_KEY) === "on";
     // Start muted regardless: this is the only reliably autoplayable state.
+    // A remembered sound-on choice cannot be applied until a real click.
     video.muted = true;
+    setSoundOn(false);
     const started = video.play();
 
     if (started) {
       void started
-        .then(() => {
-          if (!wantsSound) return;
-          video.muted = false;
-          setSoundOn(true);
-        })
+        .then(() => setNeedsGesture(false))
         .catch(() => {
           // Refused. Ask for the one gesture that will unblock it.
           setNeedsGesture(true);
@@ -114,6 +112,7 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
     video.muted = !withSound;
     if (withSound) video.volume = 1;
     setSoundOn(withSound);
+    setPreferredSoundOn(withSound);
     setNeedsGesture(false);
     void video.play().catch(() => setNeedsGesture(true));
   }
@@ -127,7 +126,7 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
 
   function toggleRememberSound(next: boolean) {
     setRememberSound(next);
-    writeStored(SOUND_KEY, next ? (soundOn ? "on" : "off") : null);
+    writeStored(SOUND_KEY, next ? (preferredSoundOn ? "on" : "off") : null);
   }
 
   function toggleRememberSkip(next: boolean) {
@@ -162,7 +161,6 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
         poster="/intro-poster.jpg"
         playsInline
         preload="auto"
-        muted={!soundOn}
         onEnded={finish}
         onError={() => {
           setFailed(true);
@@ -180,7 +178,7 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
           <div className="flex flex-col items-center gap-3">
             <button
               type="button"
-              onClick={() => play(readStored(SOUND_KEY) === "on")}
+              onClick={() => play(preferredSoundOn)}
               aria-label="Play the opening film"
               className="grid size-16 place-items-center rounded-full border border-white/30 bg-black/45 text-white backdrop-blur-sm transition-colors hover:bg-black/65"
             >
@@ -216,7 +214,7 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
               className="flex items-center gap-2 rounded-full border border-white/20 bg-white/8 px-4 py-2 text-xs text-white backdrop-blur-sm transition-colors hover:bg-white/16"
             >
               {soundOn ? <SoundOnIcon /> : <SoundOffIcon />}
-              {soundOn ? "Sound on" : "Sound off"}
+              {soundOn ? "Sound on" : preferredSoundOn ? "Enable sound" : "Sound off"}
             </button>
 
             <input

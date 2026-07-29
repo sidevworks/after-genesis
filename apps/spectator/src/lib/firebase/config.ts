@@ -66,7 +66,12 @@ function present(value: string | undefined): value is string {
  * sign-in until the values exist.
  */
 export function firebaseWebConfig(): FirebaseWebConfig | null {
-  if (!present(RAW.apiKey) || !present(RAW.authDomain) || !present(RAW.projectId)) {
+  if (
+    !present(RAW.apiKey) ||
+    !present(RAW.authDomain) ||
+    !present(RAW.projectId) ||
+    !present(RAW.appId)
+  ) {
     return null;
   }
   return {
@@ -75,7 +80,7 @@ export function firebaseWebConfig(): FirebaseWebConfig | null {
     projectId: RAW.projectId,
     ...(present(RAW.storageBucket) ? { storageBucket: RAW.storageBucket } : {}),
     ...(present(RAW.messagingSenderId) ? { messagingSenderId: RAW.messagingSenderId } : {}),
-    ...(present(RAW.appId) ? { appId: RAW.appId } : {}),
+    appId: RAW.appId,
   };
 }
 
@@ -95,3 +100,12 @@ export const REQUIRED_ENV_VARS = [
   "NEXT_PUBLIC_FIREBASE_PROJECT_ID",
   "NEXT_PUBLIC_FIREBASE_APP_ID",
 ] as const;
+
+export function missingFirebaseEnvVars(): readonly (typeof REQUIRED_ENV_VARS)[number][] {
+  const missing: (typeof REQUIRED_ENV_VARS)[number][] = [];
+  if (!present(RAW.apiKey)) missing.push("NEXT_PUBLIC_FIREBASE_API_KEY");
+  if (!present(RAW.authDomain)) missing.push("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN");
+  if (!present(RAW.projectId)) missing.push("NEXT_PUBLIC_FIREBASE_PROJECT_ID");
+  if (!present(RAW.appId)) missing.push("NEXT_PUBLIC_FIREBASE_APP_ID");
+  return missing;
+}

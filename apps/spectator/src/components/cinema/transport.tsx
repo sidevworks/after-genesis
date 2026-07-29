@@ -94,8 +94,8 @@ export function CinemaTransport({
   onStepCut,
 }: CinemaTransportProps) {
   const span = Math.max(endTick - startTick, 1);
-  const day = Math.floor(tick / MINUTES_PER_DAY) + 1;
-  const totalDays = Math.floor(endTick / MINUTES_PER_DAY) + 1;
+  const totalDays = Math.max(1, Math.ceil(endTick / MINUTES_PER_DAY));
+  const day = Math.min(totalDays, Math.floor(tick / MINUTES_PER_DAY) + 1);
 
   return (
     <div className="transport">

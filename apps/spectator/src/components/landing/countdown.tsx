@@ -12,12 +12,12 @@
  * where there is a real clock.
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { genesisAt, timeUntilGenesis, type Remaining } from "@/lib/launch";
 
 export function Countdown() {
-  const at = genesisAt();
+  const at = useMemo(() => genesisAt(), []);
   const [remaining, setRemaining] = useState<Remaining | null>(null);
 
   useEffect(() => {

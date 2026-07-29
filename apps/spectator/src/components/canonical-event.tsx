@@ -63,6 +63,20 @@ function ResolutionBadge({ event }: { event: WorldEvent }) {
   );
 }
 
+function EventPayload({ event }: { event: WorldEvent }) {
+  if (Object.keys(event.inputs).length === 0) return null;
+  return (
+    <details className="mt-3 rounded-sm border border-line bg-abyss/70">
+      <summary className="cursor-pointer px-3 py-2 text-xs font-medium text-muted hover:text-ink">
+        Show canonical payload
+      </summary>
+      <pre className="max-h-80 overflow-auto border-t border-line p-3 text-[0.68rem] leading-relaxed text-muted">
+        {JSON.stringify(event.inputs, null, 2)}
+      </pre>
+    </details>
+  );
+}
+
 export function CanonicalEventRow({
   event,
   showHash = true,
@@ -117,6 +131,7 @@ export function CanonicalEventRow({
       )}
 
       {!compact && <ClaimList claims={event.claims} />}
+      {!compact && <EventPayload event={event} />}
       {compact && event.claims.length > 0 && (
         <p className="mt-1.5 text-xs text-claim">
           {event.claims.length} attributed {event.claims.length === 1 ? "claim" : "claims"} on this

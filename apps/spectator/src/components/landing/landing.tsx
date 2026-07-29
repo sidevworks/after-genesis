@@ -13,6 +13,7 @@ import { IntroFilm, introIsRemembered } from "./intro-film";
 
 /** Where a reader lands once they are through the door. */
 const HOME = "/overview";
+const SKIP_AUTH_GATE = process.env.NEXT_PUBLIC_SKIP_AUTH_GATE === "true";
 
 export function Landing() {
   const router = useRouter();
@@ -72,17 +73,18 @@ export function Landing() {
     <>
       {showFilm && <IntroFilm onFinished={() => setShowFilm(false)} />}
       <div className="min-h-dvh">
-        <TopBar sealed={sealed} signedIn={Boolean(viewer)} onEnter={enter} />
+        <TopBar sealed={sealed} signedIn={Boolean(viewer) || SKIP_AUTH_GATE} onEnter={enter} />
 
         <main id="main" className="mx-auto max-w-[80rem] px-5 pb-24 sm:px-8">
           <Hero
             sealed={sealed}
             viewerName={viewer ? (viewer.displayName ?? viewer.email) : null}
-            signedIn={Boolean(viewer)}
+            signedIn={Boolean(viewer) || SKIP_AUTH_GATE}
             onEnter={enter}
             onReplay={() => setShowFilm(true)}
           />
           <Principle />
+          <RulesArtifact />
           <Rules />
           <Pillars />
           <WhatYouCanWatch sealed={sealed} />
@@ -125,6 +127,12 @@ function TopBar({
           <a href="#watch" className="hidden text-muted hover:text-ink sm:inline">
             What you can watch
           </a>
+          <a href="#rules" className="hidden text-muted hover:text-ink sm:inline">
+            Rules
+          </a>
+          <Link href="/proof" className="hidden text-muted hover:text-ink sm:inline">
+            Proof
+          </Link>
           {sealed ? (
             <a
               href="#enter"
@@ -230,8 +238,26 @@ function Hero({
       </div>
 
       <div id="enter" className="scroll-mt-24 lg:pt-10">
-        {sealed && signedIn ? (
+        {sealed && signedIn && !SKIP_AUTH_GATE ? (
           <OnTheList name={viewerName} />
+        ) : SKIP_AUTH_GATE ? (
+          <div className="panel p-5 sm:p-6">
+            <p className="eyebrow text-alive">Local rehearsal open</p>
+            <h2 className="mt-2 text-base font-medium tracking-tight text-ink">
+              Fresh simulation loaded.
+            </h2>
+            <p className="mt-2.5 text-sm leading-relaxed text-muted">
+              This localhost build is bypassing the account gate so the rehearsal world can be
+              inspected directly.
+            </p>
+            <button
+              type="button"
+              onClick={onEnter}
+              className="mt-5 rounded border border-amber-dim bg-amber/14 px-5 py-2.5 text-sm font-medium text-amber transition-colors hover:bg-amber/22"
+            >
+              Enter the observatory &rarr;
+            </button>
+          </div>
         ) : (
           <SignInPanel
             waitlist={sealed}
@@ -292,6 +318,64 @@ function Principle() {
         input, validated against a strict schema, and handed to an authoritative rules engine which
         decides what — if anything — actually happened.
       </p>
+    </section>
+  );
+}
+
+function RulesArtifact() {
+  return (
+    <section id="rules" className="scroll-mt-20 border-b border-line py-16">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+        <div>
+          <p className="eyebrow">Published constitution</p>
+          <h2 className="mt-2 text-2xl font-medium tracking-tight text-ink">
+            The world rules are readable before the world begins.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted">
+            Skepticism is healthy here. If an inhabitant later creates money, writes law, forms a
+            council or invents a ritual, the claim should not be &quot;trust us&quot;. The public should
+            be able to inspect the rules and see that those outcomes were permitted action spaces,
+            not assigned destinies.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <a
+              href="/world-rules-v1.md"
+              className="rounded border border-amber-dim bg-amber/12 px-4 py-2 text-sm text-amber transition-colors hover:bg-amber/20"
+            >
+              Open public rules file
+            </a>
+            <a
+              href="https://github.com/sidevworks/after-genesis/blob/main/docs/world-rules-v1.md"
+              className="rounded border border-line px-4 py-2 text-sm text-muted transition-colors hover:border-line-soft hover:text-ink"
+            >
+              View in repository
+            </a>
+            <Link
+              href="/proof"
+              className="rounded border border-line px-4 py-2 text-sm text-muted transition-colors hover:border-line-soft hover:text-ink"
+            >
+              How verification works
+            </Link>
+          </div>
+        </div>
+
+        <div className="panel overflow-hidden">
+          <div className="panel-head">
+            <div>
+              <p className="eyebrow">Artifact</p>
+              <h3 className="text-[0.95rem] font-medium tracking-tight text-ink">
+                world-rules-v1.md
+              </h3>
+            </div>
+            <span className="mono text-[0.65rem] text-dim">scroll</span>
+          </div>
+          <iframe
+            title="World rules version 1"
+            src="/world-rules-v1.md"
+            className="h-[24rem] w-full bg-abyss"
+          />
+        </div>
+      </div>
     </section>
   );
 }
@@ -437,14 +521,14 @@ function WhatYouCanWatch({ sealed }: { sealed: boolean }) {
            * which reads as a broken site rather than a locked door.
            */
           return sealed ? (
-            <div key={surface.href} className="bg-abyss p-5">
+            <div key={surface.href} className="border border-line bg-abyss p-5">
               {body}
             </div>
           ) : (
             <Link
               key={surface.href}
               href={surface.href}
-              className="group bg-abyss p-5 transition-colors hover:bg-panel"
+              className="group border border-line bg-abyss p-5 transition-colors hover:border-line-soft hover:bg-panel"
             >
               {body}
             </Link>
