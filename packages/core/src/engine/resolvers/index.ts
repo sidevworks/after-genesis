@@ -301,10 +301,25 @@ function rememberTurn(
     result.outcome.status === "resolved" || result.outcome.status === "partial"
       ? result.outcome.status
       : `${result.outcome.status}: ${result.outcome.reason}`;
+  // What the acting inhabitant perceived, when the action was one that reveals
+  // something. Only the actor records it: a witness saw someone look around,
+  // not what that person saw.
+  const perceived =
+    result.outcome.status === "resolved" &&
+    typeof result.outcome.detail === "object" &&
+    result.outcome.detail !== null &&
+    typeof (result.outcome.detail as { readonly perceived?: unknown }).perceived === "string"
+      ? (result.outcome.detail as { readonly perceived: string }).perceived
+      : null;
+
   let state = result.state;
   let discriminator = 0;
   for (const owner of participants) {
-    const perspective = owner === actorId ? "You performed" : `You witnessed ${actorId} perform`;
+    const isActor = owner === actorId;
+    const perspective = isActor ? "You performed" : `You witnessed ${actorId} perform`;
+    const revealed = isActor && perceived !== null && perceived.length > 0
+      ? ` You saw: ${perceived}.`
+      : "";
     state = putMemory(state, {
       id: deriveMemoryId(state.worldId, sequence, discriminator++),
       owner,
@@ -312,7 +327,7 @@ function rememberTurn(
       kind: "episodic",
       summary:
         `${perspective} ${action.type} with payload ${payloadText}. ` +
-        `Outcome: ${outcome}.`,
+        `Outcome: ${outcome}.${revealed}`,
       participants,
       sequence,
       revisionOf: null,

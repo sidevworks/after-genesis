@@ -226,6 +226,16 @@ function projectObservation(
       terrain: tile.terrain,
       visibleResources: tile.deposit as Partial<Record<ResourceKind, number>>,
     })),
+    // Places already visited that are not currently in view. What is visible is
+    // reported by nearbyTiles; repeating it here would spend context restating
+    // what the inhabitant is already looking at.
+    rememberedPlaces: source.self.knownTerrain
+      .filter((place) => place.distance > source.sightRadius)
+      .map((place) => ({
+        location: { x: place.x, y: place.y },
+        terrain: place.terrain,
+        distance: place.distance,
+      })),
     authoredTexts: [
       ...source.publicRecords.announcements.map((announcement) => ({
         id: `announcement_${announcement.sequence}`,

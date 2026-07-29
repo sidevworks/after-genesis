@@ -38,6 +38,7 @@ import {
   sortedIds,
   sortedValues,
   terrainAt,
+  type Inhabitant,
   type Needs,
   type Relationship,
   type SkillSet,
@@ -238,8 +239,31 @@ export interface SelfView {
     readonly endedAt: SimTime;
   } | null;
   readonly knownLocations: readonly string[];
+  /**
+   * Terrain the observer has previously stood on or seen, with the coordinates
+   * it was seen at (§6 "known locations", §19 episodic memory).
+   *
+   * Sight is a small radius around the body, so a resource outside it is
+   * invisible however badly it is needed. Without recall of places already
+   * visited, an inhabitant cannot act on anything it is not currently looking
+   * at — it can discover water and then have no way to return to it.
+   *
+   * Terrain only. Terrain is a durable fact about a place, so remembering it is
+   * honest; deposits are depletable and what was there before may be gone, so
+   * they are not recalled as if still present.
+   */
+  readonly knownTerrain: readonly ObservedKnownPlace[];
   readonly maturity: number;
   readonly confinement: ObservedConfinement | null;
+}
+
+/** A place the observer has been, and what kind of ground it was. */
+export interface ObservedKnownPlace {
+  readonly x: number;
+  readonly y: number;
+  readonly terrain: Terrain;
+  /** Chebyshev distance from the observer's current location. */
+  readonly distance: number;
 }
 
 /** Everything one inhabitant may legitimately perceive at one instant. */
@@ -278,6 +302,31 @@ export class UnknownObserverError extends Error {
  * confined inhabitant retains the ability to think, converse and observe — but
  * it does confine them to one tile, so their radius is 0 beyond the walls.
  */
+/**
+ * The terrain of every place this inhabitant has already been.
+ *
+ * Derived from `knownLocations`, which the engine records whenever a tile is
+ * seen, so this adds no knowledge the inhabitant did not legitimately acquire —
+ * it only makes acquired knowledge retrievable. Sorted by coordinate so the
+ * same state always produces the same observation, as replay requires.
+ */
+function rememberedTerrain(
+  state: WorldState,
+  self: Inhabitant,
+): readonly ObservedKnownPlace[] {
+  const places: ObservedKnownPlace[] = [];
+  for (const key of [...self.knownLocations].sort()) {
+    const [rawX, rawY] = key.split(",");
+    const x = Number(rawX);
+    const y = Number(rawY);
+    if (!Number.isInteger(x) || !Number.isInteger(y)) continue;
+    const terrain = terrainAt(state.map, { x, y });
+    if (terrain === null) continue;
+    places.push({ x, y, terrain, distance: chebyshevDistance(self.location, { x, y }) });
+  }
+  return places;
+}
+
 export function currentSightRadius(state: WorldState, inhabitantId: string): number {
   const inhabitant = state.inhabitants[inhabitantId];
   if (inhabitant === undefined || inhabitant.status === "dead") return 0;
@@ -466,6 +515,7 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
             endedAt: lastActivity.endsAt,
           },
     knownLocations: [...self.knownLocations].sort(),
+    knownTerrain: rememberedTerrain(state, self),
     maturity: self.maturity,
     confinement,
   };

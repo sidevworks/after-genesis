@@ -106,12 +106,25 @@ export const observeResolver: Resolver = (ctx): ResolutionResult => {
     resourceCost: { energy: rules.observeEnergyCost },
   }).state;
 
+  // What looking actually revealed, not merely that looking occurred. Recorded
+  // here so it reaches the memory written for this action: an inhabitant that
+  // remembers observing but not what it observed has learned nothing by looking.
+  const terrainFound = [...new Set(observation.tiles.map((tile) => tile.terrain))].sort();
+  const nearestByTerrain = terrainFound.map((terrain) => {
+    const nearest = observation.tiles
+      .filter((tile) => tile.terrain === terrain)
+      .sort((a, b) => a.distance - b.distance || a.x - b.x || a.y - b.y)[0];
+    return nearest === undefined ? terrain : `${terrain} at (${nearest.x}, ${nearest.y})`;
+  });
+
   const detail = {
     sightRadius: currentSightRadius(state, actor.id),
     night: observation.night,
     tilesSeen: observation.tiles.length,
     inhabitantsSeen: observation.inhabitants.length,
     structuresSeen: observation.structures.length,
+    terrainFound,
+    perceived: nearestByTerrain.join("; "),
     energySpent: rules.observeEnergyCost,
     minutes: rules.observeDurationMinutes,
   };

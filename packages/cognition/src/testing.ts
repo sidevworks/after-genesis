@@ -175,6 +175,11 @@ export function makeObservation(overrides: Partial<Observation> = {}): Observati
       { location: { x: 7, y: 9 }, terrain: "forest", visibleResources: { wood: 30 } },
       { location: { x: 6, y: 10 }, terrain: "fertile", visibleResources: { food: 8 } },
     ],
+    rememberedPlaces: [
+      { location: { x: 2, y: 9 }, terrain: "water", distance: 4 },
+      { location: { x: 1, y: 12 }, terrain: "water", distance: 5 },
+      { location: { x: 9, y: 2 }, terrain: "stone", distance: 7 },
+    ],
     authoredTexts: [
       {
         id: "msg_1",

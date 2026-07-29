@@ -35,6 +35,7 @@ import type {
   PerceivedInhabitant,
   PerceivedStructure,
   PerceivedTile,
+  RememberedPlace,
   SelfView,
 } from "./types.js";
 import {
@@ -632,7 +633,51 @@ function renderSurroundings(observation: Observation): {
     }
   }
 
+  const remembered = renderRememberedPlaces(observation.rememberedPlaces);
+  if (remembered.length > 0) {
+    lines.push("", "PLACES YOU HAVE BEEN (out of sight now, from memory)");
+    lines.push(...remembered);
+  }
+
   return { text: lines.join("\n"), flags };
+}
+
+/** How many remembered places to recall per kind of ground. */
+const REMEMBERED_PER_TERRAIN = 3;
+
+/**
+ * The nearest few places of each kind of ground the inhabitant has walked.
+ *
+ * Grouped by terrain and capped rather than listed whole: a long life visits
+ * thousands of tiles, and spending the context window on all of them would
+ * crowd out everything else while answering no question better than "the
+ * closest water I know of is here" does. Nearest-first because distance is
+ * what makes a remembered place reachable or not.
+ */
+function renderRememberedPlaces(places: readonly RememberedPlace[]): string[] {
+  const byTerrain = new Map<string, RememberedPlace[]>();
+  for (const place of places) {
+    const group = byTerrain.get(place.terrain);
+    if (group === undefined) byTerrain.set(place.terrain, [place]);
+    else group.push(place);
+  }
+
+  const lines: string[] = [];
+  for (const terrain of [...byTerrain.keys()].sort()) {
+    const nearest = [...(byTerrain.get(terrain) ?? [])]
+      .sort(
+        (a, b) =>
+          a.distance - b.distance ||
+          a.location.x - b.location.x ||
+          a.location.y - b.location.y,
+      )
+      .slice(0, REMEMBERED_PER_TERRAIN);
+    const rendered = nearest
+      .map((place) => `(${place.location.x}, ${place.location.y}) ${place.distance} away`)
+      .join(", ");
+    lines.push(`- ${terrain}: ${rendered}`);
+  }
+  return lines;
 }
 
 function renderAuthoredTexts(

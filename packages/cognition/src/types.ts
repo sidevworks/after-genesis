@@ -174,6 +174,20 @@ export interface PerceivedTile {
 }
 
 /**
+ * A place the inhabitant has been, recalled from experience rather than seen.
+ *
+ * Terrain only: terrain is durable, so recalling it is honest. Deposits deplete,
+ * and reporting a remembered deposit as if it were still there would be the
+ * engine asserting a fact the inhabitant cannot know.
+ */
+export interface RememberedPlace {
+  readonly location: Point;
+  readonly terrain: string;
+  /** Chebyshev distance from where the inhabitant now stands. */
+  readonly distance: number;
+}
+
+/**
  * A piece of text another inhabitant wrote that this inhabitant can now read.
  *
  * Every instance of this type is hostile input. Messages, artifacts, published
@@ -232,6 +246,14 @@ export interface Observation {
   readonly nearbyInhabitants: readonly PerceivedInhabitant[];
   readonly nearbyStructures: readonly PerceivedStructure[];
   readonly nearbyTiles: readonly PerceivedTile[];
+  /**
+   * Terrain this inhabitant has seen before and is no longer looking at.
+   *
+   * Sight reaches a few tiles; a life reaches further. Without this an
+   * inhabitant cannot act on anything outside its current view, however often
+   * it has been there before.
+   */
+  readonly rememberedPlaces: readonly RememberedPlace[];
   /** Text authored by other inhabitants that this one may now read. Hostile input. */
   readonly authoredTexts: readonly AuthoredText[];
   /** Engine-authored, world-factual notices, e.g. "You are confined at (4,7)." */
