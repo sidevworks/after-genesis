@@ -46,7 +46,14 @@ const stateDirectory = join(runDirectory, "state");
 const eventDirectory = join(runDirectory, "events");
 const stateFile = join(stateDirectory, "after-genesis-demo.state.json");
 const eventFile = join(eventDirectory, "after-genesis-demo.jsonl");
-const outputFile = new URL("./observatory-run.json", import.meta.url);
+/**
+ * Defaults to the committed fixture, which is what a deliberate regeneration of
+ * the published demo wants. The dev controller overrides it so that driving a
+ * throwaway world cannot overwrite the demo the public pages render.
+ */
+const outputFile = process.env.AG_OBSERVATORY_OUTPUT_FILE
+  ? new URL(`file://${resolve(process.env.AG_OBSERVATORY_OUTPUT_FILE)}`)
+  : new URL("./observatory-run.json", import.meta.url);
 
 const stateEnvelope = JSON.parse(readFileSync(stateFile, "utf8")) as JsonObject;
 const state = stateEnvelope.state as JsonObject;

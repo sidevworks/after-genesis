@@ -79,6 +79,30 @@ const ALLOWED_NETWORK_READS: ReadonlyMap<string, string> = new Map([
   ],
 ]);
 
+/**
+ * DEVELOPMENT ONLY. Files permitted to hold a write path that must not exist in
+ * the live platform, and the reason each is allowed.
+ *
+ * These are not read-only and are not pretending to be. An entry here is a
+ * standing debt: it must be deleted before Genesis, at which point the file it
+ * names is deleted too. It is deliberately a separate list from
+ * `ALLOWED_NETWORK_READS` — that list is for same-origin GETs and is proved to
+ * be exactly that; nothing here can be proved harmless, only contained.
+ *
+ * Containment is what `every development-only write path is env-gated` below
+ * checks: each file must refuse to render unless an explicit environment flag
+ * is set, so a default build cannot ship the control. The static-export scan
+ * (assertion 5) remains in force and inspects the rendered HTML regardless.
+ */
+const DEVELOPMENT_ONLY_WRITE_PATHS: ReadonlyMap<string, string> = new Map([
+  [
+    "src/components/dev-world-controls.tsx",
+    "POSTs to the local dev world controller (advance/reset/fast-forward) so a " +
+      "developer can drive a throwaway local world. Never part of the public " +
+      "platform: remove this entry and the component before Genesis (§17, §20).",
+  ],
+]);
+
 /** Each pattern is a way this application could stop being read-only. */
 const FORBIDDEN_IN_SOURCE: Array<{ name: string; pattern: RegExp }> = [
   { name: "a form element", pattern: /<form[\s/>]/ },
@@ -106,7 +130,14 @@ describe("the spectator application has no write path in its source", () => {
       const offenders = sourceFiles
         .filter((file) => pattern.test(readFileSync(file, "utf8")))
         .map((file) => relative(APP_ROOT, file))
-        .filter((file) => !(name === "a network call" && ALLOWED_NETWORK_READS.has(file)));
+        .filter((file) => !(name === "a network call" && ALLOWED_NETWORK_READS.has(file)))
+        .filter(
+          (file) =>
+            !(
+              (name === "a network call" || name === "a mutating fetch") &&
+              DEVELOPMENT_ONLY_WRITE_PATHS.has(file)
+            ),
+        );
       expect(offenders, `${name} found in: ${offenders.join(", ")}`).toEqual([]);
     });
   }
@@ -137,6 +168,36 @@ describe("the spectator application has no write path in its source", () => {
       (file) => !existsSync(join(APP_ROOT, file)),
     );
     expect(stale, `stale network allowlist entries: ${stale.join(", ")}`).toEqual([]);
+
+    const staleDev = [...DEVELOPMENT_ONLY_WRITE_PATHS.keys()].filter(
+      (file) => !existsSync(join(APP_ROOT, file)),
+    );
+    expect(
+      staleDev,
+      `stale development-only entries — delete the entry with the file: ${staleDev.join(", ")}`,
+    ).toEqual([]);
+  });
+
+  /**
+   * A development-only write path is tolerable only while it cannot reach a
+   * reader. Each one must read an explicit environment flag and render nothing
+   * unless that flag is set, so the default build — the one the public gets —
+   * has no control to press.
+   */
+  it("every development-only write path is env-gated", () => {
+    for (const [file, reason] of DEVELOPMENT_ONLY_WRITE_PATHS) {
+      const source = readFileSync(join(APP_ROOT, file), "utf8");
+
+      expect(
+        /process\.env\.NEXT_PUBLIC_DEV_[A-Z_]+/.test(source),
+        `${file} holds a write path but reads no NEXT_PUBLIC_DEV_* flag — ${reason}`,
+      ).toBe(true);
+
+      expect(
+        /if\s*\(\s*!\s*\w+\s*\)\s*return null/.test(source),
+        `${file} holds a write path but does not refuse to render when disabled — ${reason}`,
+      ).toBe(true);
+    }
   });
 
   it("defines no route handler, so there is no endpoint to POST to", () => {

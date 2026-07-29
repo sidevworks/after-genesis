@@ -57,6 +57,11 @@ firebase-debug.log
 .after-genesis/
 *.local.jsonl
 
+# The world the dev controller drives, as published for the spectator to read.
+# Deliberately not src/fixtures/: those are the committed demo the public pages
+# render and the tests assert against, and a dev reset must not redefine them.
+apps/spectator/.dev-world/
+
 # OS / editor
 .DS_Store
 Thumbs.db

@@ -13,9 +13,8 @@
  */
 
 import fixture from "../fixtures/world.json";
-import { existsSync } from "node:fs";
 import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
+import { liveWorldPath } from "./dev-world-paths";
 import { verifyEventChain } from "./event-hash";
 import type { WorldSource } from "./world-source";
 import type {
@@ -49,12 +48,6 @@ const world = fixture as unknown as WorldFixture;
 
 const DEFAULT_LIMIT = 50;
 
-function liveFixturePath(): string {
-  const fromApp = resolve(process.cwd(), "src/fixtures/world.json");
-  if (existsSync(fromApp)) return fromApp;
-  return resolve(process.cwd(), "apps/spectator/src/fixtures/world.json");
-}
-
 function matches(event: WorldEvent, filter: NonNullable<EventQuery["filter"]>): boolean {
   if (filter.types && filter.types.length > 0 && !filter.types.includes(event.type)) {
     return false;
@@ -83,7 +76,7 @@ export class FixtureWorldSource implements WorldSource {
 
   async #read(): Promise<WorldFixture> {
     if (process.env.NEXT_PUBLIC_DEV_WORLD_CONTROLS !== "true") return this.#world;
-    const raw = await readFile(liveFixturePath(), "utf8");
+    const raw = await readFile(liveWorldPath(), "utf8");
     return JSON.parse(raw) as WorldFixture;
   }
 

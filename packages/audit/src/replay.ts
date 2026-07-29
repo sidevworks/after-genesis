@@ -8,6 +8,7 @@ import {
   simTime,
   verifyChain,
   type CanonicalEvent,
+  type Sha256Hex,
   type WorldState,
 } from "@after-genesis/core";
 
@@ -21,8 +22,8 @@ export interface ReplayReport {
   readonly ok: boolean;
   readonly worldId: string | null;
   readonly replayedEvents: number;
-  readonly finalChecksum: string | null;
-  readonly expectedChecksum: string | null;
+  readonly finalChecksum: Sha256Hex | null;
+  readonly expectedChecksum: Sha256Hex | null;
   readonly state: WorldState | null;
   readonly mismatches: readonly ReplayMismatch[];
 }

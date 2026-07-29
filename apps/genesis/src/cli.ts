@@ -631,7 +631,7 @@ async function repairStateFromEventLog(
     );
   }
 
-  const snapshot = await stateStore.load(worldId);
+  const snapshot = await stateStore.loadSnapshot(worldId);
   const head = events.at(-1)!;
   if (snapshot?.sequence === head.sequence && snapshot.checksum === replay.finalChecksum) return;
 

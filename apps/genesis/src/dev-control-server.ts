@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { spawn, type ChildProcessWithoutNullStreams } from "node:child_process";
-import { readFile } from "node:fs/promises";
+import { spawn, type ChildProcess } from "node:child_process";
+import { mkdir, readFile, rm } from "node:fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { resolve } from "node:path";
 import { loadEnvFile } from "node:process";
@@ -11,6 +11,17 @@ loadEnvFile(resolve(ROOT, ".env"));
 
 const PORT = Number(process.env.AG_DEV_CONTROL_PORT ?? 8787);
 const RUN_DIR = process.env.AG_DEV_RUN_DIR ?? ".worlds/dev-rehearsal";
+
+/**
+ * Where this controller publishes the world it drives. Untracked, and separate
+ * from `apps/spectator/src/fixtures/` on purpose: those fixtures are the demo
+ * the public pages render and the data the test suite asserts against, so a dev
+ * reset must not be able to redefine them. See apps/spectator/src/lib/
+ * dev-world-paths.ts, which is the reading half of this arrangement.
+ */
+const DEV_WORLD_DIR = "apps/spectator/.dev-world";
+const DEV_WORLD_FILE = `${DEV_WORLD_DIR}/world.json`;
+const DEV_OBSERVATORY_FILE = `${DEV_WORLD_DIR}/observatory-run.json`;
 
 type CognitionProvider = "gemini" | "offline";
 
@@ -41,7 +52,7 @@ let lastCommand: string | null = null;
 let lastExitCode: number | null = null;
 let lastOutput = "";
 let lastError: string | null = null;
-let currentChild: ChildProcessWithoutNullStreams | null = null;
+let currentChild: ChildProcess | null = null;
 let stopRequested = false;
 let activeProvider: CognitionProvider = "gemini";
 let voiceState: Status["voice"]["state"] = "idle";
@@ -144,19 +155,24 @@ function stopJob(): void {
 }
 
 async function exportFixtures(): Promise<void> {
+  await mkdir(resolve(ROOT, DEV_WORLD_DIR), { recursive: true });
   await run(
     "npx",
     ["vitest", "run", "apps/spectator/scripts/export-run-to-fixture.test.ts"],
     {
       AG_EXPORT_RUN_DIR: RUN_DIR,
-      AG_EXPORT_OUTPUT_FILE: "apps/spectator/src/fixtures/world.json",
+      AG_EXPORT_OUTPUT_FILE: DEV_WORLD_FILE,
     },
   );
-  await run("node", [
-    "--experimental-strip-types",
-    "apps/spectator/src/fixtures/generate-observatory-export.mts",
-    RUN_DIR,
-  ]);
+  await run(
+    "node",
+    [
+      "--experimental-strip-types",
+      "apps/spectator/src/fixtures/generate-observatory-export.mts",
+      RUN_DIR,
+    ],
+    { AG_OBSERVATORY_OUTPUT_FILE: DEV_OBSERVATORY_FILE },
+  );
 }
 
 async function publishVoice(): Promise<void> {
@@ -182,6 +198,10 @@ async function publishVoice(): Promise<void> {
 }
 
 async function reset(): Promise<void> {
+  // `--reset` erases the run's events, state and model audit. Clear what was
+  // published from the previous run too, so nothing the old world knew survives
+  // into the new one — including on screen.
+  await rm(resolve(ROOT, DEV_WORLD_DIR), { recursive: true, force: true });
   await run("npm", [
     "run",
     "world",
@@ -269,7 +289,9 @@ function sleep(ms: number): Promise<void> {
 
 async function status(): Promise<Status> {
   try {
-    const raw = await readFile(resolve(ROOT, "apps/spectator/src/fixtures/world.json"), "utf8");
+    // The world this controller drives, not the committed demo — otherwise the
+    // clock reports a world the dev controls cannot advance or reset.
+    const raw = await readFile(resolve(ROOT, DEV_WORLD_FILE), "utf8");
     const world = JSON.parse(raw) as {
       summary?: {
         simTime?: number;
