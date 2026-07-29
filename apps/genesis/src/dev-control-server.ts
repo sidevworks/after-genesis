@@ -23,6 +23,24 @@ const DEV_WORLD_DIR = "apps/spectator/.dev-world";
 const DEV_WORLD_FILE = `${DEV_WORLD_DIR}/world.json`;
 const DEV_OBSERVATORY_FILE = `${DEV_WORLD_DIR}/observatory-run.json`;
 
+/** The reel this controller renders. Untracked: dev audio never ships. */
+const DEV_VOICE_REEL = "month";
+const DEV_VOICE_DIR = `apps/spectator/public/voice/${DEV_VOICE_REEL}`;
+
+/**
+ * Every path a dev run writes to. Reset removes all of them, so a reset world
+ * is indistinguishable from one started in a fresh clone: no events, no state,
+ * no model audit, no published snapshot, no rendered audio.
+ *
+ * Rehearsal is the reason. A world that inherited a previous run's residue
+ * would not be testing the rules as they would actually run from Genesis, and
+ * after Genesis nothing can be corrected.
+ *
+ * RUN_DIR is handled by the engine's own `--reset`, which erases its events,
+ * state and model-audit directories.
+ */
+const GENERATED_BY_A_DEV_RUN: readonly string[] = [DEV_WORLD_DIR, DEV_VOICE_DIR];
+
 type CognitionProvider = "gemini" | "offline";
 
 type Status = {
@@ -184,7 +202,7 @@ async function publishVoice(): Promise<void> {
       "voice:render",
       "--workspace=@after-genesis/spectator",
       "--",
-      "--reel=month",
+      `--reel=${DEV_VOICE_REEL}`,
       "--live",
       "--limit=80",
     ]);
@@ -198,10 +216,12 @@ async function publishVoice(): Promise<void> {
 }
 
 async function reset(): Promise<void> {
-  // `--reset` erases the run's events, state and model audit. Clear what was
-  // published from the previous run too, so nothing the old world knew survives
-  // into the new one — including on screen.
-  await rm(resolve(ROOT, DEV_WORLD_DIR), { recursive: true, force: true });
+  // `--reset` erases the run's events, state and model audit. Clear everything
+  // published from the previous run too, so nothing the old world knew or said
+  // survives into the new one — including on screen and in rendered audio.
+  for (const path of GENERATED_BY_A_DEV_RUN) {
+    await rm(resolve(ROOT, path), { recursive: true, force: true });
+  }
   await run("npm", [
     "run",
     "world",

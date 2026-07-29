@@ -62,6 +62,10 @@ firebase-debug.log
 # render and the tests assert against, and a dev reset must not redefine them.
 apps/spectator/.dev-world/
 
+# Audio rendered from the dev world. Regenerable from canonical dialogue, and
+# derived from throwaway inhabitants, so it is never committed and never ships.
+apps/spectator/public/voice/month/
+
 # OS / editor
 .DS_Store
 Thumbs.db
