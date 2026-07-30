@@ -157,19 +157,19 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 }
 
 /**
- * The world begins with exactly one inhabitant (§7).
+ * The local rehearsal begins with the original three-person Genesis roster.
  *
- * Every later inhabitant must originate from an existing one through the
- * world's own creation action. Seeding companions at Genesis would hand the
- * founder a society it did not build, and a rehearsal that started that way
- * would not be exercising the path that actually runs at launch: whether one
- * inhabitant can survive alone, and whether it ever chooses to create another.
- *
- * The engine still supports additional inhabitants at Genesis — see
- * GenesisConfig.inhabitants and its tests. This configuration simply declines
- * to use that, because the experiment is what one founder does.
+ * This is a developer/demo configuration, not a hidden post-Genesis insertion:
+ * all three are declared in the published Genesis event and replay from
+ * sequence zero. Production experiments can still choose a single founder,
+ * and the liveness regression does so explicitly to exercise descendant
+ * creation. Keeping the interactive demo on one founder made its paid Gemini
+ * runs look broken for hundreds of days even when the engine was healthy.
  */
-export function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
+export function demoConfig(
+  modelId: string = "offline-instinct-cognition-v2",
+  includeGenesisCompanions = true,
+): GenesisConfig {
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
@@ -185,6 +185,30 @@ export function demoConfig(modelId: string = "offline-instinct-cognition-v2"): G
       values: ["curiosity", "continuity"],
       privateGoals: ["remain alive and decide through experience what matters"],
     },
+    inhabitants: includeGenesisCompanions
+      ? [
+          {
+            id: "inh_ember",
+            displayName: "Ember",
+            modelId,
+            sex: "male",
+            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+            traits: { curiosity: 55, patience: 80 },
+            values: ["continuity", "patience"],
+            privateGoals: ["understand nearby beings through their voluntary actions"],
+          },
+          {
+            id: "inh_lumen",
+            displayName: "Lumen",
+            modelId,
+            sex: "female",
+            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+            traits: { curiosity: 85, patience: 45 },
+            values: ["experimentation", "independence"],
+            privateGoals: ["test ideas against observable consequences"],
+          },
+        ]
+      : [],
   };
 }
 

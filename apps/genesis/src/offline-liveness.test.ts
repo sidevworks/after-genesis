@@ -10,8 +10,18 @@ import { demoConfig, mechanicalCognition } from "./cli.js";
 const MAX_TURNS = 100 * 12;
 
 describe("offline one-founder liveness", () => {
+  it("keeps the interactive rehearsal on its original three-person Genesis roster", () => {
+    const state = buildGenesis(demoConfig()).state;
+    expect(Object.keys(state.inhabitants).sort()).toEqual([
+      "inh_ember",
+      "inh_founder",
+      "inh_lumen",
+    ]);
+    expect(state.sequence).toBe(0);
+  });
+
   it("reaches a resolved descendant creation within 100 simulated days", async () => {
-    let state = buildGenesis(demoConfig()).state;
+    let state = buildGenesis(demoConfig(undefined, false)).state;
     const cognition = mechanicalCognition();
     let creation: DerivedEvent | null = null;
     const actionCounts: Record<string, number> = {};
