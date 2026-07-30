@@ -229,8 +229,11 @@ export function runAction(input: RunActionInput): ResolutionResult {
 
   // Time advances, then finished activities close and their participants
   // return to idle. Both happen regardless of the action's fate.
-  const base = settleExpiredActivities(
-    withSimTime(input.state, input.simTime),
+  // World ticks need the previous timestamp to account for elapsed spoilage,
+  // health and daily compute replenishment. Stamp the new time only after those
+  // effects have been calculated.
+  const base = withSimTime(
+    settleExpiredActivities(input.state, input.simTime),
     input.simTime,
   );
 

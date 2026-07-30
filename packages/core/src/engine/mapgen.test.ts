@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { TERRAINS, type Terrain } from "../schema/primitives.js";
+import { getActionSpec } from "../schema/actions/index.js";
+import { TERRAINS, type ResourceBundle, type Terrain } from "../schema/primitives.js";
 import { canonicalJson } from "../util/canonical.js";
 import { HashDomain, hashValue } from "../util/hash.js";
 import {
   DEFAULT_MAP_HEIGHT,
   DEFAULT_MAP_WIDTH,
   firstPassableTile,
+  ensureFounderCreationReserve,
   generateDeposits,
   generateMap,
   generateWorldTerrain,
@@ -176,5 +178,70 @@ describe("generateDeposits", () => {
     const b = generateWorldTerrain("indep-b", 6, 6);
     expect(Object.keys(a.deposits).length).toBeLessThanOrEqual(36);
     expect(Object.keys(b.deposits).length).toBeLessThanOrEqual(36);
+  });
+
+  it("guarantees enough founder-reachable material for one inhabitant creation", () => {
+    const required = getActionSpec("create_inhabitant").baseCost;
+    for (const [seed, width, height] of [
+      ["after-genesis-public-demo-seed-v1", 32, 32],
+      ["no-stone-regression", 32, 32],
+      ["minimum-world-a", 4, 4],
+      ["minimum-world-b", 4, 4],
+    ] as const) {
+      const { map, deposits } = generateWorldTerrain(seed, width, height);
+      const founder = firstPassableTile(map);
+      expect(founder).not.toBeNull();
+      const totals: ResourceBundle = {};
+      for (const bundle of Object.values(deposits)) {
+        for (const kind of ["food", "water", "wood", "stone"] as const) {
+          totals[kind] = (totals[kind] ?? 0) + (bundle[kind] ?? 0);
+        }
+      }
+      for (const kind of ["food", "water", "wood", "stone"] as const) {
+        expect(totals[kind] ?? 0).toBeGreaterThanOrEqual(required[kind] ?? 0);
+      }
+    }
+  });
+
+  it("adds only the deterministic shortfall and does not mutate its input", () => {
+    const map: WorldMap = {
+      width: 4,
+      height: 4,
+      terrain: Array<Terrain>(16).fill("plains"),
+    };
+    const required = getActionSpec("create_inhabitant").baseCost;
+    const original = { "0,0": { food: (required.food ?? 1) - 1 } };
+    const ensured = ensureFounderCreationReserve(map, original);
+    expect(original).toEqual({ "0,0": { food: (required.food ?? 1) - 1 } });
+    expect(ensured["0,0"]).toMatchObject({
+      food: required.food,
+      water: required.water,
+      wood: required.wood,
+      stone: required.stone,
+    });
+  });
+
+  it("does not count material stranded on a disconnected island", () => {
+    const required = getActionSpec("create_inhabitant").baseCost;
+    const terrain = Array<Terrain>(16).fill("water");
+    terrain[0] = "plains";
+    terrain[15] = "stone_deposit";
+    const map: WorldMap = { width: 4, height: 4, terrain };
+    const stranded = {
+      "3,3": {
+        food: required.food ?? 0,
+        water: required.water ?? 0,
+        wood: required.wood ?? 0,
+        stone: required.stone ?? 0,
+      },
+    };
+    const ensured = ensureFounderCreationReserve(map, stranded);
+    expect(ensured["0,0"]).toMatchObject({
+      food: required.food,
+      water: required.water,
+      wood: required.wood,
+      stone: required.stone,
+    });
+    expect(ensured["3,3"]).toEqual(stranded["3,3"]);
   });
 });

@@ -198,7 +198,7 @@ export const ProposedActionSchema = z.object({
   /**
    * What the inhabitant takes itself to be doing across more than this turn.
    *
-   * A turn is two hours; a shelter is days of work and a descendant is thirty
+   * A turn is two hours; a shelter is days of work and a descendant is three
    * of them. An inhabitant that begins each turn from nothing but its needs and
    * its surroundings cannot undertake anything that outlasts a turn, and the
    * first long run showed exactly that: a hundred days of gathering, resting and

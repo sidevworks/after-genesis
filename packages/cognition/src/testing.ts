@@ -169,8 +169,20 @@ export function makeObservation(overrides: Partial<Observation> = {}): Observati
       },
     ],
     nearbyStructures: [
-      { id: "str_1", kind: "shelter", location: { x: 5, y: 9 }, ownerId: "inh_alpha" },
-      { id: "str_2", kind: "well", location: { x: 8, y: 10 }, ownerId: null },
+      {
+        id: "str_1",
+        kind: "shelter",
+        location: { x: 5, y: 9 },
+        ownerId: "inh_alpha",
+        visibleStorage: { food: 20, wood: 12 },
+      },
+      {
+        id: "str_2",
+        kind: "well",
+        location: { x: 8, y: 10 },
+        ownerId: null,
+        visibleStorage: null,
+      },
     ],
     nearbyTiles: [
       { location: { x: 6, y: 9 }, terrain: "plains", visibleResources: {} },

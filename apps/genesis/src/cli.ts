@@ -2,10 +2,12 @@
 import { existsSync } from "node:fs";
 import { mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   CanonicalEventSchema,
   buildObservation,
   computeStateChecksum,
+  getActionSpec,
   simTime,
   type CanonicalEvent,
   type GenesisConfig,
@@ -167,7 +169,7 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
  * GenesisConfig.inhabitants and its tests. This configuration simply declines
  * to use that, because the experiment is what one founder does.
  */
-function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
+export function demoConfig(modelId: string = "offline-instinct-cognition-v2"): GenesisConfig {
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
@@ -231,7 +233,32 @@ function turnHash(actorId: string, sequence: number, salt: string): number {
  * Deterministic by construction: every branch is a function of the observation
  * and a hash of `(actorId, sequence)`, so an offline run replays exactly.
  */
-function mechanicalCognition(): CognitionService {
+export function mechanicalCognition(): CognitionService {
+  const materialKinds = ["food", "water", "wood", "stone"] as const;
+  const creationSpec = getActionSpec("create_inhabitant");
+  const creationMaterials = Object.freeze(
+    Object.fromEntries(
+      materialKinds.map((kind) => [kind, creationSpec.baseCost[kind] ?? 0]),
+    ) as Record<(typeof materialKinds)[number], number>,
+  );
+  const creationEnergy = creationSpec.baseCost.energy ?? 0;
+  const creationCompute = creationSpec.baseCost.compute ?? 0;
+  const survivalReserve = Object.freeze({ food: 10, water: 10, wood: 0, stone: 0 });
+  const rememberedStore = new Map<
+    string,
+    {
+      id: string;
+      x: number;
+      y: number;
+      storage: Record<(typeof materialKinds)[number], number>;
+    }
+  >();
+  const gatheringFor = new Map<string, (typeof materialKinds)[number]>();
+  const rememberedDeposits = new Map<
+    string,
+    Map<(typeof materialKinds)[number], { x: number; y: number }>
+  >();
+
   return {
     async propose(input) {
       const observation = buildObservation(input.state, input.actorId);
@@ -240,6 +267,31 @@ function mechanicalCognition(): CognitionService {
 
       const held = (resource: string): number =>
         (self.inventory as Record<string, number | undefined>)[resource] ?? 0;
+      let deposits = rememberedDeposits.get(self.id);
+      if (deposits === undefined) {
+        deposits = new Map();
+        rememberedDeposits.set(self.id, deposits);
+      }
+      for (const kind of materialKinds) {
+        const remembered = deposits.get(kind);
+        if (
+          remembered !== undefined &&
+          observation.tiles.some(
+            (tile) =>
+              tile.x === remembered.x &&
+              tile.y === remembered.y &&
+              ((tile.deposit as Record<string, number | undefined>)[kind] ?? 0) <= 0,
+          )
+        ) {
+          deposits.delete(kind);
+        }
+        const visible = observation.tiles
+          .filter(
+            (tile) => ((tile.deposit as Record<string, number | undefined>)[kind] ?? 0) > 0,
+          )
+          .sort((left, right) => left.distance - right.distance)[0];
+        if (visible !== undefined) deposits.set(kind, { x: visible.x, y: visible.y });
+      }
 
       /** Deposits within reach, nearest first, for a chosen resource. */
       const nearestWith = (resource: string) =>
@@ -275,6 +327,27 @@ function mechanicalCognition(): CognitionService {
       const canReach = (resource: string, distance: number): boolean =>
         distance === 0 || (resource === "water" && distance <= 1);
 
+      /** One passable step towards a remembered destination; move has no pathfinder. */
+      const walkToward = (x: number, y: number): ProposedAction => {
+        const step = observation.tiles
+          .filter(
+            (tile) =>
+              tile.terrain !== "water" &&
+              tile.distance === 1 &&
+              (tile.x !== self.location.x || tile.y !== self.location.y),
+          )
+          .sort(
+            (left, right) =>
+              Math.max(Math.abs(left.x - x), Math.abs(left.y - y)) -
+                Math.max(Math.abs(right.x - x), Math.abs(right.y - y)) ||
+              left.y - right.y ||
+              left.x - right.x,
+          )[0];
+        return step === undefined
+          ? { type: "observe", payload: {} }
+          : { type: "move", payload: { to: { x: step.x, y: step.y } } };
+      };
+
       /** Take what is in reach, otherwise walk to it, otherwise say so. */
       const fetch = (resource: string): ProposedAction | null => {
         const source = nearestWith(resource);
@@ -282,7 +355,115 @@ function mechanicalCognition(): CognitionService {
         if (canReach(resource, source.distance)) {
           return { type: "gather", payload: { resource } };
         }
-        return { type: "move", payload: { to: { x: source.x, y: source.y } } };
+        return walkToward(source.x, source.y);
+      };
+
+      const visibleStore = observation.structures.find(
+        (structure) =>
+          structure.kind === "storehouse" &&
+          structure.owner === self.id &&
+          structure.storage !== null,
+      );
+      if (visibleStore !== undefined) {
+        rememberedStore.set(self.id, {
+          id: visibleStore.id,
+          x: visibleStore.location.x,
+          y: visibleStore.location.y,
+          storage: Object.fromEntries(
+            materialKinds.map((kind) => [kind, visibleStore.storage?.[kind] ?? 0]),
+          ) as Record<(typeof materialKinds)[number], number>,
+        });
+      }
+      const store = rememberedStore.get(self.id);
+      const localStore =
+        visibleStore !== undefined &&
+        visibleStore.location.x === self.location.x &&
+        visibleStore.location.y === self.location.y
+          ? visibleStore
+          : undefined;
+
+      const heldMaterials = materialKinds.reduce(
+        (total, kind) => total + held(kind),
+        0,
+      );
+      const stored = (kind: (typeof materialKinds)[number]): number =>
+        localStore?.storage?.[kind] ?? 0;
+      const totalAvailable = (kind: (typeof materialKinds)[number]): number =>
+        held(kind) + stored(kind);
+
+      /**
+       * Walk towards a terrain type already seen, or push the visible frontier
+       * when this founder has not discovered one yet. This is still based only
+       * on the inhabitant's observation and remembered terrain.
+       */
+      const exploreFor = (resource: (typeof materialKinds)[number]): ProposedAction => {
+        const knownDeposit = deposits.get(resource);
+        if (knownDeposit !== undefined) {
+          if (resource === "water") {
+            const bank = observation.tiles
+              .filter(
+                (tile) =>
+                  tile.terrain !== "water" &&
+                  Math.max(
+                    Math.abs(tile.x - knownDeposit.x),
+                    Math.abs(tile.y - knownDeposit.y),
+                  ) === 1,
+              )
+              .sort((left, right) => left.distance - right.distance)[0];
+            return bank === undefined
+              ? walkToward(knownDeposit.x, knownDeposit.y)
+              : walkToward(bank.x, bank.y);
+          }
+          return walkToward(knownDeposit.x, knownDeposit.y);
+        }
+        const terrainFor = {
+          food: ["fertile", "plains"],
+          water: ["water"],
+          wood: ["forest"],
+          stone: ["stone_deposit"],
+        }[resource];
+        const remembered = observation.self.knownTerrain
+          .filter((place) => terrainFor.includes(place.terrain))
+          .sort((left, right) => left.distance - right.distance)[0];
+        if (remembered !== undefined) {
+          if (resource === "water") {
+            const visibleBank = observation.tiles
+              .filter(
+                (tile) =>
+                  tile.terrain !== "water" &&
+                  Math.max(Math.abs(tile.x - remembered.x), Math.abs(tile.y - remembered.y)) === 1,
+              )
+              .sort((left, right) => right.distance - left.distance)[0];
+            const rememberedBank = observation.self.knownTerrain
+              .filter(
+                (place) =>
+                  place.terrain !== "water" &&
+                  Math.max(
+                    Math.abs(place.x - remembered.x),
+                    Math.abs(place.y - remembered.y),
+                  ) === 1,
+              )
+              .sort((left, right) => left.distance - right.distance)[0];
+            const bank = visibleBank ?? rememberedBank;
+            if (bank !== undefined) {
+              return walkToward(bank.x, bank.y);
+            }
+          } else {
+            return walkToward(remembered.x, remembered.y);
+          }
+        }
+
+        const frontier = observation.tiles
+          .filter((tile) => tile.terrain !== "water")
+          .sort(
+            (left, right) =>
+              right.distance - left.distance ||
+              turnHash(self.id, input.sequence, `${resource}:${left.x},${left.y}`) -
+                turnHash(self.id, input.sequence, `${resource}:${right.x},${right.y}`),
+          )[0];
+        return frontier === undefined
+          ? { type: "observe", payload: {} }
+          : walkToward(frontier.x, frontier.y);
       };
 
       const action = ((): ProposedAction => {
@@ -304,7 +485,7 @@ function mechanicalCognition(): CognitionService {
         ] as const) {
           if (self.needs[need] < 45 || held(resource) > 0) continue;
           const errand = fetch(resource);
-          if (errand !== null) return errand;
+          return errand ?? exploreFor(resource);
         }
 
         // 3. Rest when tired or short of energy. `rest` is the only action that
@@ -312,6 +493,96 @@ function mechanicalCognition(): CognitionService {
         //    cannot afford to act at all.
         if (self.needs.fatigue >= 60 || self.energy < 120 || observation.night) {
           return { type: "rest", payload: { minutes: 360 } };
+        }
+
+        // 4. The offline stand-in must exercise the one-founder lineage path.
+        // It does not decide that a production inhabitant should reproduce; it
+        // deterministically assembles the declared preconditions so a soak test
+        // proves that the built capability is actually reachable.
+        if (store === undefined) {
+          if (held("wood") >= 40) {
+            return {
+              type: "build",
+              payload: {
+                structureKind: "storehouse",
+                coord: { x: self.location.x, y: self.location.y },
+                name: "Lineage stores",
+                materials: { wood: 40 },
+              },
+            };
+          }
+          return fetch("wood") ?? exploreFor("wood");
+        }
+
+        if (localStore === undefined) {
+          const target = gatheringFor.get(self.id);
+          if (
+            target === undefined ||
+            heldMaterials >= 120 ||
+            held(target) + store.storage[target] >= creationMaterials[target]
+          ) {
+            return walkToward(store.x, store.y);
+          }
+          return fetch(target) ?? exploreFor(target);
+        }
+
+        const ready = materialKinds.every(
+          (kind) => totalAvailable(kind) >= creationMaterials[kind],
+        );
+        if (ready && self.energy >= creationEnergy && self.compute >= creationCompute) {
+          return {
+            type: "create_inhabitant",
+            payload: {
+              proposedName: `Nova ${input.sequence}`,
+              resourcesCommitted: creationMaterials,
+              traitHints: [],
+              valueHints: [],
+              statedCareMinutesPerDay: 120,
+              statement: "I chose to make room in this world for another independent life.",
+            },
+          };
+        }
+
+        const deposit: Record<string, number> = {};
+        for (const kind of materialKinds) {
+          const neededInStore = Math.max(0, creationMaterials[kind] - stored(kind));
+          const spare = Math.max(0, held(kind) - survivalReserve[kind]);
+          const amount = Math.min(neededInStore, spare);
+          if (amount > 0) deposit[kind] = amount;
+        }
+        if (Object.keys(deposit).length > 0) {
+          return {
+            type: "store_goods",
+            payload: {
+              structureId: localStore.id,
+              direction: "deposit",
+              resources: deposit,
+              note: "Set aside the materials required for a future creation.",
+            },
+          };
+        }
+
+        const missing = materialKinds.find(
+          (kind) => totalAvailable(kind) < creationMaterials[kind],
+        );
+        if (missing !== undefined) {
+          gatheringFor.set(self.id, missing);
+          if (heldMaterials >= 130) {
+            return {
+              type: "store_goods",
+              payload: {
+                structureId: localStore.id,
+                direction: "deposit",
+                resources: materialKinds.reduce<Record<string, number>>((bundle, kind) => {
+                  const amount = Math.max(0, held(kind) - survivalReserve[kind]);
+                  if (amount > 0) bundle[kind] = amount;
+                  return bundle;
+                }, {}),
+                note: "Free carrying space for the remaining creation materials.",
+              },
+            };
+          }
+          return fetch(missing) ?? exploreFor(missing);
         }
 
         // 4. Occasional non-survival behaviour. Kept rare so runs stay
@@ -827,7 +1098,9 @@ async function main(): Promise<void> {
   else if (args.command === "teardown-staging") await runTeardownStaging(args);
 }
 
-main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
-  process.exitCode = 1;
-});
+if (process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((error: unknown) => {
+    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.exitCode = 1;
+  });
+}

@@ -1,6 +1,7 @@
 import {
   SpendLimitExceededError,
   buildObservation,
+  canonicalJson,
   getActionSpec,
   type CognitionLevel,
   type ModelAuditStore,
@@ -372,6 +373,7 @@ function projectObservation(
       kind: structure.kind,
       location: structure.location,
       ownerId: structure.owner,
+      visibleStorage: structure.storage,
     })),
     nearbyTiles: source.tiles.map((tile) => ({
       location: { x: tile.x, y: tile.y },
@@ -421,9 +423,15 @@ function projectObservation(
     }).map((type) => {
       const spec = getActionSpec(type);
       const hint = PAYLOAD_HINTS[type];
+      const description =
+        type === "create_inhabitant"
+          ? `${spec.description} Minimum requirements: ${canonicalJson(
+              spec.baseCost,
+            )}; uninterrupted duration: ${spec.baseDuration} simulated minutes.`
+          : spec.description;
       return {
         type,
-        description: spec.description,
+        description,
         ...(hint === undefined ? {} : { payloadHint: hint }),
       };
     }),

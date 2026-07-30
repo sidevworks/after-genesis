@@ -20,7 +20,7 @@
  * and attention are scarce canonical resources"). An inhabitant has roughly 960
  * waking minutes a day, so a duration is best read as a fraction of a day:
  * `rest` takes most of one, `gather` a fifth, `communicate` a thirtieth, and
- * `create_inhabitant` thirty whole days during which its creator does nothing
+ * `create_inhabitant` three whole days during which its creator does nothing
  * else.
  *
  * `baseCost` is charged on *attempt*, not on success. An action that fails its
@@ -923,18 +923,17 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     payload: CreateInhabitantPayloadSchema,
     activity: "working",
     // §7 requires creation to consume declared resources and to require time.
-    // Thirty simulated days during which the creator does nothing else, and the
-    // heaviest resource cost in the catalogue by an order of magnitude — this is
-    // what makes population growth a genuine decision rather than a reflex, and
-    // what gives the population and spending ceilings something to bite on.
-    baseDuration: days(30),
+    // Three simulated days during which the creator does nothing else. These
+    // values are the published §6.2 contract: expensive enough to require a
+    // storehouse and deliberate preparation, but attainable within a rehearsal.
+    baseDuration: days(3),
     baseCost: {
-      food: 500,
-      water: 500,
-      wood: 200,
-      stone: 100,
-      energy: 400,
-      compute: 600,
+      food: 200,
+      water: 200,
+      wood: 100,
+      stone: 50,
+      energy: 800,
+      compute: 400,
     },
     // Creation is atomic: an interrupted creation loses everything committed.
     // There is no half-made inhabitant.

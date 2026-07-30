@@ -13,7 +13,7 @@ import type { ActionType, ActivityState, InterruptionPolicy } from "../../schema
 import type { Coord, ResourceBundle } from "../../schema/primitives.js";
 import { addBundles, bundleTotal, coordKey, subtractBundles } from "../../schema/primitives.js";
 import { deriveActivityId } from "../../ids.js";
-import { addDuration, duration, isNight, type SimTime } from "../../time.js";
+import { addDuration, duration, isNight, MINUTES_PER_DAY, type SimTime } from "../../time.js";
 import type { Rng } from "../../util/rng.js";
 import { advanceHealth } from "../health.js";
 import type { DerivedEvent } from "./types.js";
@@ -173,8 +173,8 @@ export function spoilCarriedFood(
  * Spend a cost from what an inhabitant carries, drawing on stores at its feet
  * for whatever will not fit in a pack.
  *
- * Some costs are simply larger than a body: `create_inhabitant` requires 500
- * food, 500 water, 200 wood and 100 stone, and the carrying capacity is 150.
+ * Some costs are simply larger than a body: `create_inhabitant` requires 200
+ * food, 200 water, 100 wood and 50 stone, and the carrying capacity is 150.
  * Without this, the heaviest and most consequential action in the world would be
  * arithmetically impossible for anyone, forever — which is exactly the class of
  * bug that leaves a world looking alive while being unable to do anything.
@@ -397,7 +397,26 @@ export function worldTick(
   now: SimTime,
   sequence: number = state.sequence + 1,
 ): { readonly state: WorldState; readonly events: readonly DerivedEvent[] } {
-  const settled = closeExpiredActivities(state, now);
+  // Compute is a daily allowance, not a finite mineral. The published world
+  // rules grant it again at each day boundary. Without this reset, ordinary
+  // thought permanently drains a founder below the creation requirement and
+  // population growth becomes impossible even in a resource-rich world.
+  const crossedDay =
+    idiv(now, MINUTES_PER_DAY) > idiv(state.simTime, MINUTES_PER_DAY);
+  let replenished = state;
+  if (crossedDay) {
+    for (const inhabitant of sortedValues(state.inhabitants)) {
+      if (inhabitant.status !== "alive") continue;
+      replenished = updateInhabitant(replenished, inhabitant.id, (current) => ({
+        ...current,
+        inventory: {
+          ...current.inventory,
+          compute: current.maxCompute,
+        },
+      }));
+    }
+  }
+  const settled = closeExpiredActivities(replenished, now);
   const spoiled = spoilCarriedFood(settled, state.simTime, now);
   return advanceHealth(spoiled.state, now, sequence);
 }

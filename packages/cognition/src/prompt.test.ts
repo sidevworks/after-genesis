@@ -101,6 +101,11 @@ describe("prompt determinism", () => {
 });
 
 describe("available actions", () => {
+  it("allows the structured provider response to carry a multi-turn intention", () => {
+    const schema = JSON.stringify(RESPONSE_JSON_SCHEMA);
+    expect(schema).toContain('"intention":{"type":"string","maxLength":600}');
+  });
+
   it("lists only the actions supplied, and lists all of them", () => {
     const built = build(makeObservation());
     for (const action of makeObservation().availableActions) {
@@ -122,6 +127,13 @@ describe("available actions", () => {
       makeObservation({ self: { ...base.self, confined: true } }),
     );
     expect(built.systemPrompt).toContain("currently confined");
+  });
+
+  it("renders visible structure storage without inventing hidden contents", () => {
+    const built = build(makeObservation());
+
+    expect(built.userPrompt).toContain('visible storage: {"food":20,"wood":12}');
+    expect(built.userPrompt).toContain("contents are not visible to you");
   });
 });
 

@@ -19,6 +19,7 @@
  *
  * CONSTITUTIONAL: the algorithm and its constants are fixed at Genesis (§23).
  */
+import { getActionSpec } from "../schema/actions/index.js";
 import type { Coord, ResourceBundle, Terrain } from "../schema/primitives.js";
 import { coordKey } from "../schema/primitives.js";
 import { Rng } from "../util/rng.js";
@@ -295,6 +296,120 @@ export function generateDeposits(map: WorldMap, seed: string): DepositMap {
   return out;
 }
 
+/**
+ * Conserved materials a founder must be able to gather before population can
+ * grow through the world's only post-Genesis creation route.
+ *
+ * This is read from the action catalogue rather than repeated as another set of
+ * numbers. A constitutional change to the creation cost therefore changes the
+ * Genesis viability floor in the same commit, instead of leaving a map that
+ * advertises an action no possible history can afford.
+ */
+const CREATION_MATERIAL_KINDS = ["food", "water", "wood", "stone"] as const;
+
+/**
+ * Passable tiles connected to `origin` by the same eight-direction topology
+ * used by movement. Sorted keys make both traversal and the resulting reserve
+ * independent of object insertion order.
+ */
+function connectedLand(map: WorldMap, origin: Coord): ReadonlySet<string> {
+  const reached = new Set<string>([coordKey(origin)]);
+  const pending: Coord[] = [origin];
+  for (let index = 0; index < pending.length; index += 1) {
+    const here = pending[index];
+    /* c8 ignore next */
+    if (here === undefined) continue;
+    for (const [dx, dy] of NEIGHBOURS) {
+      const next = { x: here.x + dx, y: here.y + dy };
+      if (next.x < 0 || next.y < 0 || next.x >= map.width || next.y >= map.height) continue;
+      if (map.terrain[next.y * map.width + next.x] === "water") continue;
+      const key = coordKey(next);
+      if (reached.has(key)) continue;
+      reached.add(key);
+      pending.push(next);
+    }
+  }
+  return reached;
+}
+
+/**
+ * Guarantee that Genesis is materially capable of reaching a second
+ * inhabitant.
+ *
+ * Random terrain may legitimately produce no stone at all (the public demo
+ * seed did), or put a resource behind water in a disconnected land mass. That
+ * made `create_inhabitant` permanently impossible even though the action was
+ * offered to cognition. The shortfall is now placed in a finite reserve at the
+ * founder's tile. It is ordinary deposit stock: gathering moves it, the
+ * resource ledger counts it at Genesis, and once consumed it is gone.
+ *
+ * Existing reachable deposits count first, so normal 32×32 worlds usually get
+ * no reserve except for a genuinely absent resource. Water on a shoreline
+ * adjacent to connected land counts as reachable because the gather resolver
+ * permits drawing it from the bank.
+ */
+export function ensureFounderCreationReserve(
+  map: WorldMap,
+  deposits: DepositMap,
+): DepositMap {
+  const founder = firstPassableTile(map);
+  /* c8 ignore next */
+  if (founder === null) return deposits;
+
+  const land = connectedLand(map, founder);
+  const reachable: Record<(typeof CREATION_MATERIAL_KINDS)[number], number> = {
+    food: 0,
+    water: 0,
+    wood: 0,
+    stone: 0,
+  };
+
+  for (let y = 0; y < map.height; y += 1) {
+    for (let x = 0; x < map.width; x += 1) {
+      const key = coordKey({ x, y });
+      const onConnectedLand = land.has(key);
+      let bankReachable = false;
+      if (!onConnectedLand && map.terrain[y * map.width + x] === "water") {
+        for (const [dx, dy] of NEIGHBOURS) {
+          if (land.has(coordKey({ x: x + dx, y: y + dy }))) {
+            bankReachable = true;
+            break;
+          }
+        }
+      }
+      if (!onConnectedLand && !bankReachable) continue;
+      const bundle = deposits[key] ?? {};
+      reachable.food += bundle.food ?? 0;
+      reachable.wood += bundle.wood ?? 0;
+      reachable.stone += bundle.stone ?? 0;
+      if (onConnectedLand || bankReachable) reachable.water += bundle.water ?? 0;
+    }
+  }
+
+  const creationCost = getActionSpec("create_inhabitant").baseCost;
+  const reserve: ResourceBundle = {};
+  for (const kind of CREATION_MATERIAL_KINDS) {
+    const shortfall = (creationCost[kind] ?? 0) - reachable[kind];
+    if (shortfall > 0) reserve[kind] = shortfall;
+  }
+  if (Object.keys(reserve).length === 0) return deposits;
+
+  const founderKey = coordKey(founder);
+  const existing = deposits[founderKey] ?? {};
+  return {
+    ...deposits,
+    [founderKey]: {
+      ...existing,
+      ...Object.fromEntries(
+        CREATION_MATERIAL_KINDS.flatMap((kind) => {
+          const amount = reserve[kind] ?? 0;
+          return amount > 0 ? [[kind, (existing[kind] ?? 0) + amount]] : [];
+        }),
+      ),
+    },
+  };
+}
+
 /** Which resource a tile of this terrain yields when gathered, if any. */
 export function terrainYields(terrain: Terrain): keyof ResourceBundle | null {
   return DEPOSIT_TABLE[terrain].kind;
@@ -307,7 +422,8 @@ export function generateWorldTerrain(
   height: number = DEFAULT_MAP_HEIGHT,
 ): { readonly map: WorldMap; readonly deposits: DepositMap } {
   const map = generateMap(seed, width, height);
-  return { map, deposits: generateDeposits(map, seed) };
+  const deposits = generateDeposits(map, seed);
+  return { map, deposits: ensureFounderCreationReserve(map, deposits) };
 }
 
 /**

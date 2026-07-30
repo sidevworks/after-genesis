@@ -47,7 +47,7 @@ const MIDDAY = simTime(12 * 60);
 /**
  * What the creator carries. Bounded by `rules.carryCapacity` like anyone's.
  *
- * The creation cost is 500 food, 500 water, 200 wood and 100 stone — eight times
+ * The creation cost is 200 food, 200 water, 100 wood and 50 stone — still more
  * what a body can carry. That is deliberate (§7: creation must consume declared
  * resources), and it means a creator cannot hold the price of a child. The
  * materials have to be somewhere, and the only somewhere is a structure, so
@@ -246,12 +246,12 @@ describe("create_inhabitant", () => {
     expectClean(result.state, before.sequence + 1);
   });
 
-  it("occupies the creator for the declared thirty simulated days (§11A)", () => {
+  it("occupies the creator for the declared three simulated days (§11A)", () => {
     const before = world();
     const result = create(before);
     const creator = result.state.inhabitants["inh_founder"] as Inhabitant;
 
-    expect(CREATE.baseDuration).toBe(30 * 24 * 60);
+    expect(CREATE.baseDuration).toBe(3 * 24 * 60);
     expect(creator.activity.busyUntil).toBe(before.simTime + CREATE.baseDuration);
     expect(creator.activity.state).toBe("working");
   });

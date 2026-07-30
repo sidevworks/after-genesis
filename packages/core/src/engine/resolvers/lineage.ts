@@ -415,7 +415,7 @@ function generateValues(
  * imperfection. §11E classifies private goals and intentions as private and
  * `Condition.disclosed` starts false; a public birth event that listed them
  * would be a disclosure nobody performed. What the world can see is that someone
- * spent thirty days and a great deal of material and that a person now stands
+ * spent three days and a great deal of material and that a person now stands
  * where they did.
  */
 interface BirthDetail {
@@ -615,7 +615,7 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       maxCompute,
     }),
     // Present from the moment of creation, because a birth time in the future
-    // would break `simTimeNonDecreasing`, but not able to act until the thirty
+    // would break `simTimeNonDecreasing`, but not able to act until the three
     // days its creator committed have elapsed.
     nextEligibleTime: endsAt,
   };

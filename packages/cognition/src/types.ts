@@ -177,6 +177,14 @@ export interface PerceivedStructure {
   readonly kind: string;
   readonly location: Point;
   readonly ownerId: string | null;
+  /**
+   * Contents the observer may legitimately inspect, or null when private.
+   *
+   * An empty object means visible and empty; null means the contents are not
+   * observable. Keeping those states distinct prevents cognition from treating
+   * hidden goods as proof that a store contains nothing.
+   */
+  readonly visibleStorage: Partial<Record<ResourceKind, number>> | null;
 }
 
 export interface PerceivedTile {

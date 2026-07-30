@@ -158,14 +158,14 @@ describe("ACTION_CATALOGUE", () => {
     }
   });
 
-  it("makes rest cheap and long, and creation expensive and very long (§7, §11A)", () => {
+  it("makes rest cheap and long, and creation expensive and multi-day (§7, §11A)", () => {
     const rest = getActionSpec("rest");
     expect(rest.baseDuration).toBe(8 * 60);
     expect(Object.keys(rest.baseCost)).toHaveLength(0);
 
     const creation = getActionSpec("create_inhabitant");
     // §7: creation must consume declared resources and require time.
-    expect(creation.baseDuration).toBe(30 * 24 * 60);
+    expect(creation.baseDuration).toBe(3 * 24 * 60);
     expect(creation.baseCost.food).toBeGreaterThan(0);
     expect(creation.baseCost.energy).toBeGreaterThan(0);
     expect(creation.baseCost.compute).toBeGreaterThan(0);

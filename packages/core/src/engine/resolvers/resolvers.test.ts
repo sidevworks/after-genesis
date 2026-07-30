@@ -852,6 +852,20 @@ describe("rest", () => {
 });
 
 describe("wait", () => {
+  it("renews the daily compute allowance at a day boundary", () => {
+    let state = { ...world(), simTime: simTime(24 * 60 - 1) };
+    state = updateInhabitant(state, "inh_founder", (inhabitant) => ({
+      ...inhabitant,
+      inventory: { ...inhabitant.inventory, compute: 7 },
+    }));
+
+    const result = act(state, "wait", { minutes: 30 }, simTime(24 * 60));
+
+    expect(result.outcome.status).toBe("resolved");
+    expect(founderOf(result.state).inventory.compute).toBe(founderOf(state).maxCompute);
+    expectClean(result.state);
+  });
+
   it("is not free: it books time and advances needs (§11A)", () => {
     const state = world();
     const result = act(state, "wait", { minutes: 600 });

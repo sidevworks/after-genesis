@@ -47,7 +47,7 @@ import {
 } from "./untrusted.js";
 
 /** Prompt format version. Recorded so a change is visible in the audit diff. */
-export const PROMPT_VERSION = 3;
+export const PROMPT_VERSION = 4;
 
 export interface PromptOptions {
   /** Per-untrusted-block character cap. */
@@ -130,6 +130,7 @@ function responseBranch(
         additionalProperties: false,
       },
       rationale: { type: "string" },
+      intention: { type: "string", maxLength: 600 },
     },
     required: ["type", "payload"],
     additionalProperties: false,
@@ -446,7 +447,7 @@ const WORLD_PHYSICS = [
   // inhabitant and a female inhabitant" — described a mechanic that does not
   // exist, and told a founder alone in the world that descendants were
   // impossible. `createInhabitantResolver` takes one creator, charges a heavy
-  // declared cost and thirty days of exclusive work, and draws the new
+  // declared cost and three days of exclusive work, and draws the new
   // inhabitant's traits, values and sex from the world's own randomness.
   "- A new inhabitant can be made by one existing inhabitant. It costs a great deal of material and a long unbroken stretch of work, and what results is another person with its own judgement, which its creator does not control and cannot undo.",
   "- Canonical history is append-only. Past events cannot be rewritten.",
@@ -820,8 +821,12 @@ function renderSurroundings(observation: Observation): {
         structure.ownerId === null
           ? "no recorded possessor"
           : `recorded as possessed by ${structure.ownerId}; this record is a claim, not physical authority`;
+      const storage =
+        structure.visibleStorage === null
+          ? "contents are not visible to you"
+          : `visible storage: ${canonicalJson(structure.visibleStorage)}`;
       lines.push(
-        `- ${structure.kind} (${structure.id}) at (${structure.location.x}, ${structure.location.y}), ${possessionRecord}`,
+        `- ${structure.kind} (${structure.id}) at (${structure.location.x}, ${structure.location.y}), ${possessionRecord}; ${storage}`,
       );
     }
   }

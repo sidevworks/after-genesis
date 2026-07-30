@@ -1,6 +1,8 @@
 import {
   SpendLimitExceededError,
   buildGenesis,
+  canonicalJson,
+  getActionSpec,
   runAction,
   type ModelAuditStore,
   type SpendReservationStore,
@@ -96,6 +98,31 @@ function durableSpend() {
 }
 
 describe("ProviderCognitionService", () => {
+  it("states the exact neutral requirements for creating an inhabitant", async () => {
+    const captured = audit();
+    const cognition = service(
+      new ScriptedProvider(['{"type":"wait","payload":{"durationMinutes":30}}']),
+      captured.store,
+    );
+
+    await cognition.propose({
+      state: state(),
+      actorId: "inh_founder",
+      simTime: 0 as never,
+      sequence: 1,
+    });
+
+    const prompt = captured.records[0]?.request.systemPrompt ?? "";
+    const creation = getActionSpec("create_inhabitant");
+    expect(prompt).toContain("- create_inhabitant —");
+    expect(prompt).toContain(
+      `Minimum requirements: ${canonicalJson(creation.baseCost)}`,
+    );
+    expect(prompt).toContain(
+      `uninterrupted duration: ${creation.baseDuration} simulated minutes`,
+    );
+  });
+
   it("turns a provider response into an audited structured proposal", async () => {
     const captured = audit();
     const cognition = service(
