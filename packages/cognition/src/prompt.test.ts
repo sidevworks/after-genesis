@@ -287,6 +287,16 @@ describe("format correction (§14.10)", () => {
     expect(correction.userPrompt).not.toContain("Try `wait` instead");
   });
 
+  it("adds a truncation hint when the parse error says JSON was truncated", () => {
+    const correction = buildCorrectionRequest(
+      original,
+      "{\"type\":\"gather\",\"payload\":{",
+      "No complete JSON object was found. The object may have been truncated.",
+    );
+    expect(correction.userPrompt).toContain("The previous output was truncated.");
+    expect(correction.userPrompt).toContain("Answer again. One JSON object");
+  });
+
   it("hashes differently from the original request", () => {
     const correction = buildCorrectionRequest(original, "oops", "bad");
     expect(hashRequest(correction)).not.toBe(hashRequest(original));

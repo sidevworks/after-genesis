@@ -42,12 +42,17 @@ const DEV_VOICE_DIR = `apps/spectator/public/voice/${DEV_VOICE_REEL}`;
 const GENERATED_BY_A_DEV_RUN: readonly string[] = [DEV_WORLD_DIR, DEV_VOICE_DIR];
 
 type CognitionProvider = "gemini" | "offline";
-type GeminiModel = "gemini-3.6-flash";
+type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
+type ModelSet = {
+  routine: GeminiModel;
+  deliberate: GeminiModel;
+};
 
 type Status = {
   running: boolean;
   provider: CognitionProvider;
   model: GeminiModel;
+  deliberateModel: GeminiModel;
   voice: {
     enabled: boolean;
     state: "idle" | "stale" | "rendering" | "ready" | "error";
@@ -82,7 +87,8 @@ let lastError: string | null = null;
 let currentChild: ChildProcess | null = null;
 let stopRequested = false;
 let activeProvider: CognitionProvider = "gemini";
-let activeModel: GeminiModel = "gemini-3.6-flash";
+let activeRoutineModel: GeminiModel = "gemini-3.6-flash";
+let activeDeliberateModel: GeminiModel = "gemini-3.6-flash";
 let activeVoiceEnabled = false;
 let voiceState: Status["voice"]["state"] = "idle";
 let voiceLastPublishedAt: string | null = null;
@@ -178,23 +184,24 @@ function startJob(job: () => Promise<void>): void {
 
 function startProviderJob(
   provider: CognitionProvider,
-  model: GeminiModel,
+  model: ModelSet,
   voiceEnabled: boolean,
   job: () => Promise<void>,
 ): void {
   if (jobRunning || childRunning) throw new Error("dev controller is already running a job");
   activeProvider = provider;
-  activeModel = model;
+  activeRoutineModel = model.routine;
+  activeDeliberateModel = model.deliberate;
   activeVoiceEnabled = voiceEnabled;
   startJob(job);
 }
 
-function cognitionEnv(provider: CognitionProvider, model: GeminiModel): NodeJS.ProcessEnv {
+function cognitionEnv(provider: CognitionProvider, model: ModelSet): NodeJS.ProcessEnv {
   if (provider === "offline") return {};
   return {
     AG_SPEND_ENFORCEMENT: "freeze",
-    AG_MODEL_ROUTINE: model,
-    AG_MODEL_DELIBERATE: model,
+    AG_MODEL_ROUTINE: model.routine,
+    AG_MODEL_DELIBERATE: model.deliberate,
   };
 }
 
@@ -271,7 +278,10 @@ async function reset(): Promise<void> {
       "--output",
       RUN_DIR,
     ],
-    cognitionEnv(activeProvider, activeModel),
+    cognitionEnv(activeProvider, {
+      routine: activeRoutineModel,
+      deliberate: activeDeliberateModel,
+    }),
   );
   await exportFixtures();
   if (activeVoiceEnabled) await publishVoice();
@@ -316,7 +326,10 @@ async function advance(params: URLSearchParams): Promise<void> {
           "--output",
           RUN_DIR,
         ],
-        cognitionEnv(activeProvider, activeModel),
+        cognitionEnv(activeProvider, {
+          routine: activeRoutineModel,
+          deliberate: activeDeliberateModel,
+        }),
       );
       await exportFixtures();
       if (activeVoiceEnabled) await publishVoice();
@@ -340,42 +353,11 @@ async function fastForward(params: URLSearchParams): Promise<void> {
     throw new Error("fast-forward days must be an integer from 1 to 833");
   }
 
-  const startingEvents = await readLiveEvents();
-  simulationProgress = {
-    baseEventCount: startingEvents.count,
-    targetTurns: days * 12,
-    startingSimTime: startingEvents.simTime,
-  };
-
-  try {
-    await run(
-      "npm",
-      [
-        "run",
-        "world",
-        "--",
-        "demo",
-        "--resume",
-        "--days",
-        String(days),
-        "--provider",
-        activeProvider,
-        "--output",
-        RUN_DIR,
-      ],
-      cognitionEnv(activeProvider, activeModel),
-    );
-    await exportFixtures();
-
-    if (activeVoiceEnabled) await publishVoice();
-    else {
-      voiceState = "idle";
-      voiceError = null;
-      voiceLastPublishedAt = null;
-    }
-  } finally {
-    if (stopRequested) await finalizeStoppedRun();
+  const advanceParams = new URLSearchParams(params);
+  if (!advanceParams.has("speed")) {
+    advanceParams.set("speed", "instant");
   }
+  await advance(advanceParams);
   lastOutput = `${lastOutput}\n[fast-forward] published ${days} simulated day(s)${
     activeVoiceEnabled ? "; voice published" : ""
   }\n`.slice(-12_000);
@@ -443,7 +425,8 @@ async function status(): Promise<Status> {
     return {
       running: jobRunning || childRunning,
       provider: activeProvider,
-      model: activeModel,
+      model: activeRoutineModel,
+      deliberateModel: activeDeliberateModel,
       voice: {
         enabled: activeVoiceEnabled,
         state: voiceState,
@@ -461,7 +444,8 @@ async function status(): Promise<Status> {
     return {
       running: jobRunning || childRunning,
       provider: activeProvider,
-      model: activeModel,
+      model: activeRoutineModel,
+      deliberateModel: activeDeliberateModel,
       voice: {
         enabled: activeVoiceEnabled,
         state: voiceState,
@@ -499,7 +483,10 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
     if (req.method === "POST" && url.pathname === "/reset") {
       startProviderJob(
         parseProvider(url.searchParams),
-        parseModel(url.searchParams),
+        {
+          routine: parseModel(url.searchParams, "model"),
+          deliberate: parseModel(url.searchParams, "deliberateModel", activeDeliberateModel),
+        },
         parseVoiceEnabled(url.searchParams),
         reset,
       );
@@ -508,7 +495,10 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
     if (req.method === "POST" && url.pathname === "/advance") {
       startProviderJob(
         parseProvider(url.searchParams),
-        parseModel(url.searchParams),
+        {
+          routine: parseModel(url.searchParams, "model"),
+          deliberate: parseModel(url.searchParams, "deliberateModel", activeDeliberateModel),
+        },
         parseVoiceEnabled(url.searchParams),
         () => advance(url.searchParams),
       );
@@ -517,7 +507,10 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
     if (req.method === "POST" && url.pathname === "/fast-forward") {
       startProviderJob(
         parseProvider(url.searchParams),
-        parseModel(url.searchParams),
+        {
+          routine: parseModel(url.searchParams, "model"),
+          deliberate: parseModel(url.searchParams, "deliberateModel", activeDeliberateModel),
+        },
         parseVoiceEnabled(url.searchParams),
         () => fastForward(url.searchParams),
       );
@@ -548,13 +541,14 @@ function parseProvider(params: URLSearchParams): CognitionProvider {
   return provider;
 }
 
-function parseModel(params: URLSearchParams): GeminiModel {
-  const model = params.get("model") ?? activeModel;
-  if (model === "gemini-3.5-flash-lite") {
-    return "gemini-3.6-flash";
-  }
-  if (model !== "gemini-3.6-flash") {
-    throw new Error("model must be gemini-3.6-flash");
+function parseModel(
+  params: URLSearchParams,
+  key: "model" | "deliberateModel",
+  fallback?: GeminiModel,
+): GeminiModel {
+  const model = params.get(key) ?? fallback ?? activeRoutineModel;
+  if (model !== "gemini-3.5-flash-lite" && model !== "gemini-3.6-flash") {
+    throw new Error("model must be gemini-3.5-flash-lite or gemini-3.6-flash");
   }
   return model;
 }

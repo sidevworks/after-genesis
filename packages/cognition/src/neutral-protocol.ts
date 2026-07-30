@@ -49,6 +49,412 @@ export type NeutralCapability = (typeof NEUTRAL_CAPABILITIES)[number];
 // more than the engine's 12-hour rest/wait ceiling.
 export const MAX_REQUESTED_DURATION_TICKS = 6;
 
+function normalizeTargetId(raw: string): string {
+  const prefixes = [
+    "observed:inhabitant:",
+    "inhabitant:",
+    "observed:structure:",
+    "structure:",
+  ] as const;
+
+  for (const prefix of prefixes) {
+    if (raw.startsWith(prefix)) {
+      return raw.slice(prefix.length);
+    }
+  }
+  return raw;
+}
+
+function normalizeBasisId(raw: string): string {
+  return raw.startsWith("basis:") ? raw.slice("basis:".length) : raw;
+}
+
+function coerceRequestedDuration(value: unknown): number {
+  if (typeof value !== "number" || Number.isNaN(value) || !Number.isFinite(value)) return 1;
+  const ticks = Math.trunc(value);
+  if (ticks < 1) return 1;
+  return ticks;
+}
+
+function normalizeUncertainties(value: unknown): readonly string[] {
+  if (value === null || value === undefined) return [];
+  if (Array.isArray(value)) {
+    return value.filter((entry): entry is string => typeof entry === "string");
+  }
+  return typeof value === "string" ? [value] : [];
+}
+
+function normalizePriorityNow(value: unknown): string {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value.toString();
+  }
+  return typeof value === "string" && value.trim() !== "" ? value : "";
+}
+
+type NeutralFutureNoteKind = "belief" | "intention" | "question" | "observation" | "reminder";
+
+type NeutralDecisionRecord = {
+  readonly priority_now: string;
+  readonly basis_ids: readonly string[];
+  readonly basis_summary: string;
+  readonly expected_local_change: string;
+  readonly success_test: string;
+  readonly uncertainties: readonly string[];
+};
+
+type NeutralFutureNote = {
+  readonly kind: NeutralFutureNoteKind;
+  readonly text: string;
+};
+
+function normalizeFutureNoteKind(raw: string): NeutralFutureNoteKind | null {
+  const known: readonly NeutralFutureNoteKind[] = ["belief", "intention", "question", "observation", "reminder"];
+  if (known.includes(raw as NeutralFutureNoteKind)) {
+    return raw as NeutralFutureNoteKind;
+  }
+  switch (raw) {
+    case "intent":
+    case "plan":
+    case "coordination":
+    case "own_intention":
+    case "intention_plan":
+    case "next_action":
+      return "intention";
+    default:
+      return null;
+  }
+}
+
+function normalizeAttemptPayload(rawAttempt: unknown): Record<string, unknown> | null {
+  if (rawAttempt === null || typeof rawAttempt !== "object" || Array.isArray(rawAttempt)) {
+    return null;
+  }
+  const normalizedAttempt = { ...(rawAttempt as Record<string, unknown>) };
+  normalizedAttempt.requested_duration_ticks = coerceRequestedDuration(
+    normalizedAttempt.requested_duration_ticks,
+  );
+  const targetIds = normalizedAttempt.target_ids;
+  if (Array.isArray(targetIds)) {
+    normalizedAttempt.target_ids = targetIds
+      .filter((id): id is string => typeof id === "string")
+      .map(normalizeTargetId);
+  } else {
+    normalizedAttempt.target_ids = [];
+  }
+  normalizedAttempt.message =
+    typeof normalizedAttempt.message === "string" && normalizedAttempt.message.trim() !== ""
+      ? normalizedAttempt.message
+      : null;
+  if (normalizedAttempt.parameters === null || typeof normalizedAttempt.parameters !== "object") {
+    normalizedAttempt.parameters = {};
+  }
+  return normalizedAttempt;
+}
+
+function normalizeNeutralResponse(raw: unknown): Record<string, unknown> | null {
+  if (raw === null || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const rawRecord = raw as Record<string, unknown>;
+
+  const attempt = rawRecord.attempt;
+  const decisionRecord = rawRecord.decision_record;
+  const futureNote = rawRecord.future_note;
+
+  if (
+    attempt === null ||
+    typeof attempt !== "object" ||
+    Array.isArray(attempt) ||
+    decisionRecord === null ||
+    typeof decisionRecord !== "object" ||
+    Array.isArray(decisionRecord)
+  ) {
+    return null;
+  }
+
+  const normalizedAttempt = { ...(attempt as Record<string, unknown>) };
+  const normalizedDecisionRecord = { ...(decisionRecord as Record<string, unknown>) };
+
+  normalizedAttempt.requested_duration_ticks = coerceRequestedDuration(
+    normalizedAttempt.requested_duration_ticks,
+  );
+
+  const targetIds = normalizedAttempt.target_ids;
+  if (Array.isArray(targetIds)) {
+    normalizedAttempt.target_ids = targetIds
+      .filter((id): id is string => typeof id === "string")
+      .map(normalizeTargetId);
+  }
+
+  const basisIds = normalizedDecisionRecord.basis_ids;
+  if (Array.isArray(basisIds)) {
+    normalizedDecisionRecord.basis_ids = basisIds
+      .filter((id): id is string => typeof id === "string")
+      .map(normalizeBasisId);
+  }
+
+  normalizedDecisionRecord.uncertainties = normalizeUncertainties(
+    normalizedDecisionRecord.uncertainties,
+  );
+
+  normalizedAttempt.parameters =
+    normalizedAttempt.parameters === null || typeof normalizedAttempt.parameters !== "object"
+      ? {}
+      : normalizedAttempt.parameters;
+
+  if (futureNote !== null && typeof futureNote === "object" && !Array.isArray(futureNote)) {
+    const normalizedFutureNote = { ...(futureNote as Record<string, unknown>) };
+    if (typeof normalizedFutureNote.kind === "string") {
+      normalizedFutureNote.kind = normalizeFutureNoteKind(normalizedFutureNote.kind);
+    }
+    return {
+      ...rawRecord,
+      attempt: normalizedAttempt,
+      decision_record: normalizedDecisionRecord,
+      future_note: normalizedFutureNote,
+    };
+  }
+
+  return {
+    ...rawRecord,
+    attempt: normalizedAttempt,
+    decision_record: normalizedDecisionRecord,
+    future_note: futureNote,
+  };
+}
+
+function recoverAttemptFromRaw(rawText: string): { attempt: Record<string, unknown> } | null {
+  const text = stripTransportNoise(rawText);
+
+  const match = /\"attempt\"\s*:/g.exec(text);
+  if (match === null) return null;
+  const startSearch = match.index + match[0].length;
+  const start = text.indexOf("{", startSearch);
+  if (start === -1) return null;
+
+  const partialJson = recoverPartialObject(text, start);
+  if (partialJson === null) return null;
+
+  const candidateAttempt =
+    partialJson.attempt !== undefined ? partialJson.attempt : partialJson;
+  if (candidateAttempt === null || typeof candidateAttempt !== "object") {
+    return null;
+  }
+
+  const normalizedAttempt = normalizeAttemptPayload(candidateAttempt);
+  if (normalizedAttempt === null) return null;
+  const parsed = NeutralAttemptSchema.safeParse(normalizedAttempt);
+  if (!parsed.success) return null;
+
+  return { attempt: parsed.data as Record<string, unknown> };
+}
+
+function recoverPartialObject(
+  text: string,
+  start: number,
+): Record<string, unknown> | null {
+  const ends: number[] = [];
+  let inString = false;
+  let escaped = false;
+  const stack: string[] = [];
+
+  for (let i = start; i < text.length; i++) {
+    const char = text[i];
+    if (char === undefined) break;
+
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+    } else if (char === "{") {
+      stack.push("}");
+    } else if (char === "[") {
+      stack.push("]");
+    } else if ((char === "}" || char === "]") && stack.length > 0) {
+      stack.pop();
+      if (stack.length === 0 && char === "}") {
+        ends.push(i + 1);
+      }
+    } else if (char === ",") {
+      ends.push(i + 1);
+    } else if (char === "}") {
+      return null;
+    } else if (char === "]") {
+      return null;
+    }
+  }
+
+  if (ends.length === 0) {
+    ends.push(text.length);
+  }
+
+  for (let i = ends.length - 1; i >= 0; i--) {
+    const candidate = text.slice(start, ends[i]);
+    const balanced = closeAndTrimJson(candidate);
+    if (balanced === null) continue;
+    try {
+      const parsed = JSON.parse(balanced) as Record<string, unknown>;
+      if (parsed !== null && typeof parsed === "object" && !Array.isArray(parsed)) {
+        return parsed;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
+function closeAndTrimJson(raw: string): string | null {
+  let text = raw.trimEnd();
+  while (text.endsWith(",")) {
+    text = text.slice(0, -1).trimEnd();
+  }
+  let inString = false;
+  let escaped = false;
+  const stack: string[] = [];
+
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    if (char === undefined) break;
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (char === "\\") {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+    if (char === '"') {
+      inString = true;
+    } else if (char === "{") {
+      stack.push("}");
+    } else if (char === "[") {
+      stack.push("]");
+    } else if (char === "}" || char === "]") {
+      if (stack.length === 0 || stack.at(-1) !== char) return null;
+      stack.pop();
+    }
+  }
+  if (inString) return null;
+  for (let i = stack.length - 1; i >= 0; i--) {
+    text += stack[i];
+  }
+  return text;
+}
+
+function recoverDecisionRecordFromRaw(rawDecisionRecord: unknown): NeutralDecisionRecord {
+  if (
+    rawDecisionRecord === null ||
+    typeof rawDecisionRecord !== "object" ||
+    Array.isArray(rawDecisionRecord)
+  ) {
+    return {
+      priority_now: "Recovered attempt with missing decision record.",
+      basis_ids: [],
+      basis_summary:
+        "The model response was truncated or malformed, but the attempt was structurally usable.",
+      expected_local_change: "Attempt will be translated from the recoverable payload.",
+      success_test: "The attempt can be interpreted and translated.",
+      uncertainties: ["Decision context was unavailable in the raw model response."],
+    };
+  }
+
+  const typed = rawDecisionRecord as Record<string, unknown>;
+
+  const normalizedPriorityNow = normalizePriorityNow(typed.priority_now);
+  const priority_now =
+    normalizedPriorityNow !== "" ? normalizedPriorityNow : "Recovered attempt with missing decision record.";
+
+  const basisSummary =
+    typeof typed.basis_summary === "string" && typed.basis_summary.trim() !== ""
+      ? typed.basis_summary
+      : "The model response was partially recoverable; required decision text is missing.";
+
+  const expectedLocalChange =
+    typeof typed.expected_local_change === "string" && typed.expected_local_change.trim() !== ""
+      ? typed.expected_local_change
+      : "The attempt can be interpreted from a truncated response.";
+
+  const successTest =
+    typeof typed.success_test === "string" && typed.success_test.trim() !== ""
+      ? typed.success_test
+      : "Attempt is recoverable from the raw output.";
+
+  return {
+    priority_now,
+    basis_ids: Array.isArray(typed.basis_ids)
+      ? typed.basis_ids.filter((entry): entry is string => typeof entry === "string")
+      : [],
+    basis_summary: basisSummary,
+    expected_local_change: expectedLocalChange,
+    success_test: successTest,
+    uncertainties: normalizeUncertainties(typed.uncertainties),
+  };
+}
+
+function recoverFutureNoteFromRaw(rawFutureNote: unknown): NeutralFutureNote | null {
+  if (rawFutureNote === null || typeof rawFutureNote !== "object" || Array.isArray(rawFutureNote)) {
+    return null;
+  }
+
+  const typed = rawFutureNote as Record<string, unknown>;
+  const kind = typeof typed.kind === "string" && typed.kind.length > 0 ? normalizeFutureNoteKind(typed.kind) : null;
+  return kind === null || typeof typed.text !== "string" || typed.text.trim() === ""
+    ? null
+    : { kind, text: typed.text };
+}
+
+function defaultFutureNoteFromDecision(decisionRecord: {
+  basis_summary: string;
+}): NeutralFutureNote {
+  const basisSummary =
+    decisionRecord.basis_summary.trim() !== "" ? decisionRecord.basis_summary : "Observe and test the next likely consequence.";
+  return {
+    kind: "observation",
+    text: `Next-step memory: ${basisSummary}`,
+  };
+}
+
+function recoverNeutralResponse(rawText: string): Record<string, unknown> | null {
+  const recoveredAttemptPayload = recoverAttemptFromRaw(rawText);
+  if (recoveredAttemptPayload === null) return null;
+
+  const normalizedAttempt = normalizeAttemptPayload(recoveredAttemptPayload.attempt);
+  if (normalizedAttempt === null) return null;
+  const attemptParse = NeutralAttemptSchema.safeParse(normalizedAttempt);
+  if (!attemptParse.success) return null;
+
+  const raw = (() => {
+    try {
+      return JSON.parse(stripTransportNoise(rawText)) as Record<string, unknown>;
+    } catch {
+      return null;
+    }
+  })();
+  const rawDecisionRecord = raw?.decision_record;
+  const rawFutureNote = raw?.future_note;
+  const normalizedFutureNote = recoverFutureNoteFromRaw(rawFutureNote);
+  const recoveredDecisionRecord = {
+    ...recoverDecisionRecordFromRaw(rawDecisionRecord),
+  };
+
+  return {
+    attempt: attemptParse.data,
+    decision_record: recoveredDecisionRecord,
+    future_note: normalizedFutureNote ?? defaultFutureNoteFromDecision(recoveredDecisionRecord),
+  };
+}
+
 const NeutralAttemptSchema = z
   .object({
     capability: z.enum(NEUTRAL_CAPABILITIES),
@@ -65,7 +471,9 @@ const NeutralAttemptSchema = z
 
 const NeutralDecisionRecordSchema = z
   .object({
-    priority_now: z.string().min(1).max(600),
+    priority_now: z
+      .union([z.string().min(1).max(600), z.number().finite()])
+      .transform((value) => String(value)),
     basis_ids: z.array(z.string().min(1).max(160)).max(64),
     basis_summary: z.string().min(1).max(2000),
     expected_local_change: z.string().min(1).max(1200),
@@ -222,7 +630,7 @@ export const NEUTRAL_RESPONSE_JSON_SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-        priority_now: { type: "string" },
+            priority_now: { anyOf: [{ type: "string" }, { type: "number" }] },
         basis_ids: { type: "array", items: { type: "string" }, maxItems: 64 },
         basis_summary: { type: "string" },
         expected_local_change: { type: "string" },
@@ -795,22 +1203,51 @@ export function parseNeutralModelResponse(
     return failure("not_an_object", "Propose exactly one attempt as one JSON object.");
   }
   const json = extractJsonObject(rawText);
-  if (json === null) return failure("no_json_found", "No complete JSON object was found.");
-
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(json);
-  } catch {
-    return failure("malformed_json", "The extracted text was not valid JSON.");
+  let parsed: unknown = null;
+  if (json === null) {
+    const recovered = recoverNeutralResponse(rawText);
+    if (recovered !== null) {
+      parsed = recovered;
+    }
+  } else {
+    try {
+      parsed = JSON.parse(json);
+    } catch {
+      return failure("malformed_json", "The extracted text was not valid JSON.");
+    }
+    const normalized = normalizeNeutralResponse(parsed);
+    if (normalized !== null) {
+      parsed = normalized;
+    }
   }
-  const validated = NeutralModelResponseSchema.safeParse(parsed);
+
+  if (parsed === null) {
+    return failure("no_json_found", "No complete JSON object was found.");
+  }
+
+  let validated = NeutralModelResponseSchema.safeParse(parsed);
+  if (!validated.success) {
+    const recovered = recoverNeutralResponse(rawText);
+    if (recovered !== null) {
+      const recoverAttempt = NeutralModelResponseSchema.safeParse(recovered);
+      if (recoverAttempt.success) {
+        parsed = recoverAttempt.data;
+        validated = recoverAttempt;
+      }
+    }
+  }
+
   if (!validated.success) {
     return failure(
       "invalid_shape",
       "The object did not match the immutable attempt, decision_record and future_note schema.",
     );
   }
-  const unknownBasis = validated.data.decision_record.basis_ids.find(
+  const normalized = {
+    ...validated.data,
+    future_note: validated.data.future_note ?? defaultFutureNoteFromDecision(validated.data.decision_record),
+  };
+  const unknownBasis = normalized.decision_record.basis_ids.find(
     (id) => !allowedBasisIds.has(id),
   );
   if (unknownBasis !== undefined) {
@@ -820,14 +1257,14 @@ export function parseNeutralModelResponse(
     );
   }
   const targets = allowedTargetIds(allowedBasisIds);
-  const unknownTarget = validated.data.attempt.target_ids.find((id) => !targets.has(id));
+  const unknownTarget = normalized.attempt.target_ids.find((id) => !targets.has(id));
   if (unknownTarget !== undefined) {
     return failure(
       "invalid_shape",
       `attempt.target_ids contained ${unknownTarget}, which is not a visible target in this TURN_PACKET.`,
     );
   }
-  if (depthOf(validated.data.attempt.parameters, MAX_PAYLOAD_DEPTH) > MAX_PAYLOAD_DEPTH) {
+  if (depthOf(normalized.attempt.parameters, MAX_PAYLOAD_DEPTH) > MAX_PAYLOAD_DEPTH) {
     return failure("payload_too_deep", "attempt.parameters exceeded the nesting limit.");
   }
   let canonicalParameters: string;
@@ -842,11 +1279,11 @@ export function parseNeutralModelResponse(
   if (canonicalParameters.length > MAX_PAYLOAD_CHARS) {
     return failure("oversized_payload", "attempt.parameters exceeded the size limit.");
   }
-  const parameterProblem = requiredParameterProblem(validated.data);
+  const parameterProblem = requiredParameterProblem(normalized);
   if (parameterProblem !== null) {
     return failure("invalid_shape", parameterProblem);
   }
-  const action = translateNeutralResponse(validated.data);
+  const action = translateNeutralResponse(normalized);
   if (action === null) {
     return failure(
       "invalid_shape",

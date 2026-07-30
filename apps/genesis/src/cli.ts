@@ -413,6 +413,7 @@ export function mechanicalCognition(): CognitionService {
         localStore?.storage?.[kind] ?? 0;
       const totalAvailable = (kind: (typeof materialKinds)[number]): number =>
         held(kind) + stored(kind);
+      const isBootstrapPhase = Math.floor(observation.simTime / (24 * 60)) < 4;
 
       /**
        * Walk towards a terrain type already seen, or push the visible frontier
@@ -490,6 +491,36 @@ export function mechanicalCognition(): CognitionService {
       };
 
       const action = ((): ProposedAction => {
+        if (isBootstrapPhase) {
+          // 0. First 3 days: bootstrap pressure.
+          // During this period, ensure every actor keeps trying to satisfy basic
+          // needs or obtain their sources, instead of cycling idle actions.
+          if (self.needs.thirst >= 35 && held("water") > 0) {
+            return { type: "consume", payload: { resource: "water", amount: 1 } };
+          }
+          if (self.needs.hunger >= 35 && held("food") > 0) {
+            return { type: "consume", payload: { resource: "food", amount: 1 } };
+          }
+
+          const bootstrapShortage = self.needs.thirst >= 45 || self.needs.hunger >= 45;
+          if (bootstrapShortage) {
+            const thirsty = self.needs.thirst > self.needs.hunger;
+            const errand = fetch(thirsty ? "water" : "food");
+            return errand ?? fetch(thirsty ? "food" : "water") ?? exploreFor(thirsty ? "water" : "food");
+          }
+
+          // If we have neither water nor food in hand, force a get-off-grid move
+          // now instead of waiting and hoping environment changes.
+          if (held("water") === 0 || held("food") === 0) {
+            const hunt = held("water") === 0 ? fetch("water") : fetch("food");
+            if (hunt !== null) return hunt;
+            return held("water") === 0 ? exploreFor("water") : exploreFor("food");
+          }
+
+          // Seed for basic material logistics once survival is immediately stable.
+          if (held("wood") < 5) return fetch("wood") ?? exploreFor("wood");
+        }
+
         // 1. Drink and eat before anything else. Thirst kills faster than
         //    hunger, so it is checked first — and both are checked before work,
         //    because an inhabitant who works through starvation is not being
@@ -781,15 +812,11 @@ async function runDemo(args: ParsedArgs): Promise<void> {
   const priorModelCostMicros = await sumModelAuditCostMicros(auditDirectory, DEFAULT_WORLD_ID);
 
   try {
-    const cognition =
-      args.provider === "offline"
-        ? mechanicalCognition()
-        : productionCognition(auditStore, priorModelCostMicros, args.maxSpendUsd);
-    const modelId =
+    const configuredModelId =
       args.provider === "offline"
         ? "offline-instinct-cognition-v2"
         : resolveModelRouting(process.env).routine;
-    const config = demoConfig(modelId);
+    const config = demoConfig(configuredModelId);
     if (!args.resume) {
       await commitGenesis(
         { eventStore, stateStore, clock, provenance: PROVENANCE },
@@ -802,6 +829,27 @@ async function runDemo(args: ParsedArgs): Promise<void> {
     if (startingSnapshot === null) {
       throw new Error("--resume requires an existing world state");
     }
+    const startingSequence = startingSnapshot.sequence;
+    const startingSimTime = startingSnapshot.state.simTime;
+
+    const nextSequence = startingSequence + 1;
+    let runtimeModelId = configuredModelId;
+    if (args.provider === "gemini") {
+      runtimeModelId = await resolveInferenceModelForResume(
+        auditStore,
+        config.worldId,
+        nextSequence,
+        configuredModelId,
+      );
+    }
+    const cognition =
+      args.provider === "offline"
+        ? mechanicalCognition()
+        : productionCognition(auditStore, priorModelCostMicros, args.maxSpendUsd, {
+            routine: runtimeModelId,
+            deliberate: runtimeModelId,
+          });
+
     const deps = {
       eventStore,
       stateStore,
@@ -811,8 +859,6 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       provenance: PROVENANCE,
     };
 
-    const startingSequence = startingSnapshot.sequence;
-    const startingSimTime = startingSnapshot.state.simTime;
     for (let offset = 1; offset <= args.turns; offset++) {
       if (args.turnDelayMs > 0 && offset > 1) await sleep(args.turnDelayMs);
       if (clock instanceof FixedClock) clock.advanceSeconds(1);
@@ -890,6 +936,35 @@ async function runDemo(args: ParsedArgs): Promise<void> {
   );
 }
 
+async function resolveInferenceModelForResume(
+  auditStore: FileModelAuditStore,
+  worldId: string,
+  nextSequence: number,
+  configuredModelId: string,
+): Promise<string> {
+  const nextEntry = await auditStore.getEntry(worldId, nextSequence);
+  if (nextEntry === null) {
+    return configuredModelId;
+  }
+  if (nextEntry.response !== null) {
+    throw new Error(
+      `cannot continue: sequence ${nextSequence} already has a recorded response. ` +
+        `Use --reset or start a fresh --world-id to switch model for this run.`,
+    );
+  }
+  if (nextEntry.request?.modelId === undefined) {
+    return configuredModelId;
+  }
+  if (nextEntry.request.modelId !== configuredModelId) {
+    process.stdout.write(
+      `[world] sequence ${nextSequence} was previously started with ${nextEntry.request.modelId}; ` +
+        `continuing with that model for audit continuity.\n`,
+    );
+    return nextEntry.request.modelId;
+  }
+  return configuredModelId;
+}
+
 async function repairStateFromEventLog(
   eventsDirectory: string,
   stateStore: FileStateStore<WorldState>,
@@ -924,8 +999,9 @@ function productionCognition(
   audit: FileModelAuditStore,
   priorModelCostMicros: number,
   maxSpendUsd: string | null,
+  routingOverride?: { readonly routine: string; readonly deliberate: string },
 ): ProviderCognitionService {
-  const routing = resolveModelRouting(process.env);
+  const routing = routingOverride ?? resolveModelRouting(process.env);
   const modelId = routing.routine;
   const bundledRoutinePrices: Readonly<Record<string, PriceTable>> = {
     "gemini-3.5-flash-lite": {

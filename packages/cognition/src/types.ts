@@ -192,6 +192,8 @@ export interface PerceivedTile {
   readonly terrain: string;
   /** Resources visibly present, in integer units. */
   readonly visibleResources: Partial<Record<ResourceKind, number>>;
+  /** Optional observational hints from nearby terrain features (non-canonical). */
+  readonly materialClues?: readonly string[];
 }
 
 /**

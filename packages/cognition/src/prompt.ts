@@ -49,7 +49,7 @@ import {
 } from "./neutral-protocol.js";
 
 /** Prompt format version. Recorded so a change is visible in the audit diff. */
-export const PROMPT_VERSION = 5;
+export const PROMPT_VERSION = 6;
 
 export interface PromptOptions {
   /** Per-untrusted-block character cap. */
@@ -65,7 +65,7 @@ export interface PromptOptions {
 
 const DEFAULTS = {
   maxBlockChars: DEFAULT_MAX_BLOCK_CHARS,
-  maxOutputTokens: 800,
+  maxOutputTokens: 2_048,
   temperature: 0,
 } as const;
 
@@ -167,7 +167,7 @@ export const IMMUTABLE_INHABITANT_PROTOCOL = [
   "",
   "MEMORY",
   "- Use earlier events to avoid mindless repetition.",
-  "- future_note is optional memory for your later self, not a command and not a world fact.",
+  "- Record your best short memory in future_note for next-step continuity. future_note is your private belief aid, never a command.",
   "",
   "No human will choose an action for you or repair the meaning of your response after Genesis.",
 ].join("\n");
@@ -332,6 +332,7 @@ const OUTPUT_CONTRACT = [
   "attempt contains capability, target_ids, parameters, requested_duration_ticks and message.",
   "parameters MUST contain every field required by the selected capability's mechanical parameter contract. Do not return an empty parameters object for move, separate, attach, combine, transfer_matter, transfer_energy, place, use or replicate.",
   "decision_record contains priority_now, basis_ids, basis_summary, expected_local_change, success_test and uncertainties.",
+  "- Always include a concise future_note: at minimum a belief or an intention for what you want to test next.",
   "Rules:",
   "- Include exactly attempt, decision_record and future_note.",
   "- basis_ids may contain only identifiers printed in TURN_PACKET.",
@@ -344,11 +345,17 @@ export function buildSystemPrompt(
   options: Required<PromptOptions>,
 ): { text: string; flags: SanitisationFlag[]; blocks: number } {
   const self = renderSelf(observation.self, options.maxBlockChars);
+  const isBootstrap = Math.floor(observation.simTime / (24 * 60)) < 4;
+  const bootstrapDirective = isBootstrap
+    ? "BOOTSTRAP PHASE\nDuring the first 3 simulated days, you must prefer actions that advance survival and material acquisition (water, food, fuel materials) over waiting/long idles."
+    : "";
 
   const text = [
     IMMUTABLE_INHABITANT_PROTOCOL,
     "",
     self.text,
+    "",
+    bootstrapDirective,
     "",
     CAPABILITY_CONTRACT,
     "",
@@ -496,9 +503,13 @@ function renderSurroundings(
   if (tiles.length > 0) {
     lines.push("", "TERRAIN YOU CAN SEE");
     for (const tile of tiles) {
-      const footing = isImpassable(tile.terrain) ? " [cannot be entered]" : "";
+    const footing = isImpassable(tile.terrain) ? " [cannot be entered]" : "";
+    const clues =
+      tile.materialClues === undefined || tile.materialClues.length === 0
+        ? ""
+        : `; notable materials: ${tile.materialClues.join("; ")}`;
       lines.push(
-        `- [basis_id=observed:tile:${tile.location.x},${tile.location.y}] (${tile.location.x}, ${tile.location.y}) ${tile.terrain}${footing}: ${canonicalJson(tile.visibleResources)}`,
+        `- [basis_id=observed:tile:${tile.location.x},${tile.location.y}] (${tile.location.x}, ${tile.location.y}) ${tile.terrain}${footing}: ${canonicalJson(tile.visibleResources)}${clues}`,
       );
     }
   }
@@ -677,6 +688,10 @@ export function buildCorrectionRequest(
     maxBlockChars,
   );
   const error = sanitiseUntrusted(formatError, 500);
+  const truncatedHint =
+    formatError === "No complete JSON object was found. The object may have been truncated."
+      ? "The previous output was truncated. Return exactly one compact JSON object. "
+      : "";
 
   const userPrompt = [
     original.userPrompt,
@@ -685,7 +700,7 @@ export function buildCorrectionRequest(
     "Your previous answer could not be read as a valid action.",
     priorOutput.rendered,
     `Problem: ${error.text}`,
-    "Answer again. One JSON object, no fence, no prose, no extra keys.",
+    `${truncatedHint}Answer again. One JSON object, no fence, no prose, no extra keys.`,
     "Use only the immutable neutral capability and basis identifiers printed in TURN_PACKET.",
   ].join("\n");
 

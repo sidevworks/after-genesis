@@ -143,9 +143,11 @@ export class GeminiProvider implements ModelProvider {
       }
 
       if (!response.ok) {
+        const diagnostics = await this.#readErrorBody(response);
+        const suffix = diagnostics ? ` ${diagnostics}` : "";
         throw new ModelProviderError(
           "client_error",
-          `Gemini rejected the request with HTTP ${response.status}.`,
+          `Gemini rejected the request with HTTP ${response.status}.${suffix}`,
           { provider: this.name, modelId: request.modelId, httpStatus: response.status, attempts: attempt },
         );
       }
@@ -257,6 +259,23 @@ export class GeminiProvider implements ModelProvider {
       finishReason: candidate?.finishReason ?? "unknown",
     };
   }
+
+  async #readErrorBody(response: Response): Promise<string> {
+    try {
+      const raw = await response.text();
+      if (raw.trim() === "") return "";
+      const parsed = JSON.parse(raw) as unknown;
+      if (typeof parsed === "object" && parsed !== null) {
+        const error = (parsed as { error?: { message?: string } }).error;
+        if (typeof error === "object" && error !== null && typeof error.message === "string") {
+          return error.message;
+        }
+      }
+      return raw.slice(0, 240);
+    } catch {
+      return "";
+    }
+  }
 }
 
 function buildRequestBody(request: ModelRequest): Record<string, unknown> {
@@ -272,12 +291,17 @@ function buildRequestBody(request: ModelRequest): Record<string, unknown> {
     generationConfig["temperature"] = request.temperature;
   }
   if (request.responseSchema !== undefined) {
-    // Gemini's structured JSON mode is a provider hint, not a trust boundary.
-    // The local parser still validates every byte independently. In live canary
-    // runs, the `responseJsonSchema` path repeatedly stopped after a handful of
-    // output tokens for the neutral action contract; `responseSchema` is the
-    // stable field already used by the earlier working simulation contract.
-    generationConfig["responseSchema"] = request.responseSchema;
+    // Gemini 3.5+ currently rejects our richer schema payloads with
+    // transport-level field rejections. Those schemas remain useful as local
+    // guidance, but they cannot be trusted as provider-compatible hints in 3.5+.
+    if (!/^gemini-3\.[56](?:-|$)/.test(request.modelId)) {
+      // Gemini's structured JSON mode is a provider hint, not a trust boundary.
+      // The local parser still validates every byte independently. In live canary
+      // runs, the `responseJsonSchema` path repeatedly stopped after a handful of
+      // output tokens for the neutral action contract; `responseSchema` is the
+      // stable field already used by the earlier working simulation contract.
+      generationConfig["responseSchema"] = request.responseSchema;
+    }
   }
 
   return {

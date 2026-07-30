@@ -7,6 +7,7 @@ type DevStatus = {
   running: boolean;
   provider: "gemini" | "offline";
   model: GeminiModel;
+  deliberateModel: GeminiModel;
   voice: {
     enabled: boolean;
     state: "idle" | "stale" | "rendering" | "ready" | "error";
@@ -32,8 +33,8 @@ type DevStatus = {
   } | null;
 };
 
-type GeminiModel = "gemini-3.6-flash";
-type CognitionMode = "fast-ai" | "deep-ai" | "offline";
+type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
+type ProviderMode = "gemini" | "offline";
 
 const CONTROL_URL = process.env.NEXT_PUBLIC_DEV_WORLD_CONTROL_URL ?? "http://127.0.0.1:8787";
 
@@ -59,18 +60,19 @@ export function DevWorldControls() {
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState("1");
   const [speed, setSpeed] = useState("instant");
-  const [cognitionMode, setCognitionMode] = useState<CognitionMode>("deep-ai");
+  const [providerMode, setProviderMode] = useState<ProviderMode>("gemini");
+  const [fastModel, setFastModel] = useState<GeminiModel>("gemini-3.6-flash");
+  const [deepModel, setDeepModel] = useState<GeminiModel>("gemini-3.6-flash");
   const [voiceEnabled, setVoiceEnabled] = useState(false);
   const liveRefreshRef = useRef(false);
   const lastChainHeadRef = useRef<string | null>(null);
   const cognitionInitializedRef = useRef(false);
 
-  const provider = cognitionMode === "offline" ? "offline" : "gemini";
-  const model: GeminiModel = "gemini-3.6-flash";
+  const provider = providerMode === "offline" ? "offline" : "gemini";
 
-  function modeFromStatus(body: DevStatus): CognitionMode {
+  function modeFromStatus(body: DevStatus): ProviderMode {
     if (body.provider === "offline") return "offline";
-    return "deep-ai";
+    return "gemini";
   }
 
   async function refresh() {
@@ -81,8 +83,13 @@ export function DevWorldControls() {
       setStatus(body);
       if (!cognitionInitializedRef.current) {
         cognitionInitializedRef.current = true;
-        setCognitionMode(modeFromStatus(body));
+        setProviderMode(modeFromStatus(body));
         setVoiceEnabled(body.voice.enabled ?? false);
+        setFastModel(body.model);
+        setDeepModel(body.deliberateModel ?? body.model);
+      } else if (!status?.running) {
+        setFastModel(body.model);
+        setDeepModel(body.deliberateModel ?? body.model);
       }
       setError(null);
       const chainHead = body.summary?.chainHead ?? null;
@@ -105,7 +112,9 @@ export function DevWorldControls() {
       const response = await fetch(`${CONTROL_URL}${path}`, { method: "POST" });
       const body = (await response.json()) as DevStatus & { error?: string };
       setStatus(body);
-      setCognitionMode(modeFromStatus(body));
+      setProviderMode(modeFromStatus(body));
+      setFastModel(body.model);
+      setDeepModel(body.deliberateModel ?? body.model);
       setVoiceEnabled(body.voice.enabled ?? voiceEnabled);
       if (!response.ok) throw new Error(body.error ?? `controller returned ${response.status}`);
       liveRefreshRef.current = true;
@@ -120,13 +129,13 @@ export function DevWorldControls() {
     const value = Number(days);
     const safeDays = Number.isSafeInteger(value) && value >= 1 ? Math.min(value, 365_000) : 1;
     void post(
-      `/advance?days=${safeDays}&speed=${encodeURIComponent(speed)}&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`,
+      `/advance?days=${safeDays}&speed=${encodeURIComponent(speed)}&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
     );
   }
 
   function fastForward(daysToRun: number) {
     void post(
-      `/fast-forward?days=${daysToRun}&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`,
+      `/fast-forward?days=${daysToRun}&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
     );
   }
 
@@ -146,16 +155,51 @@ export function DevWorldControls() {
       <div className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-2 text-xs">
         <span className="eyebrow mr-2 text-amber">Dev world clock</span>
         <select
-          value={cognitionMode}
+          value={providerMode}
           disabled={status?.running}
-          onChange={(event) => setCognitionMode(event.currentTarget.value as CognitionMode)}
+          onChange={(event) => setProviderMode(event.currentTarget.value as ProviderMode)}
           className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
-          aria-label="Cognition mode"
+          aria-label="Cognition provider"
         >
-          <option value="fast-ai">Fast AI · Gemini 3.6 Flash</option>
-          <option value="deep-ai">In-depth AI · Gemini 3.6 Flash</option>
+          <option value="gemini">Gemini</option>
           <option value="offline">No AI · engine-only test</option>
         </select>
+        {providerMode === "gemini" && (
+          <>
+            <label className="mono flex items-center gap-1.5 rounded border border-line px-2 py-1 text-muted">
+              Fast model
+              <select
+                value={fastModel}
+                disabled={status?.running}
+                onChange={(event) => {
+                  const next = event.currentTarget.value as GeminiModel;
+                  setFastModel(next);
+                  if (next === "gemini-3.6-flash") {
+                    setDeepModel(next);
+                  }
+                }}
+                className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
+                aria-label="Fast model"
+              >
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              </select>
+            </label>
+            <label className="mono flex items-center gap-1.5 rounded border border-line px-2 py-1 text-muted">
+              Deep model
+              <select
+                value={deepModel}
+                disabled={status?.running}
+                onChange={(event) => setDeepModel(event.currentTarget.value as GeminiModel)}
+                className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
+                aria-label="Deep model"
+              >
+                <option value="gemini-3.5-flash-lite">Gemini 3.5 Flash Lite</option>
+                <option value="gemini-3.6-flash">Gemini 3.6 Flash</option>
+              </select>
+            </label>
+          </>
+        )}
         <label className="mono flex items-center gap-1.5 rounded border border-line px-2 py-1 text-muted">
           <input
             type="checkbox"
@@ -173,7 +217,7 @@ export function DevWorldControls() {
           disabled={status?.running}
           onClick={() =>
             void post(
-              `/reset?provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`,
+              `/reset?provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
             )
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
@@ -192,7 +236,9 @@ export function DevWorldControls() {
           type="button"
           disabled={status?.running || worldUnavailable}
           onClick={() =>
-            void post(`/advance?days=1&speed=realtime&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)
+            void post(
+              `/advance?days=1&speed=realtime&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
+            )
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -201,7 +247,11 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=fast&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)}
+          onClick={() =>
+            void post(
+              `/advance?days=1&speed=fast&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
+            )
+          }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           24h in 10m
@@ -209,7 +259,11 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=max&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)}
+          onClick={() =>
+            void post(
+              `/advance?days=1&speed=max&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
+            )
+          }
           className="rounded border border-amber-dim bg-amber/10 px-2.5 py-1 text-amber hover:bg-amber/20 disabled:opacity-45"
         >
           24h in 1m
@@ -217,7 +271,11 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=turbo&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)}
+          onClick={() =>
+            void post(
+              `/advance?days=1&speed=turbo&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
+            )
+          }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           24h in 10s
@@ -226,7 +284,9 @@ export function DevWorldControls() {
           type="button"
           disabled={status?.running || worldUnavailable}
           onClick={() =>
-            void post(`/advance?days=1&speed=instant&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)
+            void post(
+              `/advance?days=1&speed=instant&provider=${provider}&model=${fastModel}&deliberateModel=${deepModel}&voice=${voiceEnabled ? "on" : "off"}`,
+            )
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -267,7 +327,7 @@ export function DevWorldControls() {
         </button>
         <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
         <span className="eyebrow text-dim">
-          Fast-forward{provider === "gemini" ? " · paid AI" : " · no AI"}
+          Fast-forward · {provider === "gemini" ? "Gemini" : "no AI"} · fast {fastModel} · deep {deepModel}
         </span>
         {[1, 10, 25, 50, 100].map((daysToRun) => (
           <button

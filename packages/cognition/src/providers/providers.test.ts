@@ -276,35 +276,43 @@ describe("GeminiProvider", () => {
     };
     expect(body.generationConfig).not.toHaveProperty("temperature");
     expect(body.generationConfig["responseMimeType"]).toBe("application/json");
-    expect(body.generationConfig).toHaveProperty("responseSchema");
+    expect(body.generationConfig).not.toHaveProperty("responseSchema");
     expect(body.generationConfig).not.toHaveProperty("responseJsonSchema");
   });
 
-  it("uses the original Gemini schema field for the legacy simulation action contract", async () => {
+  it("omits response schema for 3.5-family models when unsupported by the endpoint", async () => {
     const fetchImpl = vi.fn(async () => jsonResponse(200, geminiOk));
     const provider = new GeminiProvider({ apiKey: "k", fetchImpl });
-    const legacySimulationSchema = {
-      type: "object",
-      properties: {
-        type: { type: "string" },
-        payload: { type: "object" },
-        rationale: { type: "string" },
-      },
-      required: ["type", "payload"],
-    };
-
     await provider.generate({
       ...request,
-      modelId: "gemini-3.6-flash",
-      responseSchema: legacySimulationSchema,
+      modelId: "gemini-3.5-flash-lite",
+      responseSchema: {
+        type: "object",
+      },
     });
-
     const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
     const body = JSON.parse(String(init.body)) as {
       generationConfig: Record<string, unknown>;
     };
-    expect(body.generationConfig["responseSchema"]).toEqual(legacySimulationSchema);
+    expect(body.generationConfig).not.toHaveProperty("responseSchema");
     expect(body.generationConfig).not.toHaveProperty("responseJsonSchema");
+  });
+
+  it("omits response schema for 3.6-family models when unsupported by the endpoint", async () => {
+    const fetchImpl = vi.fn(async () => jsonResponse(200, geminiOk));
+    const provider = new GeminiProvider({ apiKey: "k", fetchImpl });
+    await provider.generate({
+      ...request,
+      modelId: "gemini-3.6-flash",
+      responseSchema: {
+        type: "object",
+      },
+    });
+    const [, init] = fetchImpl.mock.calls[0] as unknown as [string, RequestInit];
+    const body = JSON.parse(String(init.body)) as {
+      generationConfig: Record<string, unknown>;
+    };
+    expect(body.generationConfig).not.toHaveProperty("responseSchema");
   });
 
   it("records the version the provider actually used (§3)", async () => {

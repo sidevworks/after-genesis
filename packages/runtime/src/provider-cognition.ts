@@ -27,6 +27,107 @@ import {
   type CognitionService,
 } from "./turn.js";
 
+const MATERIAL_DISCOVERY_NOTES: ReadonlyArray<string> = [
+  "possible metallic glitter suitable for conductive tools",
+  "dense shard pattern; could be useful in precision devices",
+  "granular sediment that may hold insulating compounds",
+  "compact mineral seam that suggests high-pressure formation",
+  "shiny flakes hint at useful alloys",
+  "dark matrix with possible structural applications",
+  "vein-like texture that could indicate strong structural material",
+  "sticky residue area; useful as sealing or processing input",
+  "bright crystal-like formation with heat-response potential",
+  "soft dust pocket; easy to shape after processing",
+  "hard crust likely durable under repeated stress",
+  "color-shifting particles implying energy-related chemistry",
+  "stable composite-like deposits suitable for transport storage",
+  "water-reliant trace, likely tied to preservation processes",
+  "unusual bonding pattern might make fabrication efficient",
+  "hard-to-replicate mineral texture; likely long-duration utility",
+  "fine powders in the soil can support high-precision casting",
+  "high-clarity grain with likely conductive value",
+  "layered rock that may aid tool edge durability",
+  "organic-lean matrix; possible reactive processing",
+  "soft fracture zone; could be carved into channels",
+  "magnetic response likely; worth checking nearby structures",
+  "chemical streak suggesting multiple processing routes",
+  "coarse aggregate; promising for transport pathways",
+];
+
+const MATERIAL_NAMES: ReadonlyArray<string> = [
+  "Aluminum",
+  "Antimony",
+  "Barite",
+  "Beryllium",
+  "Coal",
+  "Cobalt",
+  "Copper",
+  "Gypsum",
+  "Halite",
+  "Iron Ore",
+  "Kaolin",
+  "Lead",
+  "Limestone",
+  "Lithium",
+  "Manganese",
+  "Molybdenum",
+  "Nickel",
+  "Quartz",
+  "Rare Earths",
+  "Silver",
+  "Sulfur",
+  "Tantalum",
+  "Titanium",
+  "Vanadium",
+  "Zinc",
+];
+
+function hashToUint32(input: string): number {
+  let hash = 0x811c9dc5;
+  for (let i = 0; i < input.length; i++) {
+    hash ^= input.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193) >>> 0;
+  }
+  return hash >>> 0;
+}
+
+function nextUint32(seed: number): number {
+  return (Math.imul(seed, 1664525) + 1013904223) >>> 0;
+}
+
+function materialCluesForTile(
+  worldId: string,
+  x: number,
+  y: number,
+  terrain: string,
+  deposit: Record<string, number>,
+): readonly string[] {
+  const depositSignature = Object.entries(deposit)
+    .filter(([, amount]) => (amount ?? 0) > 0)
+    .map(([kind, amount]) => `${kind}:${amount}`)
+    .sort()
+    .join("|");
+
+  let seed = hashToUint32(
+    `${worldId}|${terrain}|${x},${y}|${depositSignature === "" ? "barren" : depositSignature}`,
+  );
+  const signal = seed & 3;
+  const clueLimit = depositSignature === "" ? (signal === 0 ? 1 : 0) : signal === 0 ? 2 : 1;
+  if (clueLimit === 0) return [];
+
+  const clues: string[] = [];
+  for (let index = 0; index < clueLimit; index++) {
+    seed = nextUint32(seed);
+    const material = MATERIAL_NAMES[seed % MATERIAL_NAMES.length] ?? MATERIAL_NAMES[0]!;
+    const note =
+      MATERIAL_DISCOVERY_NOTES[seed % MATERIAL_DISCOVERY_NOTES.length] ??
+      MATERIAL_DISCOVERY_NOTES[0]!;
+    const clue = `${material}: ${note}`;
+    if (!clues.includes(clue)) clues.push(clue);
+  }
+  return clues;
+}
+
 export interface ProviderCognitionOptions {
   readonly provider: ModelProvider;
   readonly audit: ModelAuditStore;
@@ -382,6 +483,13 @@ function projectObservation(
       location: { x: tile.x, y: tile.y },
       terrain: tile.terrain,
       visibleResources: tile.deposit as Partial<Record<ResourceKind, number>>,
+      materialClues: materialCluesForTile(
+        source.worldId,
+        tile.x,
+        tile.y,
+        tile.terrain,
+        tile.deposit as Record<string, number>,
+      ),
     })),
     // Places already visited that are not currently in view. What is visible is
     // reported by nearbyTiles; repeating it here would spend context restating
