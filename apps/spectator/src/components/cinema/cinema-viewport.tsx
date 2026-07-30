@@ -226,6 +226,7 @@ export function CinemaViewport({
   );
   const totalDays = Math.max(1, Math.ceil(endTick / MINUTES_PER_DAY));
   const playingRef = useRef(false);
+  const voiceHoldingRef = useRef(false);
   const rateRef = useRef(initialRate);
   const skipIdleRef = useRef(true);
 
@@ -338,7 +339,7 @@ export function CinemaViewport({
       const elapsed = Math.min((now - previous) / 1000, MAX_FRAME_SECONDS);
       previous = now;
 
-      if (playingRef.current) {
+      if (playingRef.current && !voiceHoldingRef.current) {
         const next = advance(tickRef.current, elapsed);
         tickRef.current = next >= endTick ? endTick : next;
       }
@@ -366,7 +367,8 @@ export function CinemaViewport({
       const shot = plan?.shots.find(
         (candidate) => tick >= candidate.startTick && tick < candidate.endTick,
       );
-      const subject = frame === null ? null : pickSubject(frame, subjectId);
+      const framedSubjectId = subjectId ?? shot?.subjectId ?? null;
+      const subject = frame === null ? null : pickSubject(frame, framedSubjectId);
       const skipped = skippedRef.current;
       skippedRef.current = null;
 
@@ -548,7 +550,14 @@ export function CinemaViewport({
         onStepCut={stepCut}
       />}
 
-      <ElevenLabsVoicePlayer subject={hud.subject} isVideoPlaying={hud.playing} reel={voiceReel} />
+      <ElevenLabsVoicePlayer
+        subject={hud.subject}
+        isVideoPlaying={hud.playing}
+        reel={voiceReel}
+        onVoiceActivityChange={(speaking) => {
+          voiceHoldingRef.current = speaking;
+        }}
+      />
 
       <p className={broadcast ? "cinema__provenance cinema__provenance--broadcast" : "cinema__provenance"}>
         <strong>Canonical</strong> — position, activity, participants, duration, world clock,

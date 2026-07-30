@@ -43,10 +43,12 @@ export function ElevenLabsVoicePlayer({
   subject = null,
   isVideoPlaying = false,
   reel,
+  onVoiceActivityChange,
 }: {
   readonly subject?: ActorSample | null;
   readonly isVideoPlaying?: boolean;
   readonly reel: string;
+  readonly onVoiceActivityChange?: (speaking: boolean) => void;
 }) {
   const { isPro, openUpgradeModal } = useTier();
   const { manifest, status: manifestStatus } = useVoiceManifest(reel, isPro);
@@ -55,11 +57,13 @@ export function ElevenLabsVoicePlayer({
   const [isAudioUnlocked, setIsAudioUnlocked] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioStatus, setAudioStatus] = useState("Ready");
-  const [playbackSrc, setPlaybackSrc] = useState<string | null>(null);
+  const [playingClip, setPlayingClip] = useState<VoiceClip | null>(null);
 
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const lastPlayedRef = useRef<string | null>(null);
   const playingKindRef = useRef<VoiceClip["kind"] | null>(null);
+  const activeSrcRef = useRef<string | null>(null);
+  const queueRef = useRef<Array<{ clip: VoiceClip; src: string }>>([]);
 
   const segmentId = subject?.segment.id ?? null;
   const clip: VoiceClip | null =
@@ -70,31 +74,27 @@ export function ElevenLabsVoicePlayer({
   /* Playback                                                              */
   /* --------------------------------------------------------------------- */
 
-  const stop = () => {
+  const pause = () => {
     audioRef.current?.pause();
-    playingKindRef.current = null;
     setIsPlaying(false);
+    onVoiceActivityChange?.(false);
   };
 
-  const dialogueIsPlaying = () =>
-    playingKindRef.current === "dialogue" &&
-    audioRef.current !== null &&
-    !audioRef.current.ended &&
-    !audioRef.current.paused;
+  const playClip = (nextClip: VoiceClip, nextSrc: string) => {
+    activeSrcRef.current = nextSrc;
+    lastPlayedRef.current = nextSrc;
+    playingKindRef.current = nextClip.kind;
+    setPlayingClip(nextClip);
+    const element = audioRef.current;
+    if (element === null) return;
+    element.src = nextSrc;
+    element.load();
 
-  const play = () => {
-    if (clipSrc === null) return;
-    setPlaybackSrc(clipSrc);
-
-    window.setTimeout(() => {
-      const element = audioRef.current;
-      if (element === null) return;
-
-      void element
+    void element
         .play()
         .then(() => {
-          playingKindRef.current = clip?.kind ?? null;
           setIsPlaying(true);
+          onVoiceActivityChange?.(true);
           setAudioStatus("Playing rendered ElevenLabs audio");
         })
         .catch((cause: unknown) => {
@@ -102,13 +102,33 @@ export function ElevenLabsVoicePlayer({
           // Reporting it is better than an animation that implies sound.
           setIsPlaying(false);
           playingKindRef.current = null;
+          activeSrcRef.current = null;
+          onVoiceActivityChange?.(false);
           setAudioStatus(
             cause instanceof Error && cause.name === "NotAllowedError"
               ? "Blocked by the browser — press Play"
               : "Audio failed to start",
           );
         });
-    }, 0);
+  };
+
+  const playCurrent = () => {
+    if (clip === null || clipSrc === null) return;
+    playClip(clip, clipSrc);
+  };
+
+  const playNextQueued = () => {
+    const next = queueRef.current.shift();
+    if (next === undefined) {
+      activeSrcRef.current = null;
+      playingKindRef.current = null;
+      setPlayingClip(null);
+      setIsPlaying(false);
+      onVoiceActivityChange?.(false);
+      setAudioStatus("Playback complete");
+      return;
+    }
+    playClip(next.clip, next.src);
   };
 
   const unlockAudio = () => {
@@ -116,28 +136,46 @@ export function ElevenLabsVoicePlayer({
     setAudioStatus(clipSrc === null ? "Ready — no audio for this moment" : "Audio unlocked");
   };
 
-  // Follow the camera. When the director cuts to a new segment, the clip for
-  // that segment plays; when it cuts to one with no rendered audio, we stop
-  // rather than letting the previous line run over an unrelated shot.
+  // Follow the canonical timeline. A clip already speaking is never cut off by
+  // the next camera shot: later dialogue and narration queue in encounter order
+  // and play automatically. One user gesture unlocks the whole continuous reel.
   useEffect(() => {
     if (!isPro || !autoplay || !isAudioUnlocked || !isVideoPlaying) return;
-    if (clipSrc === null) {
-      if (dialogueIsPlaying()) return;
-      stop();
-      lastPlayedRef.current = null;
+    if (clip === null || clipSrc === null) return;
+    if (activeSrcRef.current === clipSrc || lastPlayedRef.current === clipSrc) return;
+    if (queueRef.current.some((entry) => entry.src === clipSrc)) return;
+
+    const element = audioRef.current;
+    if (element !== null && !element.ended && activeSrcRef.current !== null) {
+      queueRef.current.push({ clip, src: clipSrc });
+      setAudioStatus(`Playing voice · ${queueRef.current.length} queued`);
       return;
     }
-    if (lastPlayedRef.current === clipSrc) return;
-    if (dialogueIsPlaying()) return;
-    lastPlayedRef.current = clipSrc;
-    play();
-    // `play` and `stop` close over refs and setters only.
+    playClip(clip, clipSrc);
+    // `playClip` closes over refs and setters only.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isPro, autoplay, isAudioUnlocked, isVideoPlaying, clipSrc]);
+  }, [isPro, autoplay, isAudioUnlocked, isVideoPlaying, clip, clipSrc]);
 
-  // Pausing the 3D playback pauses the voice with it.
+  // Pausing the 3D playback pauses rather than discards the current sentence;
+  // resuming continues it, then drains the queued conversation in order.
   useEffect(() => {
-    if (!isVideoPlaying) stop();
+    const element = audioRef.current;
+    if (element === null || activeSrcRef.current === null) return;
+    if (!isVideoPlaying) {
+      element.pause();
+      setIsPlaying(false);
+      onVoiceActivityChange?.(false);
+      return;
+    }
+    if (isAudioUnlocked && autoplay && element.paused && !element.ended) {
+      void element.play().then(() => {
+        setIsPlaying(true);
+        onVoiceActivityChange?.(true);
+      }).catch(() => {
+        onVoiceActivityChange?.(false);
+        setAudioStatus("Audio failed to resume");
+      });
+    }
   }, [isVideoPlaying]);
 
   /* --------------------------------------------------------------------- */
@@ -175,8 +213,9 @@ export function ElevenLabsVoicePlayer({
   /* Pro tier                                                              */
   /* --------------------------------------------------------------------- */
 
-  const isDialogue = clip?.kind === "dialogue";
-  const speakerName = clip?.speakerName ?? "World Narrator";
+  const displayedClip = playingClip ?? clip;
+  const isDialogue = displayedClip?.kind === "dialogue";
+  const speakerName = displayedClip?.speakerName ?? "World Narrator";
 
   const unavailableReason =
     manifestStatus === "loading"
@@ -192,23 +231,20 @@ export function ElevenLabsVoicePlayer({
 
   return (
     <div className="mx-auto max-w-[84rem] relative overflow-hidden rounded-md border border-amber/30 bg-panel/90 p-4 shadow-xl backdrop-blur-md">
-      {playbackSrc !== null && (
-        <audio
+      <audio
           ref={audioRef}
-          src={playbackSrc}
           preload="auto"
           onEnded={() => {
-            playingKindRef.current = null;
-            setIsPlaying(false);
-            setAudioStatus("Playback complete");
+            playNextQueued();
           }}
           onError={() => {
             playingKindRef.current = null;
             setIsPlaying(false);
+            activeSrcRef.current = null;
+            onVoiceActivityChange?.(false);
             setAudioStatus("Audio file missing from this build");
           }}
         />
-      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-soft pb-3">
         <div className="flex items-center gap-2">
@@ -228,10 +264,14 @@ export function ElevenLabsVoicePlayer({
           {!isAudioUnlocked ? (
             <button
               type="button"
-              onClick={unlockAudio}
+              disabled={clip === null}
+              onClick={() => {
+                unlockAudio();
+                playCurrent();
+              }}
               className="mono flex cursor-pointer items-center gap-1.5 rounded bg-amber px-4 py-1 text-xs font-medium text-abyss shadow-[0_0_12px_rgba(217,164,65,0.4)] hover:bg-amber-bright"
             >
-              🔊 Enable voice audio
+              🔊 Play continuous voice
             </button>
           ) : (
             <button
@@ -262,29 +302,29 @@ export function ElevenLabsVoicePlayer({
             </span>
           </div>
 
-          {clip !== null && (
+            {displayedClip !== null && (
             <span className="mono text-[0.68rem] text-dim">
-              {clip.voiceHandle ?? "narration"} → {clip.providerVoiceId}
+              {displayedClip.voiceHandle ?? "narration"} → {displayedClip.providerVoiceId}
             </span>
           )}
         </div>
 
-        {clip !== null ? (
+        {displayedClip !== null ? (
           <div className="space-y-2">
             <p className="rounded border border-line-soft bg-abyss/80 p-3 text-sm leading-relaxed text-ink italic shadow-inner">
-              &ldquo;{clip.text}&rdquo;
+              &ldquo;{displayedClip.text}&rdquo;
             </p>
 
             {/* §12: generated media must stay distinguishable from canonical
                 action. When a line was rewritten, the record's own words are
                 shown directly beneath it — never replaced by the rewrite. */}
-            {clip.styled && clip.canonicalText !== clip.text && (
+            {displayedClip.styled && displayedClip.canonicalText !== displayedClip.text && (
               <div className="rounded border border-line-soft border-dashed bg-panel-2/40 px-3 py-2">
                 <p className="eyebrow mb-1">Canonical record</p>
-                <p className="mono text-[0.7rem] leading-relaxed text-dim">{clip.canonicalText}</p>
+                <p className="mono text-[0.7rem] leading-relaxed text-dim">{displayedClip.canonicalText}</p>
                 <p className="mt-1 text-[0.65rem] text-dim">
                   Spoken line rewritten from this record by{" "}
-                  <span className="mono">{clip.styleModelId ?? "a language model"}</span>. It adds
+                  <span className="mono">{displayedClip.styleModelId ?? "a language model"}</span>. It adds
                   no fact the record does not contain.
                 </p>
               </div>
@@ -320,8 +360,19 @@ export function ElevenLabsVoicePlayer({
             disabled={clipSrc === null}
             onClick={() => {
               if (!isAudioUnlocked) unlockAudio();
-              if (isPlaying) stop();
-              else play();
+              if (isPlaying) pause();
+              else if (
+                audioRef.current !== null &&
+                activeSrcRef.current !== null &&
+                !audioRef.current.ended
+              ) {
+                void audioRef.current.play().then(() => {
+                  setIsPlaying(true);
+                  onVoiceActivityChange?.(true);
+                });
+              } else {
+                playCurrent();
+              }
             }}
             className={`mono flex cursor-pointer items-center gap-1.5 rounded border px-5 py-1 text-xs font-medium transition-all disabled:cursor-not-allowed disabled:border-line disabled:bg-transparent disabled:text-dim ${
               isPlaying
