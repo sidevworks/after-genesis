@@ -62,6 +62,12 @@ type Status = {
     total: number;
     chainHead: string;
   } | null;
+  progress: {
+    completedTurns: number;
+    targetTurns: number;
+    percent: number;
+    simTime: number;
+  } | null;
 };
 
 let jobRunning = false;
@@ -339,6 +345,38 @@ async function status(): Promise<Status> {
         population?: { living?: number; total?: number };
       };
     };
+    const summary = {
+      simTime: world.summary?.simTime ?? 0,
+      eventCount: world.summary?.eventCount ?? 0,
+      living: world.summary?.population?.living ?? 0,
+      total: world.summary?.population?.total ?? 0,
+      chainHead: world.summary?.chainHead ?? "",
+    };
+    let progress: Status["progress"] = null;
+    const days = Number(/--days (\d+)/.exec(lastCommand ?? "")?.[1] ?? 0);
+    if ((jobRunning || childRunning) && days > 0) {
+      try {
+        const eventRaw = await readFile(
+          resolve(ROOT, RUN_DIR, "events", "after-genesis-demo.jsonl"),
+          "utf8",
+        );
+        const lines = eventRaw.split("\n").filter((line) => line.trim() !== "");
+        const last = JSON.parse(lines.at(-1) ?? "{}") as { simTime?: unknown };
+        const targetTurns = days * 12;
+        const completedTurns = Math.max(
+          0,
+          Math.min(targetTurns, lines.length - summary.eventCount),
+        );
+        progress = {
+          completedTurns,
+          targetTurns,
+          percent: Math.floor((completedTurns * 100) / targetTurns),
+          simTime: typeof last.simTime === "number" ? last.simTime : summary.simTime,
+        };
+      } catch {
+        progress = null;
+      }
+    }
     return {
       running: jobRunning || childRunning,
       provider: activeProvider,
@@ -351,13 +389,8 @@ async function status(): Promise<Status> {
       lastExitCode,
       lastOutput,
       lastError,
-      summary: {
-        simTime: world.summary?.simTime ?? 0,
-        eventCount: world.summary?.eventCount ?? 0,
-        living: world.summary?.population?.living ?? 0,
-        total: world.summary?.population?.total ?? 0,
-        chainHead: world.summary?.chainHead ?? "",
-      },
+      summary,
+      progress,
     };
   } catch {
     return {
@@ -373,6 +406,7 @@ async function status(): Promise<Status> {
       lastOutput,
       lastError,
       summary: null,
+      progress: null,
     };
   }
 }

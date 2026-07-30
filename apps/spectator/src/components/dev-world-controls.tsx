@@ -22,6 +22,12 @@ type DevStatus = {
     total: number;
     chainHead: string;
   } | null;
+  progress: {
+    completedTurns: number;
+    targetTurns: number;
+    percent: number;
+    simTime: number;
+  } | null;
 };
 
 const CONTROL_URL = process.env.NEXT_PUBLIC_DEV_WORLD_CONTROL_URL ?? "http://127.0.0.1:8787";
@@ -115,6 +121,7 @@ export function DevWorldControls() {
 
   if (!enabled) return null;
   const worldUnavailable = status?.summary == null;
+  const progress = status?.progress ?? null;
 
   return (
     <section className="border-b border-line bg-panel/65 px-4 py-2 sm:px-6">
@@ -242,13 +249,32 @@ export function DevWorldControls() {
         ))}
         <span className="mono ml-auto text-dim">
           {status?.running
-            ? latestLine(status.lastOutput) ?? "processing..."
+            ? progress !== null
+              ? `${progress.completedTurns}/${progress.targetTurns} turns · ${progress.percent}% · ${dayOf(
+                  progress.simTime,
+                )}`
+              : latestLine(status.lastOutput) ?? "processing..."
             : status?.summary
               ? `${dayOf(status.summary.simTime)} · ${status.summary.eventCount} events · pop ${status.summary.living}/${status.summary.total}`
               : status
                 ? "controller online · awaiting Genesis"
                 : "controller offline"}
         </span>
+        {status?.running && progress !== null && (
+          <div
+            className="h-1.5 w-full overflow-hidden rounded-full bg-line"
+            role="progressbar"
+            aria-label="Simulation progress"
+            aria-valuemin={0}
+            aria-valuemax={progress.targetTurns}
+            aria-valuenow={progress.completedTurns}
+          >
+            <div
+              className="h-full bg-amber transition-[width] duration-500"
+              style={{ width: `${progress.percent}%` }}
+            />
+          </div>
+        )}
         {provider === "offline" && (
           <span className="text-warn">No autonomous reasoning in this mode</span>
         )}
