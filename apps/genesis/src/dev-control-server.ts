@@ -49,6 +49,7 @@ type Status = {
   provider: CognitionProvider;
   model: GeminiModel;
   voice: {
+    enabled: boolean;
     state: "idle" | "stale" | "rendering" | "ready" | "error";
     lastPublishedAt: string | null;
     error: string | null;
@@ -80,15 +81,16 @@ let lastOutput = "";
 let lastError: string | null = null;
 let currentChild: ChildProcess | null = null;
 let stopRequested = false;
-let activeProvider: CognitionProvider = "offline";
+let activeProvider: CognitionProvider = "gemini";
 let activeModel: GeminiModel =
   process.env.AG_MODEL_ROUTINE === "gemini-3.5-flash-lite"
     ? "gemini-3.5-flash-lite"
     : "gemini-3.6-flash";
+let activeVoiceEnabled = false;
 let voiceState: Status["voice"]["state"] = "idle";
 let voiceLastPublishedAt: string | null = null;
 let voiceError: string | null = null;
-let fastForwardProgress: {
+let simulationProgress: {
   baseEventCount: number;
   targetTurns: number;
   startingSimTime: number;
@@ -180,11 +182,13 @@ function startJob(job: () => Promise<void>): void {
 function startProviderJob(
   provider: CognitionProvider,
   model: GeminiModel,
+  voiceEnabled: boolean,
   job: () => Promise<void>,
 ): void {
   if (jobRunning || childRunning) throw new Error("dev controller is already running a job");
   activeProvider = provider;
   activeModel = model;
+  activeVoiceEnabled = voiceEnabled;
   startJob(job);
 }
 
@@ -247,7 +251,7 @@ async function publishVoice(): Promise<void> {
 }
 
 async function reset(): Promise<void> {
-  fastForwardProgress = null;
+  simulationProgress = null;
   // `--reset` erases the run's events, state and model audit. Clear everything
   // published from the previous run too, so nothing the old world knew or said
   // survives into the new one — including on screen and in rendered audio.
@@ -272,11 +276,11 @@ async function reset(): Promise<void> {
     cognitionEnv(activeProvider, activeModel),
   );
   await exportFixtures();
-  await publishVoice();
+  if (activeVoiceEnabled) await publishVoice();
+  else voiceState = "stale";
 }
 
 async function advance(params: URLSearchParams): Promise<void> {
-  fastForwardProgress = null;
   const days = Number(params.get("days") ?? "1");
   const speed = params.get("speed") ?? "realtime";
   const turnDurationMs = Math.max(1, Math.floor((DAY_DURATION_MS[speed] ?? 0) / 12));
@@ -285,6 +289,12 @@ async function advance(params: URLSearchParams): Promise<void> {
   }
   if (!SPEEDS[speed]) throw new Error("speed must be realtime, fast, max, turbo, or instant");
   const turns = days * 12;
+  const startingEvents = await readLiveEvents();
+  simulationProgress = {
+    baseEventCount: startingEvents.count,
+    targetTurns: turns,
+    startingSimTime: startingEvents.simTime,
+  };
   for (let turn = 1; turn <= turns; turn++) {
     if (stopRequested) throw new Error("dev controller job stopped");
     const started = Date.now();
@@ -306,10 +316,14 @@ async function advance(params: URLSearchParams): Promise<void> {
       cognitionEnv(activeProvider, activeModel),
     );
     await exportFixtures();
-    await publishVoice();
+    if (activeVoiceEnabled) await publishVoice();
     lastOutput = `${lastOutput}\n[dev-clock] published turn ${turn}/${turns}\n`.slice(-12_000);
     const remainingDelay = turnDurationMs - (Date.now() - started);
     if (turn < turns && remainingDelay > 0) await sleep(remainingDelay);
+  }
+  if (!activeVoiceEnabled) {
+    voiceState = "stale";
+    voiceError = null;
   }
 }
 
@@ -320,7 +334,7 @@ async function fastForward(params: URLSearchParams): Promise<void> {
   }
 
   const startingEvents = await readLiveEvents();
-  fastForwardProgress = {
+  simulationProgress = {
     baseEventCount: startingEvents.count,
     targetTurns: days * 12,
     startingSimTime: startingEvents.simTime,
@@ -345,11 +359,11 @@ async function fastForward(params: URLSearchParams): Promise<void> {
   );
   await exportFixtures();
 
-  // Fast-forward is for inspecting long-horizon canonical data. Rendering a
-  // large historical audio backlog would hide completion behind provider work;
-  // it remains an explicit, retryable derived-media step.
-  voiceState = "stale";
-  voiceError = null;
+  if (activeVoiceEnabled) await publishVoice();
+  else {
+    voiceState = "stale";
+    voiceError = null;
+  }
   lastOutput = `${lastOutput}\n[fast-forward] published ${days} simulated day(s); voice pending\n`.slice(
     -12_000,
   );
@@ -380,13 +394,13 @@ async function status(): Promise<Status> {
       chainHead: world.summary?.chainHead ?? "",
     };
     let progress: Status["progress"] = null;
-    if (fastForwardProgress !== null) {
+    if (simulationProgress !== null) {
       try {
         const liveEvents = await readLiveEvents();
-        const targetTurns = fastForwardProgress.targetTurns;
+        const targetTurns = simulationProgress.targetTurns;
         const completedTurns = Math.max(
           0,
-          Math.min(targetTurns, liveEvents.count - fastForwardProgress.baseEventCount),
+          Math.min(targetTurns, liveEvents.count - simulationProgress.baseEventCount),
         );
         progress = {
           completedTurns,
@@ -394,7 +408,7 @@ async function status(): Promise<Status> {
           percent: Math.floor((completedTurns * 100) / targetTurns),
           simTime:
             completedTurns === 0
-              ? fastForwardProgress.startingSimTime
+              ? simulationProgress.startingSimTime
               : liveEvents.simTime,
         };
       } catch {
@@ -406,6 +420,7 @@ async function status(): Promise<Status> {
       provider: activeProvider,
       model: activeModel,
       voice: {
+        enabled: activeVoiceEnabled,
         state: voiceState,
         lastPublishedAt: voiceLastPublishedAt,
         error: voiceError,
@@ -423,6 +438,7 @@ async function status(): Promise<Status> {
       provider: activeProvider,
       model: activeModel,
       voice: {
+        enabled: activeVoiceEnabled,
         state: voiceState,
         lastPublishedAt: voiceLastPublishedAt,
         error: voiceError,
@@ -459,6 +475,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
       startProviderJob(
         parseProvider(url.searchParams),
         parseModel(url.searchParams),
+        parseVoiceEnabled(url.searchParams),
         reset,
       );
       return send(res, 202, await status());
@@ -467,6 +484,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
       startProviderJob(
         parseProvider(url.searchParams),
         parseModel(url.searchParams),
+        parseVoiceEnabled(url.searchParams),
         () => advance(url.searchParams),
       );
       return send(res, 202, await status());
@@ -475,6 +493,7 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
       startProviderJob(
         parseProvider(url.searchParams),
         parseModel(url.searchParams),
+        parseVoiceEnabled(url.searchParams),
         () => fastForward(url.searchParams),
       );
       return send(res, 202, await status());
@@ -510,6 +529,14 @@ function parseModel(params: URLSearchParams): GeminiModel {
     throw new Error("model must be gemini-3.5-flash-lite or gemini-3.6-flash");
   }
   return model;
+}
+
+function parseVoiceEnabled(params: URLSearchParams): boolean {
+  const voice = params.get("voice");
+  if (voice === null) return activeVoiceEnabled;
+  if (voice === "on") return true;
+  if (voice === "off") return false;
+  throw new Error("voice must be on or off");
 }
 
 createServer((req, res) => {

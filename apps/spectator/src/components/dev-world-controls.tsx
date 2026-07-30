@@ -8,6 +8,7 @@ type DevStatus = {
   provider: "gemini" | "offline";
   model: GeminiModel;
   voice: {
+    enabled: boolean;
     state: "idle" | "stale" | "rendering" | "ready" | "error";
     lastPublishedAt: string | null;
     error: string | null;
@@ -32,6 +33,7 @@ type DevStatus = {
 };
 
 type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
+type CognitionMode = "fast-ai" | "deep-ai" | "offline";
 
 const CONTROL_URL = process.env.NEXT_PUBLIC_DEV_WORLD_CONTROL_URL ?? "http://127.0.0.1:8787";
 
@@ -57,11 +59,20 @@ export function DevWorldControls() {
   const [error, setError] = useState<string | null>(null);
   const [days, setDays] = useState("1");
   const [speed, setSpeed] = useState("instant");
-  const [provider, setProvider] = useState<"gemini" | "offline">("offline");
-  const [model, setModel] = useState<GeminiModel>("gemini-3.6-flash");
+  const [cognitionMode, setCognitionMode] = useState<CognitionMode>("deep-ai");
+  const [voiceEnabled, setVoiceEnabled] = useState(false);
   const liveRefreshRef = useRef(false);
   const lastChainHeadRef = useRef<string | null>(null);
-  const providerInitializedRef = useRef(false);
+  const cognitionInitializedRef = useRef(false);
+
+  const provider = cognitionMode === "offline" ? "offline" : "gemini";
+  const model: GeminiModel =
+    cognitionMode === "fast-ai" ? "gemini-3.5-flash-lite" : "gemini-3.6-flash";
+
+  function modeFromStatus(body: DevStatus): CognitionMode {
+    if (body.provider === "offline") return "offline";
+    return body.model === "gemini-3.5-flash-lite" ? "fast-ai" : "deep-ai";
+  }
 
   async function refresh() {
     try {
@@ -69,10 +80,10 @@ export function DevWorldControls() {
       if (!response.ok) throw new Error(`controller returned ${response.status}`);
       const body = (await response.json()) as DevStatus;
       setStatus(body);
-      if (!providerInitializedRef.current) {
-        providerInitializedRef.current = true;
-        setProvider(body.provider);
-        setModel(body.model ?? "gemini-3.6-flash");
+      if (!cognitionInitializedRef.current) {
+        cognitionInitializedRef.current = true;
+        setCognitionMode(modeFromStatus(body));
+        setVoiceEnabled(body.voice.enabled ?? false);
       }
       setError(null);
       const chainHead = body.summary?.chainHead ?? null;
@@ -95,8 +106,8 @@ export function DevWorldControls() {
       const response = await fetch(`${CONTROL_URL}${path}`, { method: "POST" });
       const body = (await response.json()) as DevStatus & { error?: string };
       setStatus(body);
-      setProvider(body.provider);
-      setModel(body.model ?? model);
+      setCognitionMode(modeFromStatus(body));
+      setVoiceEnabled(body.voice.enabled ?? voiceEnabled);
       if (!response.ok) throw new Error(body.error ?? `controller returned ${response.status}`);
       liveRefreshRef.current = true;
       lastChainHeadRef.current = body.summary?.chainHead ?? null;
@@ -110,12 +121,14 @@ export function DevWorldControls() {
     const value = Number(days);
     const safeDays = Number.isSafeInteger(value) && value >= 1 ? Math.min(value, 365_000) : 1;
     void post(
-      `/advance?days=${safeDays}&speed=${encodeURIComponent(speed)}&provider=${provider}&model=${model}`,
+      `/advance?days=${safeDays}&speed=${encodeURIComponent(speed)}&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`,
     );
   }
 
   function fastForward(daysToRun: number) {
-    void post(`/fast-forward?days=${daysToRun}&provider=${provider}&model=${model}`);
+    void post(
+      `/fast-forward?days=${daysToRun}&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`,
+    );
   }
 
   useEffect(() => {
@@ -134,33 +147,36 @@ export function DevWorldControls() {
       <div className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-2 text-xs">
         <span className="eyebrow mr-2 text-amber">Dev world clock</span>
         <select
-          value={provider}
+          value={cognitionMode}
           disabled={status?.running}
-          onChange={(event) =>
-            setProvider(event.currentTarget.value as "gemini" | "offline")
-          }
+          onChange={(event) => setCognitionMode(event.currentTarget.value as CognitionMode)}
           className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
-          aria-label="Cognition provider"
+          aria-label="Cognition mode"
         >
-          <option value="gemini">AI cognition · Gemini</option>
-          <option value="offline">Mechanical engine test · no AI</option>
+          <option value="fast-ai">Fast AI · Gemini 3.5 Flash-Lite</option>
+          <option value="deep-ai">In-depth AI · Gemini 3.6 Flash</option>
+          <option value="offline">No AI · engine-only test</option>
         </select>
-        {provider === "gemini" && (
-          <select
-            value={model}
+        <label className="mono flex items-center gap-1.5 rounded border border-line px-2 py-1 text-muted">
+          <input
+            type="checkbox"
+            checked={voiceEnabled}
             disabled={status?.running}
-            onChange={(event) => setModel(event.currentTarget.value as GeminiModel)}
-            className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
-            aria-label="Gemini model"
-          >
-            <option value="gemini-3.5-flash-lite">Fast experiments · Gemini 3.5 Flash-Lite</option>
-            <option value="gemini-3.6-flash">Higher quality · Gemini 3.6 Flash</option>
-          </select>
-        )}
+            onChange={(event) => {
+              setVoiceEnabled(event.currentTarget.checked);
+              if (event.currentTarget.checked) setSpeed("instant");
+            }}
+          />
+          Voice
+        </label>
         <button
           type="button"
           disabled={status?.running}
-          onClick={() => void post(`/reset?provider=${provider}&model=${model}`)}
+          onClick={() =>
+            void post(
+              `/reset?provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`,
+            )
+          }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           Reset Day 0
@@ -177,7 +193,7 @@ export function DevWorldControls() {
           type="button"
           disabled={status?.running || worldUnavailable}
           onClick={() =>
-            void post(`/advance?days=1&speed=realtime&provider=${provider}&model=${model}`)
+            void post(`/advance?days=1&speed=realtime&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -186,7 +202,7 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=fast&provider=${provider}&model=${model}`)}
+          onClick={() => void post(`/advance?days=1&speed=fast&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           24h in 10m
@@ -194,7 +210,7 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=max&provider=${provider}&model=${model}`)}
+          onClick={() => void post(`/advance?days=1&speed=max&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)}
           className="rounded border border-amber-dim bg-amber/10 px-2.5 py-1 text-amber hover:bg-amber/20 disabled:opacity-45"
         >
           24h in 1m
@@ -202,7 +218,7 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=turbo&provider=${provider}&model=${model}`)}
+          onClick={() => void post(`/advance?days=1&speed=turbo&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           24h in 10s
@@ -211,7 +227,7 @@ export function DevWorldControls() {
           type="button"
           disabled={status?.running || worldUnavailable}
           onClick={() =>
-            void post(`/advance?days=1&speed=instant&provider=${provider}&model=${model}`)
+            void post(`/advance?days=1&speed=instant&provider=${provider}&model=${model}&voice=${voiceEnabled ? "on" : "off"}`)
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -252,7 +268,7 @@ export function DevWorldControls() {
         </button>
         <span className="mx-1 h-5 w-px bg-line" aria-hidden="true" />
         <span className="eyebrow text-dim">
-          Fast-forward{provider === "gemini" ? " · paid Gemini" : " · offline"}
+          Fast-forward{provider === "gemini" ? " · paid AI" : " · no AI"}
         </span>
         {[1, 10, 25, 50, 100].map((daysToRun) => (
           <button
@@ -301,6 +317,11 @@ export function DevWorldControls() {
         </div>
         {provider === "offline" && (
           <span className="text-warn">No autonomous reasoning in this mode</span>
+        )}
+        {provider === "gemini" && (
+          <span className="text-dim">
+            Live-clock speed is a target; sequential AI response time can make it slower
+          </span>
         )}
         {status?.voice.state === "rendering" && (
           <span className="text-amber">Rendering voice…</span>
