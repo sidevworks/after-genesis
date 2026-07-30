@@ -129,7 +129,7 @@ function narrationStyler(env: Readonly<Record<string, string | undefined>>) {
     return null;
   }
   const provider = new GeminiProvider({ apiKey });
-  const modelId = env.AG_MODEL_ROUTINE?.trim() || "gemini-3.5-flash-lite";
+  const modelId = env.AG_MODEL_ROUTINE?.trim() || "gemini-3.6-flash";
   return { modelId, generate: (request: Parameters<typeof provider.generate>[0]) => provider.generate(request) };
 }
 

@@ -928,20 +928,28 @@ function productionCognition(
 ): ProviderCognitionService {
   const routing = resolveModelRouting(process.env);
   const modelId = routing.routine;
-  if (modelId !== "gemini-3.5-flash-lite") {
-    throw new Error(
-      `No verified price table is bundled for ${modelId}. ` +
-        "Set AG_MODEL_ROUTINE=gemini-3.5-flash-lite or add a newly verified price.",
-    );
-  }
-  const prices: PriceTable[] = [
-    {
-      modelId,
+  const bundledRoutinePrices: Readonly<Record<string, PriceTable>> = {
+    "gemini-3.5-flash-lite": {
+      modelId: "gemini-3.5-flash-lite",
       inputMicrosPerMillionTokens: 300_000,
       outputMicrosPerMillionTokens: 2_500_000,
       verifiedOn: "2026-07-28",
     },
-  ];
+    "gemini-3.6-flash": {
+      modelId: "gemini-3.6-flash",
+      inputMicrosPerMillionTokens: 1_500_000,
+      outputMicrosPerMillionTokens: 7_500_000,
+      verifiedOn: "2026-07-30",
+    },
+  };
+  const routinePrice = bundledRoutinePrices[modelId];
+  if (routinePrice === undefined) {
+    throw new Error(
+      `No verified price table is bundled for ${modelId}. ` +
+        "Configure a supported model or add a newly verified price.",
+    );
+  }
+  const prices: PriceTable[] = [routinePrice];
 
   /*
    * The deliberate model (§3: Flash for high-importance cognition).

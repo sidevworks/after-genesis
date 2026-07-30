@@ -168,15 +168,8 @@ function startProviderJob(provider: CognitionProvider, job: () => Promise<void>)
 
 function cognitionEnv(provider: CognitionProvider): NodeJS.ProcessEnv {
   if (provider === "offline") return {};
-  const deliberatePriceConfigured =
-    process.env.AG_PRICE_DELIBERATE_INPUT_MICROS_PER_M !== undefined &&
-    process.env.AG_PRICE_DELIBERATE_OUTPUT_MICROS_PER_M !== undefined &&
-    process.env.AG_PRICE_DELIBERATE_VERIFIED_ON !== undefined;
   return {
     AG_SPEND_ENFORCEMENT: "freeze",
-    ...(!deliberatePriceConfigured
-      ? { AG_MODEL_DELIBERATE: process.env.AG_MODEL_ROUTINE ?? "gemini-3.5-flash-lite" }
-      : {}),
   };
 }
 

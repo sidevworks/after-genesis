@@ -34,12 +34,7 @@ const queue = new CloudTasksTurnQueue({
   serviceAccountEmail: environment.tasksServiceAccount,
 });
 const prices: readonly PriceTable[] = [
-  {
-    modelId: environment.modelId,
-    inputMicrosPerMillionTokens: 300_000,
-    outputMicrosPerMillionTokens: 2_500_000,
-    verifiedOn: "2026-07-28",
-  },
+  priceFor(environment.modelId),
 ];
 const cognition = new ProviderCognitionService({
   provider: geminiFromEnv(process.env),
@@ -131,7 +126,7 @@ function send(response: ServerResponse, status: number, body: unknown): void {
 
 function requiredEnvironment(source: NodeJS.ProcessEnv) {
   const modelId = resolveModelRouting(source).routine;
-  if (modelId !== "gemini-3.5-flash-lite") {
+  if (modelId !== "gemini-3.5-flash-lite" && modelId !== "gemini-3.6-flash") {
     throw new Error(`No verified price table is bundled for configured model ${modelId}`);
   }
   return {
@@ -146,6 +141,23 @@ function requiredEnvironment(source: NodeJS.ProcessEnv) {
     dailySpendUsd: required(source, "AG_SPEND_LIMIT_DAILY_USD"),
     totalSpendUsd: required(source, "AG_SPEND_LIMIT_TOTAL_USD"),
     port: parsePort(source["PORT"] ?? "8080"),
+  };
+}
+
+function priceFor(modelId: string): PriceTable {
+  if (modelId === "gemini-3.6-flash") {
+    return {
+      modelId,
+      inputMicrosPerMillionTokens: 1_500_000,
+      outputMicrosPerMillionTokens: 7_500_000,
+      verifiedOn: "2026-07-30",
+    };
+  }
+  return {
+    modelId,
+    inputMicrosPerMillionTokens: 300_000,
+    outputMicrosPerMillionTokens: 2_500_000,
+    verifiedOn: "2026-07-28",
   };
 }
 
