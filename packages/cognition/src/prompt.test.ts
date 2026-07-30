@@ -12,13 +12,7 @@
  *    sources, into one document does not create an escape between them.
  */
 import { describe, expect, it } from "vitest";
-import {
-  RESPONSE_JSON_SCHEMA,
-  buildCorrectionRequest,
-  buildPrompt,
-  hashRequest,
-} from "./prompt.js";
-import { IMPLEMENTED_ACTIONS } from "@after-genesis/core";
+import { buildCorrectionRequest, buildPrompt, hashRequest } from "./prompt.js";
 import { retrieveMemories } from "./memory.js";
 import { UNTRUSTED_DELIMITERS, countDelimiters } from "./untrusted.js";
 import {
@@ -100,25 +94,20 @@ describe("prompt determinism", () => {
   });
 });
 
-describe("available actions", () => {
-  it("allows the structured provider response to carry a multi-turn intention", () => {
-    const schema = JSON.stringify(RESPONSE_JSON_SCHEMA);
-    expect(schema).toContain('"intention":{"type":"string","maxLength":600}');
-  });
-
-  it("lists only the actions supplied, and lists all of them", () => {
+describe("neutral capability boundary", () => {
+  it("does not disclose the engine's named action catalogue", () => {
     const built = build(makeObservation());
-    for (const action of makeObservation().availableActions) {
-      expect(built.systemPrompt).toContain(`- ${action.type} —`);
-    }
-    // An action the engine did not offer must not appear as an offer.
-    expect(built.systemPrompt).not.toContain("- transfer_property —");
-    expect(built.systemPrompt).not.toContain("- create_inhabitant —");
+    expect(built.systemPrompt).toContain("NEUTRAL CAPABILITIES");
+    expect(built.systemPrompt).toContain("observe, move, separate");
+    expect(built.systemPrompt).not.toContain("create_currency");
+    expect(built.systemPrompt).not.toContain("create_organisation");
+    expect(built.systemPrompt).not.toContain("create_inhabitant");
   });
 
-  it("handles an inhabitant with no legal actions", () => {
-    const built = build(makeObservation({ availableActions: [] }));
-    expect(built.systemPrompt).toContain("you may take no action this turn");
+  it("does not change the constitutional capability vocabulary from a projected action list", () => {
+    const withProjectedActions = build(makeObservation());
+    const withoutProjectedActions = build(makeObservation({ availableActions: [] }));
+    expect(withoutProjectedActions.systemPrompt).toBe(withProjectedActions.systemPrompt);
   });
 
   it("states the confinement restriction when confined", () => {
@@ -128,56 +117,42 @@ describe("available actions", () => {
     );
     expect(built.systemPrompt).toContain("currently confined");
   });
-
-  it("renders visible structure storage without inventing hidden contents", () => {
-    const built = build(makeObservation());
-
-    expect(built.userPrompt).toContain('visible storage: {"food":20,"wood":12}');
-    expect(built.userPrompt).toContain("contents are not visible to you");
-  });
-});
-
-describe("communication guidance", () => {
-  it("tells inhabitants not to use speech as coordinate telemetry", () => {
-    const built = build(makeObservation());
-
-    expect(built.systemPrompt).toContain("If you communicate");
-    expect(built.systemPrompt).toContain("Do not use communication to recite your coordinates");
-  });
-});
-
-describe("minimal social ontology", () => {
-  it("supplies physics without pre-installing social abstractions", () => {
-    const built = build(makeObservation());
-
-    expect(built.systemPrompt).toContain("IMMUTABLE WORLD PHYSICS");
-    expect(built.systemPrompt).toContain("EVIDENCE AND INTERPRETATION");
-    expect(built.systemPrompt).toContain(
-      "A statement does not become a physical fact merely because it is written",
-    );
-    expect(built.systemPrompt).toContain(
-      "No social order or social abstraction is supplied to you",
-    );
-
-    for (const imposedLabel of [
-      "government",
-      "organisation",
-      "currency",
-      "law",
-      "prison",
-      "ownership",
-      "contract",
-      "employment",
-      "company",
-      "economy",
-      "politics",
-    ]) {
-      expect(built.systemPrompt.toLowerCase()).not.toContain(imposedLabel);
-    }
-  });
 });
 
 describe("information boundary (§11E)", () => {
+  it("shows the inhabitant's own current intention as contained authored text", () => {
+    const base = makeObservation();
+    const built = build(
+      makeObservation({
+        self: {
+          ...base.self,
+          currentIntention: {
+            simTime: 12_000,
+            statement: "I am comparing whether covered storage keeps gathered food useful.",
+          },
+        },
+      }),
+    );
+
+    expect(built.systemPrompt).toContain("YOUR CURRENT INTENTION");
+    expect(built.systemPrompt).toContain("covered storage keeps gathered food useful");
+    expect(built.basisIds).toContain("current-intention:12000");
+    expect(built.untrustedBlockCount).toBeGreaterThan(build(base).untrustedBlockCount);
+  });
+
+  it("shows remembered terrain that is outside current sight", () => {
+    const built = build(makeObservation());
+
+    expect(built.userPrompt).toContain("PLACES YOU REMEMBER BUT CANNOT CURRENTLY SEE");
+    expect(built.userPrompt).toContain("[basis_id=remembered:tile:2,9] (2, 9) water [cannot be entered");
+    expect(built.basisIds).toContain("remembered:tile:2,9");
+  });
+
+  it("shows visible storage contents on structures", () => {
+    const built = build(makeObservation());
+    expect(built.userPrompt).toContain("visible storage: {\"food\":20,\"wood\":12}");
+  });
+
   it("does not disclose a health condition the inhabitant does not know about", () => {
     const built = build(makeObservation());
     expect(built.systemPrompt).toContain("sprained ankle");
@@ -321,45 +296,5 @@ describe("format correction (§14.10)", () => {
     const a = buildCorrectionRequest(original, "oops", "bad");
     const b = buildCorrectionRequest(original, "oops", "bad");
     expect(a.userPrompt).toBe(b.userPrompt);
-  });
-});
-
-/* ------------------------------------------------------------------------- */
-/* Offered actions must be emittable                                          */
-/* ------------------------------------------------------------------------- */
-
-/**
- * The failure this guards against is silent and was live for a hundred
- * simulated days.
- *
- * `RESPONSE_JSON_SCHEMA` is described elsewhere as a provider *hint*, and for
- * validation it is: parse.ts is the control. But Gemini enforces a supplied
- * `anyOf` as structured output, so a branch missing from it is an action the
- * model physically cannot emit — no matter that the engine offered it, resolves
- * it and has tests for it. `create_inhabitant` was in that state: specced,
- * resolved, 37 passing tests, and unreachable. The population could not grow and
- * the founder's only unmet need was the one need with no available answer.
- *
- * So the two lists must agree in both directions. An offered action with no
- * branch cannot be chosen; a branch with no offered action teaches the model,
- * across thousands of turns, that proposing unavailable actions is normal.
- */
-describe("every offered action can actually be emitted", () => {
-  const branchTypes = RESPONSE_JSON_SCHEMA.anyOf.map(
-    (branch) => (branch as { properties: { type: { enum: readonly string[] } } }).properties.type.enum[0],
-  );
-
-  it("gives every implemented action a structured-output branch", () => {
-    const missing = IMPLEMENTED_ACTIONS.filter((type) => !branchTypes.includes(type));
-    expect(missing).toEqual([]);
-  });
-
-  it("offers no branch for an action the engine will not resolve", () => {
-    const extra = branchTypes.filter((type) => !IMPLEMENTED_ACTIONS.includes(type as never));
-    expect(extra).toEqual([]);
-  });
-
-  it("names each branch exactly once", () => {
-    expect(new Set(branchTypes).size).toBe(branchTypes.length);
   });
 });

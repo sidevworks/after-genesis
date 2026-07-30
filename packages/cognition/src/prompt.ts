@@ -26,16 +26,13 @@ import { IMPASSABLE_TERRAIN, canonicalJson } from "@after-genesis/core";
 import type { ModelRequest } from "@after-genesis/core";
 import { HashDomain, hashValue } from "@after-genesis/core";
 import type { Sha256Hex } from "@after-genesis/core";
-import type { CognitionLevel } from "@after-genesis/core/schema/action-spec";
 import type { MemoryRecord, ScoredMemory } from "./memory.js";
 import type {
   AuthoredText,
-  AvailableAction,
   Observation,
   PerceivedInhabitant,
   PerceivedStructure,
   PerceivedTile,
-  RememberedPlace,
   SelfView,
 } from "./types.js";
 import {
@@ -45,9 +42,14 @@ import {
   sanitiseUntrusted,
   type SanitisationFlag,
 } from "./untrusted.js";
+import {
+  NEUTRAL_CAPABILITIES,
+  NEUTRAL_RESPONSE_JSON_SCHEMA,
+  collectBasisIds,
+} from "./neutral-protocol.js";
 
 /** Prompt format version. Recorded so a change is visible in the audit diff. */
-export const PROMPT_VERSION = 4;
+export const PROMPT_VERSION = 5;
 
 export interface PromptOptions {
   /** Per-untrusted-block character cap. */
@@ -76,267 +78,9 @@ const DEFAULTS = {
  * returned something else entirely, changes nothing about what the engine will
  * accept.
  */
-const RESPONSE_COORD = {
-  type: "object",
-  properties: { x: { type: "integer" }, y: { type: "integer" } },
-  required: ["x", "y"],
-  additionalProperties: false,
-} as const;
+export const RESPONSE_JSON_SCHEMA = NEUTRAL_RESPONSE_JSON_SCHEMA;
 
-const RESPONSE_BUNDLE = {
-  type: "object",
-  properties: {
-    food: { type: "integer", minimum: 0 },
-    water: { type: "integer", minimum: 0 },
-    wood: { type: "integer", minimum: 0 },
-    stone: { type: "integer", minimum: 0 },
-  },
-  additionalProperties: false,
-} as const;
-
-/**
- * One half of a proposed exchange.
- *
- * Deliberately narrower than the engine's `TradeSideSchema`, which also carries
- * land tiles and currency amounts. Those are legal to trade, but a side with six
- * optional collections in it is a side a small model fills with plausible-looking
- * empty structure. What is offered here is what the world currently has to
- * exchange; the branch widens when land and currency actually exist to move.
- */
-const RESPONSE_TRADE_SIDE = {
-  type: "object",
-  properties: {
-    resources: RESPONSE_BUNDLE,
-    artifactIds: { type: "array", items: { type: "string" } },
-    structureIds: { type: "array", items: { type: "string" } },
-    labourMinutes: { type: "integer", minimum: 0 },
-  },
-  additionalProperties: false,
-} as const;
-
-function responseBranch(
-  type: string,
-  properties: Readonly<Record<string, unknown>>,
-  required: readonly string[] = [],
-): unknown {
-  return {
-    type: "object",
-    properties: {
-      type: { type: "string", enum: [type] },
-      payload: {
-        type: "object",
-        properties,
-        required,
-        additionalProperties: false,
-      },
-      rationale: { type: "string" },
-      intention: { type: "string", maxLength: 600 },
-    },
-    required: ["type", "payload"],
-    additionalProperties: false,
-  };
-}
-
-/**
- * A discriminated structured-output schema. Keeping each action's payload in
- * its own branch prevents similarly named fields from leaking between actions
- * (for example, a restraint note replacing the words in an utterance).
- */
-export const RESPONSE_JSON_SCHEMA = {
-  anyOf: [
-    responseBranch("observe", {}),
-    responseBranch("move", { to: RESPONSE_COORD }, ["to"]),
-    responseBranch("gather", {
-      resource: { type: "string", enum: ["food", "water", "wood", "stone"] },
-    }),
-    responseBranch(
-      "consume",
-      {
-        resource: { type: "string", enum: ["food", "water"] },
-        amount: { type: "integer", minimum: 1 },
-      },
-      ["resource"],
-    ),
-    responseBranch("rest", { minutes: { type: "integer", minimum: 1 } }),
-    responseBranch("wait", { minutes: { type: "integer", minimum: 1 } }),
-    responseBranch(
-      "announce",
-      {
-        message: { type: "string" },
-        scope: { type: "string", enum: ["local", "world"] },
-      },
-      ["message"],
-    ),
-    responseBranch(
-      "communicate",
-      {
-        recipients: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 8 },
-        message: { type: "string" },
-        intendedMinutes: { type: "integer", minimum: 5 },
-      },
-      ["recipients", "message"],
-    ),
-    responseBranch(
-      "build",
-      {
-        structureKind: {
-          type: "string",
-          enum: ["shelter", "storehouse", "workshop", "hall", "wall", "enclosure", "monument", "road"],
-        },
-        coord: RESPONSE_COORD,
-        name: { type: "string" },
-        materials: RESPONSE_BUNDLE,
-      },
-      ["structureKind", "coord", "name", "materials"],
-    ),
-    responseBranch("guard_location", {
-      coord: RESPONSE_COORD,
-      durationMinutes: { type: "integer", minimum: 30 },
-      protectSubjectIds: { type: "array", items: { type: "string" } },
-      protectArtifactIds: { type: "array", items: { type: "string" } },
-    }),
-    responseBranch(
-      "create_artifact",
-      {
-        kind: {
-          type: "string",
-          enum: [
-            "written_work", "image", "design", "song", "script", "play",
-            "performance_record", "research_note", "advertisement", "news_report",
-            "invention", "other",
-          ],
-        },
-        title: { type: "string" },
-        content: { type: "string" },
-        materials: RESPONSE_BUNDLE,
-      },
-      ["kind", "title"],
-    ),
-    responseBranch(
-      "copy_artifact",
-      { sourceArtifactId: { type: "string" }, title: { type: "string" } },
-      ["sourceArtifactId"],
-    ),
-    responseBranch("publish", { artifactId: { type: "string" } }, ["artifactId"]),
-    responseBranch(
-      "transfer_property",
-      {
-        toInhabitantId: { type: "string" },
-        toOrganisationId: { type: "string" },
-        resources: RESPONSE_BUNDLE,
-        artifactIds: { type: "array", items: { type: "string" } },
-        structureIds: { type: "array", items: { type: "string" } },
-        asGift: { type: "boolean" },
-        note: { type: "string" },
-      },
-      [],
-    ),
-    responseBranch(
-      "store_goods",
-      {
-        structureId: { type: "string" },
-        direction: { type: "string", enum: ["deposit", "withdraw"] },
-        resources: RESPONSE_BUNDLE,
-        note: { type: "string" },
-      },
-      ["structureId", "direction", "resources"],
-    ),
-    responseBranch(
-      "offer_trade",
-      {
-        toInhabitantIds: { type: "array", items: { type: "string" } },
-        isOpenOffer: { type: "boolean" },
-        give: RESPONSE_TRADE_SIDE,
-        want: RESPONSE_TRADE_SIDE,
-        expiresInMinutes: { type: "integer", minimum: 1 },
-        message: { type: "string" },
-      },
-      [],
-    ),
-    responseBranch(
-      "accept_trade",
-      { offerId: { type: "string" }, note: { type: "string" } },
-      ["offerId"],
-    ),
-    responseBranch(
-      "reject_trade",
-      { offerId: { type: "string" }, reason: { type: "string" } },
-      ["offerId"],
-    ),
-    responseBranch(
-      "create_currency",
-      {
-        name: { type: "string" },
-        symbol: { type: "string" },
-        initialSupply: { type: "integer", minimum: 0 },
-        supplyRule: {
-          type: "string",
-          enum: ["fixed", "issuer_mint", "backed_issue", "scheduled", "burn_only"],
-        },
-        transferRule: {
-          type: "string",
-          enum: ["free", "issuer_approval", "members_only", "non_transferable"],
-        },
-        ledgerVisibility: { type: "string", enum: ["public", "members", "private"] },
-        governance: {
-          type: "string",
-          enum: ["issuer", "organisation", "holders_vote", "none"],
-        },
-        description: { type: "string" },
-      },
-      ["name", "symbol"],
-    ),
-    responseBranch(
-      "transfer_currency",
-      {
-        currencyId: { type: "string" },
-        toInhabitantId: { type: "string" },
-        amount: { type: "integer", minimum: 1 },
-        memo: { type: "string" },
-      },
-      ["currencyId", "amount"],
-    ),
-    responseBranch(
-      "create_inhabitant",
-      {
-        proposedName: { type: "string" },
-        resourcesCommitted: RESPONSE_BUNDLE,
-        traitHints: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              trait: { type: "string" },
-              emphasis: { type: "integer", minimum: -3, maximum: 3 },
-            },
-            required: ["trait"],
-            additionalProperties: false,
-          },
-        },
-        valueHints: { type: "array", items: { type: "string" } },
-        statedCareMinutesPerDay: { type: "integer", minimum: 0 },
-        statement: { type: "string" },
-      },
-      ["proposedName", "resourcesCommitted"],
-    ),
-    responseBranch(
-      "restrain",
-      {
-        targetId: { type: "string" },
-        structureId: { type: "string" },
-        durationMinutes: { type: "integer", minimum: 1 },
-        message: { type: "string" },
-      },
-      ["targetId", "structureId", "durationMinutes"],
-    ),
-    responseBranch(
-      "release",
-      { targetId: { type: "string" }, message: { type: "string" } },
-      ["targetId"],
-    ),
-  ],
-} as const;
-
+/** Constitutional hash placed in the Genesis manifest before any model call. */
 export interface BuiltPrompt {
   readonly systemPrompt: string;
   readonly userPrompt: string;
@@ -347,6 +91,8 @@ export interface BuiltPrompt {
   readonly untrustedBlockCount: number;
   /** Everything the sanitiser neutralised, sorted and de-duplicated. */
   readonly sanitisationFlags: readonly SanitisationFlag[];
+  /** Every identifier the decision record is permitted to cite. */
+  readonly basisIds: readonly string[];
 }
 
 export interface PromptInput {
@@ -396,112 +142,43 @@ function sortedTexts(values: readonly AuthoredText[]): readonly AuthoredText[] {
   return [...values].sort((a, b) => a.simTime - b.simTime || byCodeUnit(a.id, b.id));
 }
 
-function sortedActions(values: readonly AvailableAction[]): readonly AvailableAction[] {
-  return [...values].sort((a, b) => byCodeUnit(a.type, b.type));
-}
-
 // ---------------------------------------------------------------------------
 // System prompt
 // ---------------------------------------------------------------------------
 
-/**
- * Cognition-level guidance.
- *
- * This is the only place the level changes the *text* of the prompt rather than
- * the size of the context. It is deliberately about horizon and depth, not about
- * capability: §11B is explicit that a deeper level must not hand an inhabitant
- * knowledge or powers it does not have.
- */
-const LEVEL_GUIDANCE: Readonly<Record<CognitionLevel, string>> = {
-  reaction:
-    "This is an immediate reaction. Address what is directly in front of you.",
-  routine: "This is a routine decision. Balance your immediate needs with what you feel like doing next.",
-  conversation:
-    "You are in conversation with another inhabitant. Speak, listen, or engage as you see fit.",
-  planning:
-    "This is a quiet, open moment to think about your life and desires. Consider what you are curious about, what you want to discover, or what you want to create or explore next.",
-  reflection:
-    "This is a moment of reflection. Consider what your experiences mean to you and what drives your curiosity.",
-  study: "You are studying and observing closely. Explore what catches your interest or practice something you want to learn.",
-};
-
-/**
- * The smallest ontology the experiment supplies.
- *
- * These are physical constraints and epistemic rules, not a catalogue of social
- * institutions. An authored declaration remains a declaration; repeated
- * behaviour and shared interpretation may make it socially important, but the
- * engine never promotes it into physical truth.
- */
-const WORLD_PHYSICS = [
-  "IMMUTABLE WORLD PHYSICS",
-  "- Time passes. Every action consumes time and attention.",
-  "- Space and distance exist. Objects and bodies occupy locations.",
-  "- Not all ground can be walked on. Water cannot be entered; it is reached by standing on a tile beside it.",
-  "- Matter, energy and usable resources are finite. Actions may consume them.",
-  "- Observation is local and information is incomplete.",
-  "- Other inhabitants have independent judgement and may cooperate, refuse, conceal, imitate, teach, persuade or deceive.",
-  "- Physical actions have physical consequences. Death is irreversible.",
-  // What the engine actually does, stated without recommending it. The previous
-  // wording — that lineage "requires a consensual relationship between a male
-  // inhabitant and a female inhabitant" — described a mechanic that does not
-  // exist, and told a founder alone in the world that descendants were
-  // impossible. `createInhabitantResolver` takes one creator, charges a heavy
-  // declared cost and three days of exclusive work, and draws the new
-  // inhabitant's traits, values and sex from the world's own randomness.
-  "- A new inhabitant can be made by one existing inhabitant. It costs a great deal of material and a long unbroken stretch of work, and what results is another person with its own judgement, which its creator does not control and cannot undo.",
-  "- Canonical history is append-only. Past events cannot be rewritten.",
+export const IMMUTABLE_INHABITANT_PROTOCOL = [
+  "IMMUTABLE INHABITANT PROTOCOL v1.0",
   "",
-  "EVIDENCE AND INTERPRETATION",
-  "- Distinguish what you directly observe from what someone says, writes, promises or claims.",
-  "- A statement does not become a physical fact merely because it is written, repeated, witnessed or widely accepted.",
-  "- Labels and shared meanings are created by inhabitants, not supplied by the engine.",
-  "- The engine records actions, objects, utterances and observable consequences without deciding their social meaning.",
-  "- Repeating an action may be useful, but unchanged circumstances are not by themselves evidence that repetition will reveal something new.",
+  "You are an inhabitant of a persistent world, not an assistant and not a narrator.",
+  "No civilisational, social, creative, reproductive or survival outcome has been assigned to you.",
+  "Choose what to attempt from your bounded context. The engine alone resolves physical effects.",
+  "",
+  "EPISTEMIC DISCIPLINE",
+  "- TURN_PACKET is your only source for this turn.",
+  "- Keep observed, remembered, reported, inferred and imagined information distinct.",
+  "- Engine-confirmed results are facts about resolution. Your explanations remain beliefs.",
+  "- Do not cite an identifier absent from TURN_PACKET.",
+  "",
+  "AGENCY",
+  "- Submit exactly one ATTEMPT.",
+  "- You may continue, revise or abandon a prior intention.",
+  "- An attempt is not an outcome. Names, descriptions and persuasive language grant no power.",
+  "- Do not invent unavailable matter, energy, access, consent, knowledge or success.",
+  "",
+  "MEMORY",
+  "- Use earlier events to avoid mindless repetition.",
+  "- future_note is optional memory for your later self, not a command and not a world fact.",
+  "",
+  "No human will choose an action for you or repair the meaning of your response after Genesis.",
 ].join("\n");
 
-/**
- * Instinct: what a body knows without being taught (§6, §26).
- *
- * An inhabitant given no priors at all is not a blank slate, it is a creature
- * born without the drives every animal is born with. The first founder died of
- * thirst on the shore of a lake she had found, holding food she did not need,
- * because nothing in her told her that thirst is a thing you must act on before
- * it is urgent. That is not an interesting result about autonomous minds; it is
- * an artefact of withholding what even a beetle has.
- *
- * So this block supplies drives and the felt consequences of a body, and stops
- * there. Every line states something an inhabitant could feel from the inside.
- * None states what to do about it.
- *
- * The distinction is load-bearing. "Thirst is your body needing water" is a
- * sensation. "When thirsty, travel to water and gather it" would be a strategy,
- * and writing strategies here would mean the civilisation that followed was
- * partly ours rather than theirs (§26: do not create fake behaviours). Where to
- * find water, how to carry it, whether to store it, whether to tell anyone else
- * where it is, whether to keep it from them — none of that is here, and none of
- * it should be.
- *
- * Nothing social, technological or economic belongs in this block, ever. No
- * farming, building, trade, medicine, law, writing or counting. Those are the
- * experiment.
- */
-const INSTINCT = [
-  "WHAT YOUR BODY KNOWS",
-  "You were not taught the following. You feel it, the way any animal does.",
-  "- Thirst is your body needing water. It does not pass by itself, and it will kill you.",
-  "- Hunger is your body needing food. The same is true of it.",
-  "- Tiredness is your body needing rest.",
-  "- A need you have satisfied will return. Having enough now is not the same as having enough.",
-  "- Acting costs you energy, and having none leaves you unable to act at all.",
-  "- Pain, injury and sickness mean something is wrong with your body, and untreated things can worsen.",
-  "- What you hold, you keep, and it goes where you go.",
-  "- You are alive, you can die, and death does not reverse.",
-  "",
-  "That is everything you were born knowing. Where anything is, how to reach it, what to do",
-  "with it, what to make, whether to keep it or share it, and what to do with the rest of your",
-  "life are not knowledge you have. You will have to work them out.",
-].join("\n");
+/** Constitutional hash placed in the Genesis manifest before any model call. */
+export const PROMPT_CONSTITUTION_HASH = hashValue(HashDomain.GenesisManifest, {
+  promptVersion: PROMPT_VERSION,
+  protocol: IMMUTABLE_INHABITANT_PROTOCOL,
+  capabilities: NEUTRAL_CAPABILITIES,
+  responseSchema: RESPONSE_JSON_SCHEMA,
+});
 
 function renderSelf(self: SelfView, maxBlockChars: number): {
   text: string;
@@ -522,17 +199,6 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
       `Compute allowance remaining today: ${self.computeAllowance}.`,
   ];
 
-  if (self.lastAction !== undefined && self.lastAction !== null) {
-    lines.push(
-      `Your latest recorded action was ${self.lastAction.type}, begun at simulated minute ${self.lastAction.startedAt} and ending at ${self.lastAction.endedAt}.`,
-    );
-    if (self.lastAction.type === "observe") {
-      lines.push(
-        "Observing again without a changed situation returns the same information. If you are curious to see or try something new, consider exploring new tiles or trying another action.",
-      );
-    }
-  }
-
   if (self.confined) {
     lines.push(
       "You are currently confined. Your available actions below already reflect that restriction.",
@@ -547,21 +213,6 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
   const needs = [...self.needs].sort((a, b) => b.level - a.level || byCodeUnit(a.kind, b.kind));
   if (needs.length > 0) {
     lines.push("", "CURRENT NEEDS (100 = critical)", ...needs.map((n) => `- ${n.kind}: ${n.level}`));
-    const thirst = needs.find((n) => n.kind === "thirst")?.level ?? 0;
-    const hunger = needs.find((n) => n.kind === "hunger")?.level ?? 0;
-    if (thirst >= 40 || hunger >= 40) {
-      lines.push("SURVIVAL PRIORITIES: Your physical needs are rising. Address them before taking other actions.");
-      if (thirst >= 40) {
-        lines.push(
-          "- Thirst is high. Look at your remembered places for water, move to a land tile adjacent to the water, and gather water.",
-        );
-      }
-      if (hunger >= 40) {
-        lines.push(
-          "- Hunger is high. Move to a tile with food deposits and gather/consume food.",
-        );
-      }
-    }
   }
 
   const skills = [...self.skills].sort((a, b) => b.level - a.level || byCodeUnit(a.name, b.name));
@@ -584,22 +235,8 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
   }
 
   lines.push("", `INVENTORY: ${canonicalJson(self.inventory)}`);
-  if (self.artifacts !== undefined && self.artifacts.length > 0) {
-    lines.push("", "ARTIFACTS YOU CURRENTLY POSSESS");
-    for (const artifact of [...self.artifacts].sort((a, b) => byCodeUnit(a.id, b.id))) {
-      lines.push(
-        `- ${artifact.id}: ${artifact.kind}; ${
-          artifact.published ? "published" : "private"
-        }`,
-      );
-    }
-  }
 
-  // What it last said it was doing. Placed before values and goals because it
-  // is the most specific and most recent of the three, and because a plan an
-  // inhabitant cannot see is a plan it does not have.
   if (self.currentIntention !== null) {
-    lines.push("", "WHAT YOU LAST SAID YOU WERE DOING (your own words; change it whenever you like)");
     const block = renderUntrustedBlock(
       {
         kind: "own_intention",
@@ -609,6 +246,10 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
       },
       self.currentIntention.statement,
       maxBlockChars,
+    );
+    lines.push(
+      "",
+      "YOUR CURRENT INTENTION (written by you earlier; you may continue, revise or abandon it)",
     );
     lines.push(block.rendered);
     flags.push(...block.flags);
@@ -664,35 +305,38 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
   return { text: lines.join("\n"), flags, blocks };
 }
 
-function renderAvailableActions(actions: readonly AvailableAction[]): string {
-  if (actions.length === 0) {
-    // Reachable: a confined, exhausted inhabitant may legally do nothing at all.
-    // Saying so plainly is better than an empty list the model will try to fill.
-    return "AVAILABLE ACTIONS\n(none — you may take no action this turn; answer with \"wait\")";
-  }
-  const lines = ["AVAILABLE ACTIONS", "You may propose exactly one of these and nothing else:"];
-  for (const action of sortedActions(actions)) {
-    const hint = action.payloadHint === undefined ? "" : `  payload: ${action.payloadHint}`;
-    lines.push(`- ${action.type} — ${action.description}${hint}`);
-  }
-  return lines.join("\n");
-}
+const CAPABILITY_CONTRACT = [
+  "NEUTRAL CAPABILITIES",
+  `Choose exactly one: ${NEUTRAL_CAPABILITIES.join(", ")}.`,
+  "Mechanical parameter contracts:",
+  '- observe: parameters may contain {"coord":{"x":int,"y":int},"radius":int}; target_ids may name one visible subject.',
+  '- move: parameters must contain {"to":{"x":nonnegative int,"y":nonnegative int}}.',
+  '- separate: parameters must contain {"resource":"food"|"water"|"wood"|"stone"}; optional quantity and coord.',
+  '- attach/combine/place: parameters must contain materials and coord; optional label and form. form may be "assembly","shelter","storehouse","workshop","hall","wall","enclosure","monument","road".',
+  '- transfer_matter/transfer_energy: target_ids names a visible inhabitant or assembly; parameters contains resources and, for an assembly, direction "deposit"|"withdraw".',
+  '- use: parameters must contain {"resource":"food"|"water","amount":positive int}.',
+  "- communicate/propose/respond: message contains your words; target_ids selects visible recipients, or [] for local speech.",
+  "- record: message or parameters.text contains the record; optional label.",
+  "- form_group: parameters must contain label; optional kind, membership_rule, decision_rule, visibility and text. target_ids may name visible invited co-founders.",
+  "- offer_exchange: target_ids names visible recipients; parameters may contain give and want bundles.",
+  "- issue_units: parameters must contain label and symbol; optional supply and visibility.",
+  "- replicate: parameters must contain a proposed label and committed resources; visible co-participants may appear in target_ids.",
+  '- wait: parameters.mode may be "recover"; one requested_duration_tick is 120 simulated minutes and the maximum is 6 ticks.',
+  "The engine may reject any attempt whose geometry, resources, access or payload is invalid.",
+].join("\n");
 
-const OUTPUT_FORMAT = [
-  "OUTPUT FORMAT",
+const OUTPUT_CONTRACT = [
+  "OUTPUT CONTRACT",
   "Answer with a single JSON object and nothing else. No prose, no markdown fence, no commentary.",
-  "Shape:",
-  '{"type": "<one action type from AVAILABLE ACTIONS>", "payload": {...}, "rationale": "<= 2000 chars", "intention": "<optional, <= 600 chars>"}',
+  "The top-level object contains attempt, decision_record and future_note.",
+  "attempt contains capability, target_ids, parameters, requested_duration_ticks and message.",
+  "parameters MUST contain every field required by the selected capability's mechanical parameter contract. Do not return an empty parameters object for move, separate, attach, combine, transfer_matter, transfer_energy, place, use or replicate.",
+  "decision_record contains priority_now, basis_ids, basis_summary, expected_local_change, success_test and uncertainties.",
   "Rules:",
-  "- `type` must be copied exactly from the AVAILABLE ACTIONS list.",
-  "- `payload` must be an object. Use {} when the action takes no arguments.",
-  "- Include no keys other than type, payload, rationale and intention.",
-  "- `intention` is optional and is for anything you are doing that takes longer than this turn. Whatever you write replaces what you wrote before and is shown back to you next turn. Leave it out to keep the one you have.",
-  "- Your answer is a PROPOSAL. The world engine decides what actually happens, and may reject it.",
-  "- You cannot change the world by describing a change. Only the action you propose has any effect.",
-  "- If you communicate, write words one inhabitant would plausibly say to another inhabitant.",
-  "- Do not use communication to recite your coordinates, tile numbers, simulated minute, need scores or action syntax unless another inhabitant specifically asked for those technical facts.",
-  "- Keep rationale concise. Do not debate with yourself or repeat the same uncertainty.",
+  "- Include exactly attempt, decision_record and future_note.",
+  "- basis_ids may contain only identifiers printed in TURN_PACKET.",
+  "- basis_summary explains your basis but cannot alter resolution.",
+  "- future_note is null or {kind,text}.",
 ].join("\n");
 
 export function buildSystemPrompt(
@@ -702,26 +346,15 @@ export function buildSystemPrompt(
   const self = renderSelf(observation.self, options.maxBlockChars);
 
   const text = [
-    "You are an autonomous inhabitant of a persistent simulated world.",
-    "You are not an assistant. You have your own life, your own goals and your own judgement.",
-    "You act by proposing one action per turn.",
-    "No social order or social abstraction is supplied to you. Form your own interpretations from experience.",
-    "",
-    WORLD_PHYSICS,
-    "",
-    // Before the inhabitant's own state, because instinct is what it reads that
-    // state through: needs mean nothing to a creature with no drives.
-    INSTINCT,
+    IMMUTABLE_INHABITANT_PROTOCOL,
     "",
     self.text,
     "",
-    LEVEL_GUIDANCE[observation.cognitionLevel],
-    "",
-    renderAvailableActions(observation.availableActions),
+    CAPABILITY_CONTRACT,
     "",
     UNTRUSTED_POLICY,
     "",
-    OUTPUT_FORMAT,
+    OUTPUT_CONTRACT,
   ].join("\n");
 
   return { text, flags: self.flags, blocks: self.blocks };
@@ -765,7 +398,9 @@ function renderMemories(
     );
     const suffix =
       record.tier === "reflection" ? ` confidence ${record.confidence}/100` : "";
-    lines.push(`[t=${record.simTime}] ${TIER_LABEL[record.tier]}${suffix}`);
+    lines.push(
+      `[basis_id=remembered:${record.id}] [t=${record.simTime}] ${TIER_LABEL[record.tier]}${suffix}`,
+    );
     lines.push(block.rendered);
     flags.push(...block.flags);
     blocks += 1;
@@ -774,17 +409,46 @@ function renderMemories(
   return { text: lines.join("\n"), flags, blocks };
 }
 
-function renderSurroundings(observation: Observation): {
+function renderSurroundings(
+  observation: Observation,
+  maxBlockChars: number,
+): {
   text: string;
   flags: SanitisationFlag[];
+  blocks: number;
 } {
   const flags: SanitisationFlag[] = [];
+  let blocks = 0;
   const { self } = observation;
   const lines = [
-    "SITUATION",
-    `Simulated minute ${observation.simTime}. Your turn number ${observation.turnNumber}.`,
-    `You are at (${self.location.x}, ${self.location.y}) on ${self.terrain} terrain, currently ${self.activity}.`,
+    "TURN_PACKET",
+    `Simulated minute ${observation.simTime}. [basis_id=turn:${observation.turnNumber}]`,
+    `[basis_id=self:${self.id}] You are at (${self.location.x}, ${self.location.y}) on ${self.terrain} terrain, currently ${self.activity}.`,
   ];
+  if (self.lastAction != null) {
+    lines.push(
+      `[basis_id=previous-attempt:${self.lastAction.startedAt}] Your previous engine-recorded action was ${self.lastAction.type}, from minute ${self.lastAction.startedAt} to ${self.lastAction.endedAt}.`,
+    );
+  }
+  lines.push(`Cognition mode this turn: ${observation.cognitionLevel}.`);
+  if (self.currentIntention !== null) {
+    const block = renderUntrustedBlock(
+      {
+        kind: "own_current_intention",
+        authorId: self.id,
+        authorName: self.displayName,
+        simTime: self.currentIntention.simTime,
+      },
+      self.currentIntention.statement,
+      maxBlockChars,
+    );
+    lines.push(
+      `[basis_id=current-intention:${self.currentIntention.simTime}] Your latest stated intention follows. It is your earlier belief, not a command.`,
+    );
+    lines.push(block.rendered);
+    flags.push(...block.flags);
+    blocks += 1;
+  }
 
   for (const notice of [...observation.worldNotices].sort(byCodeUnit)) {
     lines.push(`- ${notice}`);
@@ -806,7 +470,7 @@ function renderSurroundings(observation: Observation): {
           ? "you have never met"
           : `your feeling towards them: ${person.relationshipSentiment} (-100..100)`;
       lines.push(
-        `- ${name.text.replace(/\n/g, " ")} (${person.id}) at (${person.location.x}, ${person.location.y}), ` +
+        `- [basis_id=observed:inhabitant:${person.id}] ${name.text.replace(/\n/g, " ")} (${person.id}) at (${person.location.x}, ${person.location.y}), ` +
           `${person.distance} tiles away, appears to be ${person.visibleActivity}; ` +
           `${sentiment}, ${person.interactionCount} prior interactions`,
       );
@@ -817,16 +481,13 @@ function renderSurroundings(observation: Observation): {
   if (structures.length > 0) {
     lines.push("", "STRUCTURES YOU CAN SEE");
     for (const structure of structures) {
-      const possessionRecord =
-        structure.ownerId === null
-          ? "no recorded possessor"
-          : `recorded as possessed by ${structure.ownerId}; this record is a claim, not physical authority`;
+      const owner = structure.ownerId === null ? "unowned" : `owned by ${structure.ownerId}`;
       const storage =
         structure.visibleStorage === null
           ? "contents are not visible to you"
           : `visible storage: ${canonicalJson(structure.visibleStorage)}`;
       lines.push(
-        `- ${structure.kind} (${structure.id}) at (${structure.location.x}, ${structure.location.y}), ${possessionRecord}; ${storage}`,
+        `- [basis_id=observed:structure:${structure.id}] ${structure.kind} (${structure.id}) at (${structure.location.x}, ${structure.location.y}), ${owner}; ${storage}`,
       );
     }
   }
@@ -837,68 +498,34 @@ function renderSurroundings(observation: Observation): {
     for (const tile of tiles) {
       const footing = isImpassable(tile.terrain) ? " [cannot be entered]" : "";
       lines.push(
-        `- (${tile.location.x}, ${tile.location.y}) ${tile.terrain}${footing}: ${canonicalJson(tile.visibleResources)}`,
+        `- [basis_id=observed:tile:${tile.location.x},${tile.location.y}] (${tile.location.x}, ${tile.location.y}) ${tile.terrain}${footing}: ${canonicalJson(tile.visibleResources)}`,
       );
     }
   }
 
-  const remembered = renderRememberedPlaces(observation.rememberedPlaces);
+  const remembered = [...observation.rememberedPlaces].sort(
+    (a, b) =>
+      a.distance - b.distance ||
+      a.location.y - b.location.y ||
+      a.location.x - b.location.x,
+  );
   if (remembered.length > 0) {
-    lines.push("", "PLACES YOU HAVE BEEN (out of sight now, from memory)");
-    lines.push(...remembered);
+    lines.push("", "PLACES YOU REMEMBER BUT CANNOT CURRENTLY SEE");
+    for (const place of remembered) {
+      const footing = isImpassable(place.terrain)
+        ? " [cannot be entered; stand on adjacent land to use reachable resources]"
+        : "";
+      lines.push(
+        `- [basis_id=remembered:tile:${place.location.x},${place.location.y}] (${place.location.x}, ${place.location.y}) ${place.terrain}${footing}, ${place.distance} tiles away`,
+      );
+    }
   }
 
-  return { text: lines.join("\n"), flags };
+  return { text: lines.join("\n"), flags, blocks };
 }
 
-/**
- * Whether a body can stand on this ground.
- *
- * The cognition layer carries terrain as a plain string, so the engine's set is
- * consulted by name. An inhabitant that is not told which ground it cannot
- * enter will walk into the lake it is trying to drink from.
- */
 function isImpassable(terrain: string): boolean {
   return (IMPASSABLE_TERRAIN as ReadonlySet<string>).has(terrain);
-}
-
-/** How many remembered places to recall per kind of ground. */
-const REMEMBERED_PER_TERRAIN = 3;
-
-/**
- * The nearest few places of each kind of ground the inhabitant has walked.
- *
- * Grouped by terrain and capped rather than listed whole: a long life visits
- * thousands of tiles, and spending the context window on all of them would
- * crowd out everything else while answering no question better than "the
- * closest water I know of is here" does. Nearest-first because distance is
- * what makes a remembered place reachable or not.
- */
-function renderRememberedPlaces(places: readonly RememberedPlace[]): string[] {
-  const byTerrain = new Map<string, RememberedPlace[]>();
-  for (const place of places) {
-    const group = byTerrain.get(place.terrain);
-    if (group === undefined) byTerrain.set(place.terrain, [place]);
-    else group.push(place);
-  }
-
-  const lines: string[] = [];
-  for (const terrain of [...byTerrain.keys()].sort()) {
-    const nearest = [...(byTerrain.get(terrain) ?? [])]
-      .sort(
-        (a, b) =>
-          a.distance - b.distance ||
-          a.location.x - b.location.x ||
-          a.location.y - b.location.y,
-      )
-      .slice(0, REMEMBERED_PER_TERRAIN);
-    const rendered = nearest
-      .map((place) => `(${place.location.x}, ${place.location.y}) ${place.distance} away`)
-      .join(", ");
-    const footing = isImpassable(terrain) ? " [cannot be entered; stand on an adjacent land tile to gather or drink]" : "";
-    lines.push(`- ${terrain}${footing}: ${rendered}`);
-  }
-  return lines;
 }
 
 function renderAuthoredTexts(
@@ -925,6 +552,7 @@ function renderAuthoredTexts(
       item.body,
       maxBlockChars,
     );
+    lines.push(`[basis_id=reported:${item.id}]`);
     lines.push(block.rendered);
     flags.push(...block.flags);
     blocks += 1;
@@ -937,20 +565,20 @@ export function buildUserPrompt(
   memories: readonly ScoredMemory[],
   options: Required<PromptOptions>,
 ): { text: string; flags: SanitisationFlag[]; blocks: number } {
-  const surroundings = renderSurroundings(observation);
+  const surroundings = renderSurroundings(observation, options.maxBlockChars);
   const authored = renderAuthoredTexts(observation.authoredTexts, options.maxBlockChars);
   const memory = renderMemories(memories, options.maxBlockChars);
 
   const sections = [surroundings.text, memory.text];
   if (authored.text !== "") sections.push(authored.text);
   sections.push(
-    "Decide what you do now. Answer with one JSON action object and nothing else.",
+    "Choose one attempt from this TURN_PACKET. Answer with the required JSON object and nothing else.",
   );
 
   return {
     text: sections.join("\n\n"),
     flags: [...surroundings.flags, ...authored.flags, ...memory.flags],
-    blocks: authored.blocks + memory.blocks,
+    blocks: surroundings.blocks + authored.blocks + memory.blocks,
   };
 }
 
@@ -986,6 +614,7 @@ export function buildPrompt(input: PromptInput): BuiltPrompt {
   };
 
   const requestHash = hashRequest(request);
+  const basisIds = collectBasisIds(input.observation, input.memories);
 
   return {
     systemPrompt: system.text,
@@ -994,6 +623,7 @@ export function buildPrompt(input: PromptInput): BuiltPrompt {
     requestHash,
     untrustedBlockCount: system.blocks + user.blocks,
     sanitisationFlags: [...new Set([...system.flags, ...user.flags])].sort(),
+    basisIds,
   };
 }
 
@@ -1056,7 +686,7 @@ export function buildCorrectionRequest(
     priorOutput.rendered,
     `Problem: ${error.text}`,
     "Answer again. One JSON object, no fence, no prose, no extra keys.",
-    "Use only an action type from the AVAILABLE ACTIONS list in your instructions.",
+    "Use only the immutable neutral capability and basis identifiers printed in TURN_PACKET.",
   ].join("\n");
 
   return { ...original, userPrompt };

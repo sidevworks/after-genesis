@@ -169,6 +169,42 @@ export function spoilCarriedFood(
   return { state: recordDestroyed(next, { food: lost }), destroyed: { food: lost } };
 }
 
+const CHILD_MATURITY_MINUTES = MINUTES_PER_DAY;
+const ADOLESCENT_MATURITY_MINUTES = 2 * MINUTES_PER_DAY;
+const ADULT_MATURITY_MINUTES = 3 * MINUTES_PER_DAY;
+
+function maturityStageForAge(ageMinutes: number): number {
+  if (ageMinutes >= ADULT_MATURITY_MINUTES) return 3;
+  if (ageMinutes >= ADOLESCENT_MATURITY_MINUTES) return 2;
+  if (ageMinutes >= CHILD_MATURITY_MINUTES) return 1;
+  return 0;
+}
+
+/**
+ * Deterministic development (§11B).
+ *
+ * Creation starts an inhabitant at stage 0. Without a world tick that can move
+ * that number, descendants never reach the adult vocabulary and a multi-
+ * generation experiment is structurally impossible. This is age-gated and
+ * health-gated, not an assigned life path: it unlocks possible actions, never a
+ * chosen goal.
+ */
+export function advanceMaturity(state: WorldState, now: SimTime): WorldState {
+  let next = state;
+  for (const inhabitant of sortedValues(state.inhabitants)) {
+    if (inhabitant.status !== "alive") continue;
+    if (inhabitant.needs.hunger >= 90 || inhabitant.needs.thirst >= 90) continue;
+    const ageMinutes = Math.max(0, now - inhabitant.birthTime);
+    const stage = maturityStageForAge(ageMinutes);
+    if (stage <= inhabitant.maturity) continue;
+    next = updateInhabitant(next, inhabitant.id, (current) => ({
+      ...current,
+      maturity: stage,
+    }));
+  }
+  return next;
+}
+
 /**
  * Spend a cost from what an inhabitant carries, drawing on stores at its feet
  * for whatever will not fit in a pack.
@@ -416,7 +452,8 @@ export function worldTick(
       }));
     }
   }
-  const settled = closeExpiredActivities(replenished, now);
+  const matured = advanceMaturity(replenished, now);
+  const settled = closeExpiredActivities(matured, now);
   const spoiled = spoilCarriedFood(settled, state.simTime, now);
   return advanceHealth(spoiled.state, now, sequence);
 }

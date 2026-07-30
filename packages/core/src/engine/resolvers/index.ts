@@ -46,6 +46,14 @@ import { releaseResolver, restrainResolver } from "./restraint.js";
 import { createInhabitantResolver } from "./lineage.js";
 import { createCurrencyResolver, transferCurrencyResolver } from "./currency.js";
 import {
+  createOrganisationResolver,
+  inviteMemberResolver,
+  joinOrganisationResolver,
+  leaveOrganisationResolver,
+  proposeRuleResolver,
+  voteResolver,
+} from "./organisations.js";
+import {
   acceptTradeResolver,
   offerTradeResolver,
   rejectTradeResolver,
@@ -72,6 +80,7 @@ export { settleExpiredActivities } from "./effects.js";
  * is a prefix that will eventually disagree.
  */
 export const INTENTION_PREFIX = "Intention:";
+export const FUTURE_NOTE_PREFIX = "Future note";
 
 /**
  * The honest placeholder.
@@ -126,6 +135,12 @@ export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "reject_trade",
   "create_currency",
   "transfer_currency",
+  "create_organisation",
+  "invite_member",
+  "join_organisation",
+  "leave_organisation",
+  "propose_rule",
+  "vote",
   "create_inhabitant",
   "restrain",
   "release",
@@ -153,6 +168,12 @@ const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
   reject_trade: rejectTradeResolver,
   create_currency: createCurrencyResolver,
   transfer_currency: transferCurrencyResolver,
+  create_organisation: createOrganisationResolver,
+  invite_member: inviteMemberResolver,
+  join_organisation: joinOrganisationResolver,
+  leave_organisation: leaveOrganisationResolver,
+  propose_rule: proposeRuleResolver,
+  vote: voteResolver,
   create_inhabitant: createInhabitantResolver,
   restrain: restrainResolver,
   release: releaseResolver,
@@ -398,6 +419,20 @@ function rememberTurn(
       simTime: now,
       kind: "reflection",
       summary: `${INTENTION_PREFIX} ${intention}`,
+      participants: [actorId],
+      sequence,
+      revisionOf: null,
+    });
+  }
+
+  const futureNote = action.futureNote;
+  if (futureNote != null && futureNote.text.trim() !== "") {
+    state = putMemory(state, {
+      id: deriveMemoryId(state.worldId, sequence, discriminator++),
+      owner: actorId,
+      simTime: now,
+      kind: "reflection",
+      summary: `${FUTURE_NOTE_PREFIX} [${futureNote.kind}]: ${futureNote.text.trim()}`,
       participants: [actorId],
       sequence,
       revisionOf: null,

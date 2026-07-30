@@ -37,6 +37,10 @@ const GUARD = getActionSpec("guard_location");
  * reading §5 rather than derived.
  */
 const STORAGE_PER_MATERIAL: Readonly<Record<string, number>> = {
+  // A neutral arrangement of matter. It persists and can hold a bounded amount
+  // because arranged matter occupies volume; it gains no shelter or security
+  // affordance merely because its maker gives it an ambitious name.
+  assembly: 4,
   storehouse: 40,
   workshop: 8,
   hall: 6,

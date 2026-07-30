@@ -186,6 +186,31 @@ export interface ActionSpec {
 /** The registry every resolver and the cognition prompt builder read from. */
 export type ActionCatalogue = Readonly<Record<ActionType, ActionSpec>>;
 
+export const DecisionRecordSchema = z.object({
+  priorityNow: z.string().min(1).max(600),
+  basisIds: z.array(z.string().min(1).max(160)).max(64),
+  basisSummary: z.string().min(1).max(2000),
+  expectedLocalChange: z.string().min(1).max(1200),
+  successTest: z.string().min(1).max(1200),
+  uncertainties: z.array(z.string().min(1).max(600)).max(32),
+});
+export type DecisionRecord = z.infer<typeof DecisionRecordSchema>;
+
+export const FutureNoteSchema = z.object({
+  kind: z.enum(["belief", "intention", "question", "observation", "reminder"]),
+  text: z.string().min(1).max(1200),
+});
+export type FutureNote = z.infer<typeof FutureNoteSchema>;
+
+export const SubmittedAttemptSchema = z.object({
+  capability: z.string().min(1).max(64),
+  targetIds: z.array(z.string().min(1).max(160)).max(64),
+  parameters: z.unknown(),
+  requestedDurationTicks: z.number().int().min(1).max(10_000),
+  message: z.string().max(4000).nullable(),
+});
+export type SubmittedAttempt = z.infer<typeof SubmittedAttemptSchema>;
+
 /**
  * An action proposed by a model, before validation.
  * `type` is checked against the catalogue; everything else is untrusted (§2).
@@ -195,6 +220,15 @@ export const ProposedActionSchema = z.object({
   payload: z.unknown(),
   /** The model's stated reason. Recorded for audit; never affects resolution. */
   rationale: z.string().max(2000).optional(),
+  /**
+   * Prospective record supplied before resolution. It is audit evidence and
+   * memory input only; resolvers must never use it to decide an outcome.
+   */
+  decisionRecord: DecisionRecordSchema.optional(),
+  /** Exact neutral attempt that was deterministically translated at the boundary. */
+  submittedAttempt: SubmittedAttemptSchema.optional(),
+  /** Inhabitant-authored note for possible later recall. */
+  futureNote: FutureNoteSchema.nullable().optional(),
   /**
    * What the inhabitant takes itself to be doing across more than this turn.
    *

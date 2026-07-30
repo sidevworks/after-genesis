@@ -180,6 +180,11 @@ function organisation(o: Organisation): Normal {
     name: o.name,
     kind: o.kind,
     founder: o.founder,
+    purpose: o.purpose ?? null,
+    charter: o.charter ?? "",
+    membershipRule: o.membershipRule ?? "invitation",
+    decisionRule: o.decisionRule ?? "founder",
+    invited: sortedCopy(o.invited ?? []),
     members: sortedCopy(o.members),
     membershipDisclosed: o.membershipDisclosed,
     // Rules are ordered by adoption; sorted by id to remove insertion-order
@@ -188,9 +193,13 @@ function organisation(o: Organisation): Normal {
       .sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
       .map((r) => ({
         id: r.id,
+        title: r.title ?? "",
         text: r.text,
         proposedBy: r.proposedBy,
         adopted: r.adopted,
+        votes: Object.fromEntries(
+          Object.entries(r.votes ?? {}).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+        ),
         sequence: r.sequence,
       })),
     property: bundle(o.property),

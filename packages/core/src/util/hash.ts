@@ -26,6 +26,7 @@ export const HashDomain = {
   ModelResponse: "after-genesis/v1/model-response",
   Rng: "after-genesis/v1/rng",
   GenesisConfig: "after-genesis/v1/genesis-config",
+  GenesisManifest: "after-genesis/v1/genesis-manifest",
 } as const;
 
 export type HashDomainTag = (typeof HashDomain)[keyof typeof HashDomain];

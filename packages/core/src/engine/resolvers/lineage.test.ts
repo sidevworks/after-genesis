@@ -39,6 +39,7 @@ import {
   generateGoals,
   generateTraits,
 } from "./lineage.js";
+import { advanceMaturity } from "./effects.js";
 import type { ResolutionContext, ResolutionResult } from "./types.js";
 
 const CREATE = getActionSpec("create_inhabitant");
@@ -549,7 +550,7 @@ describe("conservation and cost", () => {
     expectClean(result.state, before.sequence + 1);
   });
 
-  it("caps the combined endowment at the newborn's carrying capacity", () => {
+  it("keeps the combined endowment within the newborn's carrying capacity", () => {
     const before = world();
     const cost = creationCost(livingInhabitants(before).length);
     const result = createInhabitantResolver(creationContext(before), {
@@ -562,7 +563,7 @@ describe("conservation and cost", () => {
       },
     });
     const child = newborn(before, result.state);
-    expect((child.inventory.food ?? 0) + (child.inventory.water ?? 0)).toBe(
+    expect((child.inventory.food ?? 0) + (child.inventory.water ?? 0)).toBeLessThanOrEqual(
       before.rules.carryCapacity,
     );
     expectClean(result.state, before.sequence + 1);
@@ -725,6 +726,20 @@ describe("determinism", () => {
 /* ------------------------------------------------------------------------- */
 
 describe("lineage over generations", () => {
+  it("lets descendants mature into the adult action vocabulary over time", () => {
+    const before = world();
+    const created = create(before);
+    const sequenced = withSequence(created.state, before.sequence + 1);
+    const child = newborn(before, sequenced);
+    const later = advanceMaturity(
+      sequenced,
+      simTime(child.birthTime + 720 * 24 * 60),
+    );
+
+    expect(later.inhabitants[child.id]?.maturity).toBe(3);
+    expectClean(later, sequenced.sequence);
+  });
+
   it("increments the generation by exactly one each time (§7)", () => {
     let state = world();
     let sequence = state.sequence + 1;

@@ -205,6 +205,11 @@ const DELIBERATE_LEVELS: ReadonlySet<CognitionLevel> = new Set<CognitionLevel>([
  * whose names are self-describing.
  */
 const PAYLOAD_HINTS: Partial<Record<string, string>> = {
+  move: '{ "to": { "x": <integer>, "y": <integer> } }',
+  gather: '{ "resource": "food"|"water"|"wood"|"stone" }',
+  consume: '{ "resource": "food"|"water", "amount": <positive integer> }',
+  rest: '{ "minutes": <positive integer> }',
+  wait: '{ "minutes": <positive integer> }',
   announce: '{ "message": <what you choose to say>, "scope": "local" or "world" }',
   communicate:
     '{ "recipients": [<nearby id>], "message": <what you choose to say>, "intendedMinutes": 5 }',
@@ -222,6 +227,18 @@ const PAYLOAD_HINTS: Partial<Record<string, string>> = {
     '{ "name": <text>, "symbol": <short text>, "initialSupply": <integer>, "supplyRule": "fixed"|"issuer_mint"|"backed_issue"|"scheduled"|"burn_only", "transferRule": "free"|"issuer_approval"|"members_only"|"non_transferable", "ledgerVisibility": "public"|"members"|"private", "governance": "issuer"|"organisation"|"holders_vote"|"none", "description": <text> }',
   transfer_currency:
     '{ "currencyId": <a currency that exists>, "toInhabitantId": <nearby id>, "amount": <integer you hold>, "memo": <optional words> }',
+  create_organisation:
+    '{ "name": <text>, "kind": "household"|"partnership"|"business"|"guild"|"school"|"medical_group"|"artistic_collective"|"philosophical_group"|"council"|"government"|"opposition_group"|"other", "purpose": <text>, "charter": <text>, "foundingMemberIds": [<nearby ids>], "membershipRule": "open"|"invitation"|"founder_approval"|"member_vote", "decisionRule": "founder"|"unanimous"|"majority"|"supermajority"|"council"|"none", "accountingVisibility": "public"|"members"|"private", "seat": null }',
+  invite_member:
+    '{ "organisationId": <organisation id>, "inviteeIds": [<inhabitant ids>], "role": <optional text>, "message": <optional words>, "termsContractId": null }',
+  join_organisation:
+    '{ "organisationId": <organisation id>, "invitationId": null, "role": <optional text>, "statement": <optional words> }',
+  leave_organisation:
+    '{ "organisationId": <organisation id>, "reason": <optional words>, "transferRoleToId": null, "claimedProperty": {} }',
+  propose_rule:
+    '{ "organisationId": <organisation id>, "title": <text>, "text": <rule text>, "appliesTo": "members"|"organisation_property"|"claimed_territory"|"all_inhabitants", "proposedEnforcement": <optional words>, "replacesRuleId": null, "votingPeriodMinutes": <integer> }',
+  vote:
+    '{ "organisationId": <organisation id>, "proposalId": <proposal id>, "choice": "for"|"against"|"abstain", "weightClaimed": 1, "statement": <optional words> }',
   create_inhabitant:
     '{ "proposedName": <text>, "resourcesCommitted": {"food": <integer>, "water": <integer>, "wood": <integer>, "stone": <integer>}, "traitHints": [], "valueHints": [], "statedCareMinutesPerDay": <integer>, "statement": <optional words> }',
   store_goods:
@@ -234,13 +251,6 @@ const PAYLOAD_HINTS: Partial<Record<string, string>> = {
     '{ "targetId": <nearby id>, "structureId": <nearby enclosure id>, "durationMinutes": <positive integer>, "message": <optional words> }',
   release: '{ "targetId": <nearby restrained inhabitant id>, "message": <optional words> }',
 };
-
-/** A need at or above this is an emergency: act on it now. */
-const NEED_CRITICAL = 85;
-/** A need at or above this presses on the next decision. */
-const NEED_PRESSING = 50;
-/** Turns between the deliberate levels, once nothing is pressing. */
-const CALM_CYCLE = 24;
 
 /**
  * Which kind of thinking this turn is (§11B).
@@ -274,19 +284,12 @@ export function cognitionLevelFor(
   turnNumber: number,
 ): CognitionLevel {
   const needs = source.self.needs;
-  const worst = Math.max(needs.thirst, needs.hunger, needs.fatigue);
-
-  // Another mind present outranks everything short of an emergency: a
-  // conversation missed is gone, while a resource waits.
-  if (worst < NEED_CRITICAL && source.inhabitants.length > 0) return "conversation";
-  if (worst >= NEED_CRITICAL) return "reaction";
-  if (worst >= NEED_PRESSING) return "routine";
-
-  // Quiet. Most of it goes to planning, with reflection and study on a fixed
-  // cadence so that consolidating experience is not left to chance.
-  const phase = turnNumber % CALM_CYCLE;
-  if (phase === 0) return "reflection";
-  if (phase === CALM_CYCLE / 2) return "study";
+  const highestNeed = Math.max(needs.hunger, needs.thirst, needs.fatigue, needs.social);
+  if (highestNeed >= 85) return "reaction";
+  if (source.inhabitants.length > 0 && highestNeed < 75) return "conversation";
+  if (highestNeed >= 60) return "routine";
+  if (turnNumber > 0 && turnNumber % 17 === 0) return "reflection";
+  if (turnNumber > 0 && turnNumber % 11 === 0) return "study";
   return "planning";
 }
 

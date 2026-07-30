@@ -1,12 +1,16 @@
 import {
   GENESIS_PREV_HASH,
+  GenesisManifestSchema,
+  assertSealedManifest,
   buildGenesis,
+  hashGenesisManifest,
   sealEvent,
   type CanonicalEvent,
   type AtomicCanonicalStore,
   type Clock,
   type EventStore,
   type GenesisConfig,
+  type GenesisManifest,
   type StateStore,
   type WorldState,
 } from "@after-genesis/core";
@@ -35,6 +39,7 @@ export interface GenesisResult {
 export async function commitGenesis(
   deps: GenesisDependencies,
   config: GenesisConfig,
+  manifest?: GenesisManifest,
 ): Promise<GenesisResult> {
   const head = await deps.eventStore.headSequence(config.worldId);
   if (head !== -1) {
@@ -42,6 +47,42 @@ export async function commitGenesis(
   }
 
   const built = buildGenesis(config);
+  const parsedManifest =
+    manifest === undefined ? null : GenesisManifestSchema.parse(manifest);
+  if (parsedManifest !== null) {
+    if (parsedManifest.worldId !== built.config.worldId) {
+      throw new Error(
+        `manifest world ${parsedManifest.worldId} does not match ${built.config.worldId}`,
+      );
+    }
+    if (parsedManifest.classification === "sealed_experiment") {
+      assertSealedManifest(parsedManifest, built.config.worldId);
+      if (parsedManifest.constitution.initialStateHash !== built.stateChecksum) {
+        throw new Error("sealed manifest initial-state hash does not match built Genesis state");
+      }
+      if (
+        parsedManifest.genesis.randomSeed !== built.config.seed ||
+        parsedManifest.genesis.initialPopulation !==
+          Object.keys(built.state.inhabitants).length
+      ) {
+        throw new Error("sealed manifest Genesis seed or population does not match built state");
+      }
+      const configuredModels = [
+        built.config.founder.modelId,
+        ...(built.config.inhabitants ?? []).map((inhabitant) => inhabitant.modelId),
+      ];
+      const manifestModels = new Set(parsedManifest.cognition.modelIds);
+      if (configuredModels.some((modelId) => !manifestModels.has(modelId))) {
+        throw new Error("sealed manifest does not declare every configured cognition model");
+      }
+      if (
+        parsedManifest.constitution.sourceCommit !== deps.provenance.sourceCommit ||
+        parsedManifest.constitution.deployedDigest !== deps.provenance.deployedDigest
+      ) {
+        throw new Error("sealed manifest provenance does not match the committing runtime");
+      }
+    }
+  }
   const event = sealEvent({
     worldId: built.config.worldId,
     sequence: 0,
@@ -49,7 +90,21 @@ export async function commitGenesis(
     realTimestamp: deps.clock.nowIso(),
     actor: null,
     type: "genesis",
-    inputs: { genesis: built.config },
+    inputs: {
+      genesis: built.config,
+      experiment:
+        parsedManifest === null
+          ? {
+              classification: "development_run",
+              manifest: null,
+              manifestHash: null,
+            }
+          : {
+              classification: parsedManifest.classification,
+              manifest: parsedManifest,
+              manifestHash: hashGenesisManifest(parsedManifest),
+            },
+    },
     resolution: {
       founderId: built.config.founder.id,
       founderLocation: built.state.inhabitants[built.config.founder.id]?.location ?? null,

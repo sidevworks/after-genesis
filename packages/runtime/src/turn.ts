@@ -24,6 +24,7 @@ import {
   computeStateChecksum,
   runAction,
   sealEvent,
+  settleExpiredActivities,
   type CanonicalEvent,
   type AtomicCanonicalStore,
   type Clock,
@@ -237,18 +238,44 @@ export async function executeTurn(
       );
     }
 
-    // ---- §14.4–11: cognition, entirely outside any transaction (§18) --------
     let cognition: CognitionOutcome;
-    try {
-      cognition = await deps.cognition.propose({ state, actorId, simTime, sequence });
-    } catch (error) {
-      if (error instanceof ModelUnavailableError) {
-        // §14: "Model unavailability must reschedule the unresolved turn. It
-        // must not create a different state transition." Nothing is appended.
-        await deps.idempotency.release(idempotencyKey);
-        return { status: "deferred", reason: error.message };
+    const settledForEligibility = settleExpiredActivities(state, simTime);
+    const actorForEligibility = settledForEligibility.inhabitants[actorId];
+    const preflightNoopReason =
+      actorForEligibility === undefined
+        ? `no inhabitant ${actorId} in this world`
+        : actorForEligibility.status === "dead"
+          ? `${actorId} died at ${String(actorForEligibility.deathTime)}`
+          : actorForEligibility.activity.busyUntil > simTime
+            ? `${actorId} is ${actorForEligibility.activity.state} until ${actorForEligibility.activity.busyUntil}`
+            : actorForEligibility.nextEligibleTime > simTime
+              ? `${actorId} is not eligible to act until ${actorForEligibility.nextEligibleTime}`
+              : null;
+
+    if (preflightNoopReason !== null) {
+      cognition = {
+        action: null,
+        modelId: null,
+        requestHash: null,
+        responseHash: null,
+        costMicros: 0,
+        inputTokens: 0,
+        outputTokens: 0,
+        noopReason: preflightNoopReason,
+      };
+    } else {
+      // ---- §14.4–11: cognition, entirely outside any transaction (§18) ------
+      try {
+        cognition = await deps.cognition.propose({ state, actorId, simTime, sequence });
+      } catch (error) {
+        if (error instanceof ModelUnavailableError) {
+          // §14: "Model unavailability must reschedule the unresolved turn. It
+          // must not create a different state transition." Nothing is appended.
+          await deps.idempotency.release(idempotencyKey);
+          return { status: "deferred", reason: error.message };
+        }
+        throw error;
       }
-      throw error;
     }
 
     // ---- §14.12–13: validate preconditions and resolve deterministically ----

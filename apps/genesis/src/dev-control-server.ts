@@ -331,8 +331,9 @@ async function advance(params: URLSearchParams): Promise<void> {
     if (stopRequested) await finalizeStoppedRun();
   }
   if (!activeVoiceEnabled) {
-    voiceState = "stale";
+    voiceState = "idle";
     voiceError = null;
+    voiceLastPublishedAt = null;
   }
 }
 
@@ -371,15 +372,16 @@ async function fastForward(params: URLSearchParams): Promise<void> {
 
     if (activeVoiceEnabled) await publishVoice();
     else {
-      voiceState = "stale";
+      voiceState = "idle";
       voiceError = null;
+      voiceLastPublishedAt = null;
     }
   } finally {
     if (stopRequested) await finalizeStoppedRun();
   }
-  lastOutput = `${lastOutput}\n[fast-forward] published ${days} simulated day(s); voice pending\n`.slice(
-    -12_000,
-  );
+  lastOutput = `${lastOutput}\n[fast-forward] published ${days} simulated day(s)${
+    activeVoiceEnabled ? "; voice published" : ""
+  }\n`.slice(-12_000);
 }
 
 async function finalizeStoppedRun(): Promise<void> {
@@ -389,8 +391,9 @@ async function finalizeStoppedRun(): Promise<void> {
   await exportFixtures();
   if (activeVoiceEnabled) await publishVoice();
   else {
-    voiceState = "stale";
+    voiceState = "idle";
     voiceError = null;
+    voiceLastPublishedAt = null;
   }
 }
 

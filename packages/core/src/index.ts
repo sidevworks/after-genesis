@@ -6,6 +6,7 @@ export * from "./time.js";
 export * from "./event.js";
 export * from "./ports.js";
 export * from "./genesis.js";
+export * from "./experiment.js";
 export * from "./schema/primitives.js";
 export * from "./schema/action-spec.js";
 export * from "./schema/physical-process.js";

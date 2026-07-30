@@ -704,17 +704,15 @@ export const populationCeiling: Check = (state) => {
  * §7: "All later inhabitants must be created using a validated world action
  * initiated by an existing inhabitant."
  *
- * Exactly one inhabitant may have no parent: the founder, created at Genesis
- * (sequence 0). Everyone else names at least one parent that exists, and was
- * created by a later event than that parent.
+ * Inhabitants created at Genesis may have no parent: they are the published
+ * Genesis cohort. Everyone created later names at least one parent that exists,
+ * and was created by a later event than that parent.
  */
 export const descendantsRequireCreationEvents: Check = (state) => {
   const out: InvariantViolation[] = [];
   const spec = "§15 Descendants require valid creation events.";
-  const founders: string[] = [];
   for (const i of sortedValues(state.inhabitants)) {
     if (i.parents.length === 0) {
-      founders.push(i.id);
       if (i.creationSequence !== 0) {
         out.push(
           violation(
@@ -750,17 +748,6 @@ export const descendantsRequireCreationEvents: Check = (state) => {
         );
       }
     }
-  }
-  if (founders.length > 1) {
-    out.push(
-      violation(
-        "descendants_require_creation_events",
-        spec,
-        null,
-        `the world has ${founders.length} parentless inhabitants (${founders.join(", ")}); ` +
-          "§7 permits exactly one, instantiated at Genesis",
-      ),
-    );
   }
   return out;
 };

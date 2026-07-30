@@ -322,9 +322,11 @@ export interface Artifact {
 
 export interface OrganisationRule {
   readonly id: string;
+  readonly title?: string;
   readonly text: string;
   readonly proposedBy: string;
   readonly adopted: boolean;
+  readonly votes?: Readonly<Record<string, "for" | "against" | "abstain">>;
   readonly sequence: number;
 }
 
@@ -333,6 +335,11 @@ export interface Organisation {
   readonly name: string;
   readonly kind: string;
   readonly founder: string;
+  readonly purpose?: string | null;
+  readonly charter?: string;
+  readonly membershipRule?: "open" | "invitation" | "founder_approval" | "member_vote";
+  readonly decisionRule?: "founder" | "unanimous" | "majority" | "supermajority" | "council" | "none";
+  readonly invited?: readonly string[];
   /** Sorted inhabitant ids. */
   readonly members: readonly string[];
   /** §11E: membership is public only where the organisation discloses it. */
@@ -738,6 +745,9 @@ export const DEFAULT_RULES: WorldRules = Object.freeze({
   waterThirstRelief: 25,
   waterEnergyGain: 10,
   maxConsumePerAction: 20,
+  // Scarcity is active in the default world. These numbers are not goals or
+  // instructions; they are physical pressure: a body can carry only so much,
+  // carried food decays, and sleeping under shelter is materially better.
   carryCapacity: 150,
   minutesPerFoodSpoil: 720,
   foodSpoilDivisor: 20,

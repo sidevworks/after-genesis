@@ -32,6 +32,7 @@ import {
  */
 export const BuildPayloadSchema = z.object({
   structureKind: z.enum([
+    "assembly",
     "shelter",
     "storehouse",
     "workshop",

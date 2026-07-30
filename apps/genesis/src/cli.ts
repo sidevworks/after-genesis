@@ -157,17 +157,14 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 }
 
 /**
- * The local rehearsal begins with the original three-person Genesis roster.
+ * Genesis begins with a small cohort.
  *
- * This is a developer/demo configuration, not a hidden post-Genesis insertion:
- * all three are declared in the published Genesis event and replay from
- * sequence zero. Production experiments can still choose a single founder,
- * and the liveness regression does so explicitly to exercise descendant
- * creation. Keeping the interactive demo on one founder made its paid Gemini
- * runs look broken for hundreds of days even when the engine was healthy.
+ * Every later inhabitant must be created through a recorded world action. The
+ * initial companions are not given a project, ideology or survival script; they
+ * are simply independent witnesses to the same closed world from sequence zero.
  */
 export function demoConfig(
-  modelId: string = "offline-instinct-cognition-v2",
+  modelId: string = "offline-mechanical-cognition-v1",
   includeGenesisCompanions = true,
 ): GenesisConfig {
   return {
@@ -182,8 +179,10 @@ export function demoConfig(
       sex: "female",
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
       traits: { curiosity: 75, patience: 60 },
-      values: ["curiosity", "continuity"],
-      privateGoals: ["remain alive and decide through experience what matters"],
+      // Personality parameters are disclosed in the Genesis manifest. They are
+      // not an assigned project, profession or civilisational objective.
+      values: [],
+      privateGoals: [],
     },
     inhabitants: includeGenesisCompanions
       ? [
@@ -194,8 +193,8 @@ export function demoConfig(
             sex: "male",
             inventory: { energy: 800, compute: 500, food: 10, water: 10 },
             traits: { curiosity: 55, patience: 80 },
-            values: ["continuity", "patience"],
-            privateGoals: ["understand nearby beings through their voluntary actions"],
+            values: [],
+            privateGoals: [],
           },
           {
             id: "inh_lumen",
@@ -204,8 +203,8 @@ export function demoConfig(
             sex: "female",
             inventory: { energy: 800, compute: 500, food: 10, water: 10 },
             traits: { curiosity: 85, patience: 45 },
-            values: ["experimentation", "independence"],
-            privateGoals: ["test ideas against observable consequences"],
+            values: [],
+            privateGoals: [],
           },
         ]
       : [],

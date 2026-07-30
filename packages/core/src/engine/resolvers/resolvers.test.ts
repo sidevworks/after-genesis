@@ -98,13 +98,18 @@ describe("resolver registry", () => {
         "create_artifact",
         "create_currency",
         "create_inhabitant",
+        "create_organisation",
         "build",
         "gather",
         "store_goods",
         "guard_location",
+        "invite_member",
+        "join_organisation",
+        "leave_organisation",
         "move",
         "observe",
         "offer_trade",
+        "propose_rule",
         "publish",
         "reject_trade",
         "release",
@@ -112,6 +117,7 @@ describe("resolver registry", () => {
         "restrain",
         "transfer_currency",
         "transfer_property",
+        "vote",
         "wait",
       ].sort(),
     );
@@ -129,7 +135,7 @@ describe("resolver registry", () => {
     const unimplemented = ACTION_TYPES.filter(
       (t) => !IMPLEMENTED_ACTIONS.includes(t) && t !== "transfer",
     );
-    expect(unimplemented).toHaveLength(41);
+    expect(unimplemented).toHaveLength(35);
 
     for (const type of unimplemented) {
       expect(RESOLVERS[type]).toBe(notYetImplemented);
@@ -567,6 +573,62 @@ describe("move", () => {
       state = result.state;
       expectClean(state);
     }
+  });
+});
+
+describe("organisation and rules", () => {
+  it("lets inhabitants found an organisation and adopt their own rule without changing physics", () => {
+    const base = world();
+    const beforeRules = base.rulesChecksum;
+    const founded = act(base, "create_organisation", {
+      name: "The Ridge Compact",
+      kind: "council",
+      purpose: "coordinate shared work",
+      charter: "Members decide what they recognise together.",
+      foundingMemberIds: [],
+      membershipRule: "invitation",
+      decisionRule: "founder",
+      accountingVisibility: "public",
+      seat: null,
+    });
+    expect(founded.outcome.status).toBe("resolved");
+    const organisationId =
+      founded.outcome.status === "resolved"
+        ? String(founded.outcome.detail["organisationId"])
+        : "";
+    expect(founded.state.organisations[organisationId]?.members).toEqual(["inh_founder"]);
+
+    const proposedAt = founderOf(founded.state).activity.busyUntil;
+    const proposed = act(founded.state, "propose_rule", {
+      organisationId,
+      title: "Record timber",
+      text: "Timber taken from the north stand should be recorded before use.",
+      appliesTo: "members",
+      proposedEnforcement: null,
+      replacesRuleId: null,
+      votingPeriodMinutes: 1440,
+    }, proposedAt);
+    expect(proposed.outcome.status).toBe("resolved");
+    const proposalId =
+      proposed.outcome.status === "resolved"
+        ? String(proposed.outcome.detail["proposalId"])
+        : "";
+
+    const votedAt = founderOf(proposed.state).activity.busyUntil;
+    const voted = act(proposed.state, "vote", {
+      organisationId,
+      proposalId,
+      choice: "for",
+      weightClaimed: 1,
+      statement: "I accept this record.",
+    }, votedAt);
+    expect(voted.outcome).toMatchObject({
+      status: "resolved",
+      detail: { adopted: true, altersWorldPhysics: false },
+    });
+    expect(voted.state.organisations[organisationId]?.rules[0]?.adopted).toBe(true);
+    expect(voted.state.rulesChecksum).toBe(beforeRules);
+    expectClean(voted.state);
   });
 });
 

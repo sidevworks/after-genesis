@@ -595,6 +595,35 @@ describe("§8 the year-one failure, end to end", () => {
   });
 });
 
+describe("maturity advances with world time", () => {
+  it("raises newborns to adult stage and then caps them there", () => {
+    const seed = makeTestWorld();
+    const base = {
+      ...addTestInhabitant(seed, {
+        id: "inh_newborn",
+        location: founderOf(seed).location,
+        parents: ["inh_founder"],
+        birthTime: simTime(0),
+        creationSequence: 1,
+        maturity: 0,
+      }),
+      sequence: 1,
+      simTime: simTime(0),
+    };
+
+    const oneDay = worldTick(base, simTime(MINUTES_PER_DAY), 2).state;
+    const twoDays = worldTick(oneDay, simTime(2 * MINUTES_PER_DAY), 3).state;
+    const adult = worldTick(twoDays, simTime(3 * MINUTES_PER_DAY), 4).state;
+    const later = worldTick(adult, simTime(10 * MINUTES_PER_DAY), 5).state;
+
+    expect(oneDay.inhabitants["inh_newborn"]?.maturity).toBe(1);
+    expect(twoDays.inhabitants["inh_newborn"]?.maturity).toBe(2);
+    expect(adult.inhabitants["inh_newborn"]?.maturity).toBe(3);
+    expect(later.inhabitants["inh_newborn"]?.maturity).toBe(3);
+    expect(formatViolations(checkInvariants(later))).toBe("");
+  });
+});
+
 describe("needs stay inside their declared bounds", () => {
   it("accepts a bounded need set and rejects anything outside it", () => {
     expect(needsWithinBounds({ hunger: 0, thirst: NEED_CEILING, fatigue: 50, social: 1 })).toBe(true);

@@ -384,13 +384,23 @@ describe("§15 population and lineage", () => {
     );
   });
 
-  it("fires on a second parentless inhabitant (§7: exactly one founder)", () => {
+  it("allows a parentless Genesis cohort", () => {
+    const state = addTestInhabitant(makeTestWorld(), {
+      id: "inh_second_founder",
+      location: { x: 5, y: 5 },
+      parents: [],
+      creationSequence: 0,
+    });
+    expect(violationIds(state)).not.toContain("descendants_require_creation_events");
+  });
+
+  it("fires on a parentless inhabitant created after Genesis", () => {
     expectBreaks("descendants_require_creation_events", (s) =>
       addTestInhabitant(s, {
-        id: "inh_second_founder",
+        id: "inh_late_orphan",
         location: founderOf(s).location,
         parents: [],
-        creationSequence: 0,
+        creationSequence: 1,
       }),
     );
   });

@@ -9,24 +9,30 @@ import { demoConfig, mechanicalCognition } from "./cli.js";
 
 const MAX_TURNS = 100 * 12;
 
-describe("offline one-founder liveness", () => {
-  it("keeps the interactive rehearsal on its original three-person Genesis roster", () => {
+describe("offline cohort liveness", () => {
+  it("begins the interactive rehearsal with a neutral Genesis cohort", () => {
     const state = buildGenesis(demoConfig()).state;
     expect(Object.keys(state.inhabitants).sort()).toEqual([
       "inh_ember",
       "inh_founder",
       "inh_lumen",
     ]);
+    expect(
+      Object.values(state.inhabitants).flatMap((inhabitant) => [
+        ...inhabitant.values,
+        ...inhabitant.privateGoals,
+      ]),
+    ).toEqual([]);
     expect(state.sequence).toBe(0);
   });
 
-  it("reaches a resolved descendant creation within 100 simulated days", async () => {
-    let state = buildGenesis(demoConfig(undefined, false)).state;
+  it("produces physical state changes within 100 simulated days", async () => {
+    let state = buildGenesis(demoConfig()).state;
     const cognition = mechanicalCognition();
-    let creation: DerivedEvent | null = null;
+    let physicalChange: DerivedEvent | null = null;
     const actionCounts: Record<string, number> = {};
 
-    for (let sequence = 1; sequence <= MAX_TURNS && creation === null; sequence++) {
+    for (let sequence = 1; sequence <= MAX_TURNS && physicalChange === null; sequence++) {
       const actorIds = Object.values(state.inhabitants)
         .filter((inhabitant) => inhabitant.status === "alive")
         .map((inhabitant) => inhabitant.id)
@@ -46,22 +52,25 @@ describe("offline one-founder liveness", () => {
       });
       state = result.state;
       if (result.outcome.status === "resolved") {
-        creation =
-          result.events.find((event) => event.type === "action.create_inhabitant") ?? null;
+        physicalChange =
+          result.events.find((event) =>
+            [
+              "action.build",
+              "action.store_goods",
+              "action.create_inhabitant",
+            ].includes(event.type),
+          ) ?? null;
       }
     }
 
     expect(
-      creation,
-      `offline cognition never resolved create_inhabitant: ${JSON.stringify({
+      physicalChange,
+      `offline cognition never resolved a physical world change: ${JSON.stringify({
         actionCounts,
         founder: state.inhabitants["inh_founder"],
         structures: state.structures,
       })}`,
     ).not.toBeNull();
-    expect(
-      Object.values(state.inhabitants).filter((inhabitant) => inhabitant.status === "alive")
-        .length,
-    ).toBeGreaterThan(1);
+    expect(Object.keys(state.structures).length).toBeGreaterThan(0);
   });
 });

@@ -24,6 +24,7 @@ import { runAction, type ResolutionResult } from "./resolvers/index.js";
 import { spoilCarriedFood } from "./resolvers/effects.js";
 import { storageCapacityFor } from "./resolvers/physical.js";
 import {
+  computeRulesChecksum,
   putStructure,
   recordCreated,
   totalHeldResources,
@@ -42,10 +43,20 @@ const MIDDAY = simTime(12 * 60);
  * carried material to the unit, so the default is cleared rather than merged.
  */
 function world(inventory: ResourceBundle = {}): WorldState {
+  const base = makeTestWorld({
+    founderInventory: { energy: 1000, compute: 1000, food: 0, water: 0, ...inventory },
+  });
+  const rules = {
+    ...base.rules,
+    carryCapacity: 150,
+    minutesPerFoodSpoil: 720,
+    foodSpoilDivisor: 20,
+    shelterRestMultiplier: 2,
+  };
   return {
-    ...makeTestWorld({
-      founderInventory: { energy: 1000, compute: 1000, food: 0, water: 0, ...inventory },
-    }),
+    ...base,
+    rules,
+    rulesChecksum: computeRulesChecksum(rules),
     simTime: MIDDAY,
   };
 }

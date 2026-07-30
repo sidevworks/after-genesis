@@ -107,6 +107,7 @@ export interface AddInhabitantOptions {
   readonly concealed?: ResourceBundle;
   readonly exposed?: ResourceBundle;
   readonly privateGoals?: readonly string[];
+  readonly maturity?: number;
 }
 
 /**
@@ -130,6 +131,7 @@ export function addTestInhabitant(
     concealed: { ...(options.concealed ?? {}) },
     exposed: { ...(options.exposed ?? {}) },
     privateGoals: [...(options.privateGoals ?? [])],
+    maturity: options.maturity ?? 3,
   });
   return addGenesisInhabitant(state, inhabitant);
 }

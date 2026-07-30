@@ -41,7 +41,8 @@ import type { Sha256Hex } from "@after-genesis/core";
 import type { ProposedAction } from "@after-genesis/core/schema/action-spec";
 import type { SpendLedger } from "./budget.js";
 import { estimateTokens, retrieveMemories, type MemoryRecord, type RetrievalContext } from "./memory.js";
-import { hashRawResponse, parseModelResponse, type ParseFailureCode } from "./parse.js";
+import { hashRawResponse, type ParseFailureCode } from "./parse.js";
+import { parseNeutralModelResponse } from "./neutral-protocol.js";
 import {
   buildCorrectionRequest,
   buildPrompt,
@@ -145,7 +146,8 @@ export async function proposeAction(
 
   // Attempt 1.
   const first = await callOnce(deps, input, prompt.request, 1, attempts);
-  const firstParse = parseModelResponse(first.response.rawText);
+  const allowedBasisIds = new Set(prompt.basisIds);
+  const firstParse = parseNeutralModelResponse(first.response.rawText, allowedBasisIds);
   if (firstParse.ok) {
     return finish(attempts, common, { status: "proposed", action: firstParse.action });
   }
@@ -162,7 +164,7 @@ export async function proposeAction(
   );
 
   const second = await callOnce(deps, input, correction, 2, attempts);
-  const secondParse = parseModelResponse(second.response.rawText);
+  const secondParse = parseNeutralModelResponse(second.response.rawText, allowedBasisIds);
   if (secondParse.ok) {
     return finish(attempts, common, { status: "proposed", action: secondParse.action });
   }

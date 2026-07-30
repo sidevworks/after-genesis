@@ -272,9 +272,12 @@ function buildRequestBody(request: ModelRequest): Record<string, unknown> {
     generationConfig["temperature"] = request.temperature;
   }
   if (request.responseSchema !== undefined) {
-    // JSON Schema (rather than the older protobuf/OpenAPI Schema field) is
-    // required for discriminated `anyOf` payloads.
-    generationConfig["responseJsonSchema"] = request.responseSchema;
+    // Gemini's structured JSON mode is a provider hint, not a trust boundary.
+    // The local parser still validates every byte independently. In live canary
+    // runs, the `responseJsonSchema` path repeatedly stopped after a handful of
+    // output tokens for the neutral action contract; `responseSchema` is the
+    // stable field already used by the earlier working simulation contract.
+    generationConfig["responseSchema"] = request.responseSchema;
   }
 
   return {

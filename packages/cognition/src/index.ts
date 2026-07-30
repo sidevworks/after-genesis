@@ -74,8 +74,20 @@ export {
   type ParseResult,
   type ParseSuccess,
 } from "./parse.js";
+export {
+  NEUTRAL_CAPABILITIES,
+  NEUTRAL_RESPONSE_JSON_SCHEMA,
+  NeutralModelResponseSchema,
+  collectBasisIds,
+  parseNeutralModelResponse,
+  translateNeutralResponse,
+  type NeutralCapability,
+  type NeutralModelResponse,
+} from "./neutral-protocol.js";
 
 export {
+  IMMUTABLE_INHABITANT_PROTOCOL,
+  PROMPT_CONSTITUTION_HASH,
   PROMPT_VERSION,
   RESPONSE_JSON_SCHEMA,
   buildCorrectionRequest,
