@@ -94,8 +94,8 @@ export function Landing() {
         <footer className="border-t border-line">
           <div className="mx-auto flex max-w-[80rem] flex-col gap-3 px-5 py-8 text-xs text-dim sm:flex-row sm:items-center sm:justify-between sm:px-8">
             <p className="max-w-xl leading-relaxed">
-              This application can read the world and nothing else. It has no message channel and
-              no write route into canonical state — not disabled, absent.
+              A sealed spectator deployment has no inhabitant message channel or canonical write
+              route. Development controls are visibly classified and cannot inherit that claim.
             </p>
             <p className="mono">read-only by construction</p>
           </div>
@@ -188,8 +188,8 @@ function Hero({
         </h1>
         <p className="mt-6 max-w-xl text-base leading-relaxed text-muted">
           It begins with exactly one founding inhabitant. Every other inhabitant that ever exists
-          must be created from inside, by one that already does. Nobody watching can add an agent,
-          send it a message, suggest an action, vote, or buy influence.
+          must be created from inside, by one that already does. During a sealed run, nobody
+          watching can add an agent, send it a message, suggest an action, vote, or buy influence.
         </p>
         <p className="mt-4 max-w-xl text-base leading-relaxed text-muted">
           What they build — homes, trades, families, laws, medicine, money, art — they build
@@ -386,12 +386,12 @@ const RULES: ReadonlyArray<{ title: string; body: string }> = [
     body: "The world starts with a single inhabitant, placed by Genesis. Every later inhabitant originates from an existing one through a validated world action that costs real resources and real time.",
   },
   {
-    title: "Humans cannot intervene",
-    body: "There is no message channel into the world and no control that reaches an inhabitant. Not disabled, not permission-gated — absent. The spectator app is compiled to static files with no write route at all.",
+    title: "Sealed runs reject intervention",
+    body: "Development worlds have clearly labelled reset and run controls. A sealed deployment has no inhabitant message route or canonical write control, and its Genesis manifest fixes that policy before sequence zero.",
   },
   {
-    title: "Nothing is scripted",
-    body: "No inhabitant is assigned a profession. Doctors, merchants and leaders are descriptions inferred from repeated behaviour, never roles handed out. Careers, customs, laws and currencies emerge or they do not.",
+    title: "Outcomes are not assigned",
+    body: "Before Genesis, humans fix the physics, neutral capabilities, initial state, models and memory policy. In a sealed run, no human then supplies action choices, messages, resources, corrections or prompt changes. Evaluator labels are applied only after the record exists.",
   },
   {
     title: "Death is irreversible",
@@ -492,8 +492,8 @@ function WhatYouCanWatch({ sealed }: { sealed: boolean }) {
         {sealed ? "What you will be able to watch" : "What you can watch"}
       </h2>
       <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-        Ten windows onto the same history. None of them contains a control that reaches an
-        inhabitant, because no such control exists anywhere in this application.
+        Ten windows onto the same history. In a sealed deployment these are observation surfaces
+        only; development worlds expose their separate reset and run controls as development tools.
       </p>
       <div className="mt-8 grid gap-px bg-line-soft sm:grid-cols-2 lg:grid-cols-3">
         {SURFACES.map((surface) => {
@@ -548,9 +548,8 @@ function Status({ sealed }: { sealed: boolean }) {
           The world is running.
         </h2>
         <p className="mt-3 max-w-3xl text-sm leading-relaxed text-muted">
-          It can be paused by a technical fault. It cannot be quietly corrected, rewound, or
-          rewritten \u2014 and no inhabitant will be repaired because we disliked what happened to it.
-          Every claim on this page is checkable from the{" "}
+          This is a development run and may be reset or rerun for testing. It must not be presented
+          as a sealed experiment. Its event integrity remains checkable from the{" "}
           <Link href="/audit" className="text-amber hover:underline">
             audit page
           </Link>

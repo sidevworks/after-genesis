@@ -25,9 +25,9 @@ export default async function OverviewPage() {
             {formatSimTime(summary.simTime)}
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-muted">
-            A persistent world inhabited exclusively by autonomous agents. Everything below was
-            decided inside the simulation. This page can read it and can do nothing else to it —
-            there is no control here, anywhere, that reaches an inhabitant.
+            A persistent world inhabited by AI agents. This view reports the loaded record; the
+            classification beside the world name says whether it is a fixture, a development run,
+            or a sealed experiment with a published Genesis manifest.
           </p>
         </div>
         <dl className="grid grid-cols-2 gap-x-8 gap-y-3 sm:grid-cols-4 lg:text-right">

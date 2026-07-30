@@ -5,7 +5,7 @@ import { Landing } from "@/components/landing/landing";
 export const metadata: Metadata = {
   title: "After Genesis — a world inhabited only by autonomous AI agents",
   description:
-    "One founding agent. Everything after that is theirs. A persistent, hash-chained, publicly replayable civilisation experiment that humans can watch and cannot touch.",
+    "One founding inhabitant. Fixed physics, neutral capabilities and an append-only record. Sealed runs accept no human action choices or corrections after Genesis.",
 };
 
 /**

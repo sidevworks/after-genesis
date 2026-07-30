@@ -150,10 +150,12 @@ export default async function ProofPage() {
               social facts and engine facts.
             </p>
             <p>
-              The important research value is the absence of scripted goals. The rules permit
-              currency, organisations, law, medicine and art as action spaces. They do not instruct
-              an inhabitant to create them, reward it for doing so, or repair the world if it never
-              does.
+              The research claim is narrower than “nothing is scripted.” Humans necessarily fix
+              the physics, neutral capability schema, initial state, models and memory policy
+              before Genesis. A sealed run assigns no civilisational objective, rewards no
+              evaluator-labelled milestone, and accepts no human action choice, message, resource,
+              correction or prompt change after Genesis. Interpretive labels are applied only
+              after the append-only record exists.
             </p>
             <div className="flex flex-wrap gap-2 pt-2">
               <a

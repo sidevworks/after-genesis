@@ -1,371 +1,366 @@
 "use client";
 
-import { useState } from "react";
-import type { SceneDescription } from "@/lib/observatory-types";
+import { useCallback, useEffect, useRef, useState } from "react";
+import * as THREE from "three";
+import type { SceneDescription, SceneReference } from "@/lib/observatory-types";
+import { ObservatoryActionEffects } from "@/lib/observatory-action-effects";
+import { createObservatoryBuildingVisual } from "@/lib/observatory-building-visual";
 
-interface BiomeStyle {
-  top: string;
-  left: string;
-  right: string;
-  stroke: string;
-  height: number;
-}
+type ViewMode = "overview" | "first-person" | "third-person";
 
-const BIOME_STYLES: Record<string, BiomeStyle> = {
-  water: { top: "#143342", left: "#0c232e", right: "#102c3a", stroke: "#1f4a5a", height: -4 },
-  plains: { top: "#344d35", left: "#233824", right: "#2b422c", stroke: "#456346", height: 0 },
-  fertile: { top: "#42663f", left: "#2c4a2a", right: "#375835", stroke: "#558052", height: 3 },
-  forest: { top: "#224233", left: "#152c21", right: "#1b372a", stroke: "#325c49", height: 6 },
-  stone: { top: "#484f54", left: "#31363a", right: "#3c4246", stroke: "#5f686e", height: 10 },
-  stone_deposit: { top: "#50585e", left: "#373e43", right: "#434b51", stroke: "#6b757b", height: 12 },
-  barren: { top: "#4a3f31", left: "#332a1f", right: "#3f3428", stroke: "#615242", height: 1 },
+const TERRAIN: Record<string, number> = {
+  water: 0x236b83,
+  plains: 0x66824b,
+  fertile: 0x7ea557,
+  forest: 0x2d593a,
+  stone: 0x747b80,
+  stone_deposit: 0x838a8e,
+  barren: 0x776143,
 };
 
-function projectIso(x: number, z: number, elevation: number = 0) {
-  // Center (320, 200)
-  const centerX = 320 + (x - z) * 11;
-  const centerY = 50 + (x + z) * 5.5 - elevation;
-  return { x: centerX, y: centerY };
+function isEntity(reference: SceneReference): boolean {
+  return reference.representation.kind === "articulated_entity";
 }
 
-function voxelPoints(x: number, z: number, elevation: number) {
-  const top = projectIso(x, z, elevation);
-  const dx = 11;
-  const dy = 5.5;
+function isStructure(reference: SceneReference): boolean {
+  return (
+    reference.representation.kind === "constructed_structure" ||
+    reference.refId.includes(":OBJ:")
+  );
+}
 
-  const topFace = `${top.x},${top.y - dy} ${top.x + dx},${top.y} ${top.x},${top.y + dy} ${top.x - dx},${top.y}`;
-  const leftFace = `${top.x - dx},${top.y} ${top.x},${top.y + dy} ${top.x},${top.y + dy + 6} ${top.x - dx},${top.y + 6}`;
-  const rightFace = `${top.x},${top.y + dy} ${top.x + dx},${top.y} ${top.x + dx},${top.y + 6} ${top.x},${top.y + dy + 6}`;
+function colourFor(seed: string): THREE.Color {
+  let hash = 0;
+  for (const char of seed) hash = Math.imul(hash ^ char.charCodeAt(0), 0x45d9f3b);
+  return new THREE.Color().setHSL(((hash >>> 0) % 360) / 360, 0.58, 0.58);
+}
 
-  return { top, topFace, leftFace, rightFace };
+function addPerson(reference: SceneReference): THREE.Group {
+  const group = new THREE.Group();
+  const colour = colourFor(reference.representation.visualSeed);
+  const clothes = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.76 });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a178, roughness: 0.82 });
+  const dark = new THREE.MeshStandardMaterial({
+    color: colour.clone().multiplyScalar(0.45),
+    roughness: 0.9,
+  });
+  const add = (geometry: THREE.BufferGeometry, material: THREE.Material, x: number, y: number) => {
+    const mesh = new THREE.Mesh(geometry, material);
+    mesh.position.set(x, y, 0);
+    mesh.castShadow = true;
+    mesh.userData.refId = reference.refId;
+    group.add(mesh);
+  };
+  add(new THREE.BoxGeometry(0.66, 0.68, 0.62), skin, 0, 2.25);
+  add(new THREE.BoxGeometry(0.78, 1.05, 0.48), clothes, 0, 1.38);
+  add(new THREE.BoxGeometry(0.22, 0.9, 0.25), clothes, -0.51, 1.4);
+  add(new THREE.BoxGeometry(0.22, 0.9, 0.25), clothes, 0.51, 1.4);
+  add(new THREE.BoxGeometry(0.28, 0.88, 0.3), dark, -0.22, 0.46);
+  add(new THREE.BoxGeometry(0.28, 0.88, 0.3), dark, 0.22, 0.46);
+  group.scale.setScalar(0.68);
+  group.userData.refId = reference.refId;
+  return group;
+}
+
+function ObservatoryThreeViewport({
+  scene,
+  showTerrain,
+  showStructures,
+  showEntities,
+  viewMode,
+  selectedRef,
+  onSelect,
+}: {
+  scene: SceneDescription;
+  showTerrain: boolean;
+  showStructures: boolean;
+  showEntities: boolean;
+  viewMode: ViewMode;
+  selectedRef: string | null;
+  onSelect: (refId: string) => void;
+}) {
+  const mountRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const mount = mountRef.current;
+    if (!mount) return;
+    const world = new THREE.Scene();
+    world.background = new THREE.Color(0x08131c);
+    world.fog = new THREE.FogExp2(0x08131c, 0.018);
+    const camera = new THREE.PerspectiveCamera(47, 1, 0.08, 350);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    mount.appendChild(renderer.domElement);
+
+    world.add(new THREE.HemisphereLight(0xaed9ff, 0x26311e, 1.65));
+    const sun = new THREE.DirectionalLight(0xffd49a, 2.8);
+    sun.position.set(-18, 28, 14);
+    sun.castShadow = true;
+    sun.shadow.mapSize.set(2048, 2048);
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -24;
+    sun.shadow.camera.right = sun.shadow.camera.top = 24;
+    world.add(sun);
+
+    const selectable: THREE.Object3D[] = [];
+    const entities = new Map<string, THREE.Group>();
+    const buildingVisuals: ReturnType<typeof createObservatoryBuildingVisual>[] = [];
+    for (const reference of scene.references) {
+      const { x, y, z } = reference.transform.position;
+      let object: THREE.Object3D | null = null;
+      if (reference.representation.kind === "surface" && showTerrain) {
+        const material = reference.representation.material ?? "plains";
+        const water = material === "water";
+        object = new THREE.Mesh(
+          new THREE.BoxGeometry(0.98, water ? 0.22 : 0.65, 0.98),
+          new THREE.MeshStandardMaterial({
+            color: TERRAIN[material] ?? 0x566450,
+            roughness: water ? 0.22 : 0.93,
+            metalness: water ? 0.12 : 0,
+            transparent: water,
+            opacity: water ? 0.82 : 1,
+          }),
+        );
+        object.position.set(x, water ? -0.1 : 0, z);
+        object.receiveShadow = true;
+      } else if (isStructure(reference) && showStructures) {
+        const visual = createObservatoryBuildingVisual(reference, scene.references);
+        buildingVisuals.push(visual);
+        object = visual.group;
+        object.position.set(x, Math.max(y, 0.35), z);
+      } else if (isEntity(reference) && showEntities) {
+        const person = addPerson(reference);
+        person.position.set(x, Math.max(y, 0.35), z);
+        object = person;
+        entities.set(reference.refId, person);
+      }
+      if (object) {
+        object.userData.refId = reference.refId;
+        world.add(object);
+        selectable.push(object);
+      }
+    }
+    const actionEffects = new ObservatoryActionEffects(world);
+
+    const selectedEntity =
+      (selectedRef === null ? undefined : entities.get(selectedRef)) ?? entities.values().next().value;
+    const center = new THREE.Vector3(scene.bounds.width / 2, 0, scene.bounds.height / 2);
+    const anchor = selectedEntity?.position.clone() ?? center;
+    if (selectedEntity && viewMode === "first-person") selectedEntity.visible = false;
+    // Agent cameras initially face into the settlement rather than using the
+    // overview's arbitrary orbit angle, which can point edge-dwelling agents
+    // straight out into fog.
+    let yaw =
+      viewMode === "overview"
+        ? Math.PI * 0.82
+        : Math.atan2(center.x - anchor.x, center.z - anchor.z);
+    let pitch = viewMode === "overview" ? 0.62 : 0.18;
+    let distance = Math.max(scene.bounds.width, scene.bounds.height) * 0.9;
+    if (viewMode === "third-person") distance = 7;
+    let desiredYaw = yaw;
+    let desiredPitch = pitch;
+    let desiredDistance = distance;
+
+    const updateCamera = () => {
+      if (viewMode === "first-person") {
+        const eye = anchor.clone().add(new THREE.Vector3(0, 1.82, 0));
+        camera.position.copy(eye);
+        camera.lookAt(
+          eye.clone().add(
+            new THREE.Vector3(
+              Math.sin(yaw) * Math.cos(pitch),
+              Math.sin(pitch),
+              Math.cos(yaw) * Math.cos(pitch),
+            ),
+          ),
+        );
+        camera.fov = 68;
+      } else {
+        const target = anchor.clone().add(new THREE.Vector3(0, viewMode === "overview" ? 0 : 0.95, 0));
+        const horizontal = Math.cos(pitch) * distance;
+        camera.position.set(
+          target.x + Math.sin(yaw) * horizontal,
+          target.y + Math.sin(pitch) * distance,
+          target.z + Math.cos(yaw) * horizontal,
+        );
+        camera.lookAt(target);
+        camera.fov = viewMode === "overview" ? 47 : 54;
+      }
+      camera.updateProjectionMatrix();
+    };
+
+    let dragging = false;
+    let moved = false;
+    let lastX = 0;
+    let lastY = 0;
+    const canvas = renderer.domElement;
+    const down = (event: PointerEvent) => {
+      dragging = true;
+      moved = false;
+      lastX = event.clientX;
+      lastY = event.clientY;
+      canvas.setPointerCapture(event.pointerId);
+    };
+    const move = (event: PointerEvent) => {
+      if (!dragging) return;
+      const dx = event.clientX - lastX;
+      const dy = event.clientY - lastY;
+      moved ||= Math.abs(dx) + Math.abs(dy) > 2;
+      desiredYaw -= dx * 0.007;
+      desiredPitch = THREE.MathUtils.clamp(
+        desiredPitch + dy * 0.005,
+        viewMode === "first-person" ? -1.25 : 0.08,
+        1.3,
+      );
+      lastX = event.clientX;
+      lastY = event.clientY;
+    };
+    const up = (event: PointerEvent) => {
+      dragging = false;
+      if (moved) return;
+      const rect = canvas.getBoundingClientRect();
+      const pointer = new THREE.Vector2(
+        ((event.clientX - rect.left) / rect.width) * 2 - 1,
+        -((event.clientY - rect.top) / rect.height) * 2 + 1,
+      );
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(pointer, camera);
+      const hit = raycaster.intersectObjects(selectable, true)[0]?.object;
+      let current: THREE.Object3D | null = hit ?? null;
+      while (current && typeof current.userData.refId !== "string") current = current.parent;
+      if (current) onSelect(current.userData.refId as string);
+    };
+    const wheel = (event: WheelEvent) => {
+      if (viewMode === "first-person") return;
+      event.preventDefault();
+      desiredDistance = THREE.MathUtils.clamp(
+        desiredDistance + event.deltaY * 0.012,
+        viewMode === "overview" ? 8 : 3.6,
+        70,
+      );
+    };
+    canvas.addEventListener("pointerdown", down);
+    canvas.addEventListener("pointermove", move);
+    canvas.addEventListener("pointerup", up);
+    canvas.addEventListener("pointercancel", up);
+    canvas.addEventListener("wheel", wheel, { passive: false });
+
+    const resize = () => {
+      renderer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1), false);
+      camera.aspect = mount.clientWidth / Math.max(mount.clientHeight, 1);
+      camera.updateProjectionMatrix();
+    };
+    const observer = new ResizeObserver(resize);
+    observer.observe(mount);
+    resize();
+    let raf = 0;
+    const startedAt = performance.now();
+    const render = () => {
+      const elapsedSeconds = (performance.now() - startedAt) / 1000;
+      yaw = THREE.MathUtils.lerp(yaw, desiredYaw, viewMode === "first-person" ? 0.3 : 0.12);
+      pitch = THREE.MathUtils.lerp(pitch, desiredPitch, 0.14);
+      distance = THREE.MathUtils.lerp(distance, desiredDistance, 0.12);
+      buildingVisuals.forEach((visual) => visual.update(elapsedSeconds));
+      actionEffects.update(scene.references, elapsedSeconds);
+      updateCamera();
+      renderer.render(world, camera);
+      raf = requestAnimationFrame(render);
+    };
+    render();
+
+    return () => {
+      cancelAnimationFrame(raf);
+      observer.disconnect();
+      canvas.removeEventListener("pointerdown", down);
+      canvas.removeEventListener("pointermove", move);
+      canvas.removeEventListener("pointerup", up);
+      canvas.removeEventListener("pointercancel", up);
+      canvas.removeEventListener("wheel", wheel);
+      actionEffects.dispose();
+      buildingVisuals.forEach((visual) => visual.dispose());
+      world.traverse((object) => {
+        if (object instanceof THREE.Mesh) {
+          object.geometry.dispose();
+          const materials = Array.isArray(object.material) ? object.material : [object.material];
+          materials.forEach((material) => material.dispose());
+        }
+      });
+      renderer.dispose();
+      canvas.remove();
+    };
+  }, [onSelect, scene, selectedRef, showEntities, showStructures, showTerrain, viewMode]);
+
+  return (
+    <div
+      ref={mountRef}
+      className="h-[34rem] min-h-[28rem] w-full cursor-grab active:cursor-grabbing"
+      role="img"
+      aria-label="Interactive Three.js rendering of the Observatory world"
+    />
+  );
 }
 
 export function ObservatoryScene({ scene }: { scene: SceneDescription }) {
-  const [zoom, setZoom] = useState(1);
-  const [showVoxels, setShowVoxels] = useState(true);
+  const [showTerrain, setShowTerrain] = useState(true);
   const [showStructures, setShowStructures] = useState(true);
   const [showEntities, setShowEntities] = useState(true);
   const [selectedRef, setSelectedRef] = useState<string | null>(null);
-  const [hoveredRef, setHoveredRef] = useState<string | null>(null);
-
-  const locations = scene.references.filter(
-    (reference) => reference.representation.kind === "surface",
-  );
-  const entities = scene.references.filter(
-    (reference) => reference.representation.kind === "articulated_entity",
-  );
-  const structures = scene.references.filter(
-    (reference) =>
-      reference.representation.kind === "constructed_structure" ||
-      reference.refId.includes(":OBJ:"),
-  );
-
-  const activeRef = hoveredRef ?? selectedRef;
-  const activeRecord = scene.references.find((r) => r.refId === activeRef);
+  const [viewMode, setViewMode] = useState<ViewMode>("overview");
+  const entities = scene.references.filter(isEntity);
+  const structures = scene.references.filter(isStructure);
+  const activeRecord = scene.references.find((reference) => reference.refId === selectedRef);
+  const select = useCallback((refId: string) => setSelectedRef(refId), []);
+  const chooseView = (mode: ViewMode) => {
+    if (mode !== "overview" && !entities.some((entity) => entity.refId === selectedRef)) {
+      setSelectedRef(entities[0]?.refId ?? null);
+    }
+    if (mode !== "overview") setShowEntities(true);
+    setViewMode(mode);
+  };
 
   return (
-    <section
-      className="observatory-stage relative overflow-hidden rounded-md border border-line bg-[#05080c] shadow-2xl"
-      aria-labelledby="scene-title"
-    >
-      {/* Floating Control HUD */}
-      <div className="absolute top-0 right-0 left-0 z-20 flex flex-wrap items-center justify-between gap-3 p-4 bg-gradient-to-b from-[#05080c]/95 via-[#05080c]/60 to-transparent backdrop-blur-md">
+    <section className="relative overflow-hidden rounded-md border border-line bg-[#05080c] shadow-2xl" aria-labelledby="scene-title">
+      <div className="absolute inset-x-0 top-0 z-20 flex flex-wrap items-start justify-between gap-3 bg-gradient-to-b from-[#05080c]/95 to-transparent p-4">
         <div>
-          <div className="flex items-center gap-2">
-            <p className="eyebrow">Universal Observatory · Tick {scene.worldTick}</p>
-            <span className="mono rounded border border-amber/40 bg-amber/10 px-2 py-0.5 text-[0.62rem] text-amber font-medium">
-              3D Voxel View
-            </span>
-          </div>
-          <h2 id="scene-title" className="mt-1 text-base font-medium tracking-tight text-ink">
-            W001 · High-Definition World Projection
-          </h2>
+          <p className="eyebrow">Universal Observatory · Tick {scene.worldTick}</p>
+          <h2 id="scene-title" className="mt-1 text-base font-medium text-ink">W001 · Real-time 3D World</h2>
         </div>
-
-        {/* Layer & View Controls */}
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1 rounded-md border border-line bg-panel/90 p-1 text-xs backdrop-blur-md shadow-lg">
-            <button
-              type="button"
-              onClick={() => setShowVoxels((v) => !v)}
-              className={`mono rounded px-2.5 py-1 text-[0.65rem] transition-colors ${
-                showVoxels ? "bg-panel-2 text-amber font-medium shadow-sm" : "text-dim hover:text-muted"
-              }`}
-            >
-              Voxels
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowStructures((v) => !v)}
-              className={`mono rounded px-2.5 py-1 text-[0.65rem] transition-colors ${
-                showStructures ? "bg-panel-2 text-amber font-medium shadow-sm" : "text-dim hover:text-muted"
-              }`}
-            >
-              Buildings ({structures.length})
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowEntities((v) => !v)}
-              className={`mono rounded px-2.5 py-1 text-[0.65rem] transition-colors ${
-                showEntities ? "bg-panel-2 text-amber font-medium shadow-sm" : "text-dim hover:text-muted"
-              }`}
-            >
-              Agents ({entities.length})
-            </button>
+        <div className="pointer-events-auto flex flex-wrap justify-end gap-2">
+          <div className="flex rounded-md border border-line bg-panel/90 p-1 text-xs">
+            {(["overview", "first-person", "third-person"] as const).map((mode) => (
+              <button key={mode} type="button" aria-pressed={viewMode === mode} onClick={() => chooseView(mode)}
+                className={`mono rounded px-2.5 py-1 capitalize ${viewMode === mode ? "bg-amber text-abyss" : "text-muted hover:text-ink"}`}>
+                {mode.replace("-", " ")}
+              </button>
+            ))}
           </div>
-
-          <div className="flex items-center gap-1 rounded-md border border-line bg-panel/90 p-1 text-xs backdrop-blur-md">
-            <button
-              type="button"
-              onClick={() => setZoom((z) => Math.min(z + 0.15, 1.6))}
-              className="mono rounded px-2 py-0.5 text-muted hover:text-amber"
-              title="Zoom In"
-            >
-              +
-            </button>
-            <button
-              type="button"
-              onClick={() => setZoom(1.0)}
-              className="mono rounded px-2 py-0.5 text-dim hover:text-ink text-[0.65rem]"
-              title="Reset Zoom"
-            >
-              100%
-            </button>
-            <button
-              type="button"
-              onClick={() => setZoom((z) => Math.max(z - 0.15, 0.7))}
-              className="mono rounded px-2 py-0.5 text-muted hover:text-amber"
-              title="Zoom Out"
-            >
-              -
-            </button>
+          <div className="flex rounded-md border border-line bg-panel/90 p-1 text-xs">
+            <button type="button" aria-pressed={showTerrain} onClick={() => setShowTerrain((value) => !value)} className={`mono rounded px-2 py-1 ${showTerrain ? "text-amber" : "text-dim"}`}>Terrain</button>
+            <button type="button" aria-pressed={showStructures} onClick={() => setShowStructures((value) => !value)} className={`mono rounded px-2 py-1 ${showStructures ? "text-amber" : "text-dim"}`}>Buildings ({structures.length})</button>
+            <button type="button" aria-pressed={showEntities} onClick={() => setShowEntities((value) => !value)} className={`mono rounded px-2 py-1 ${showEntities ? "text-amber" : "text-dim"}`}>Agents ({entities.length})</button>
           </div>
-
-          <span className="mono rounded-sm border border-alive/30 bg-abyss/80 px-2.5 py-1 text-[0.62rem] tracking-wider text-alive uppercase">
-            Live Read Only
-          </span>
         </div>
       </div>
 
-      {/* SVG 3D Canvas */}
-      <div className="overflow-hidden">
-        <svg
-          viewBox="0 0 640 400"
-          role="img"
-          aria-label={`3D Voxel world view with ${entities.length} agents and ${structures.length} structures`}
-          className="block min-h-[28rem] w-full transition-transform duration-300"
-          style={{ transform: `scale(${zoom})` }}
-        >
-          <defs>
-            <radialGradient id="sun-glow" cx="48%" cy="30%" r="65%">
-              <stop offset="0%" stopColor="#d9a441" stopOpacity="0.25" />
-              <stop offset="40%" stopColor="#d9a441" stopOpacity="0.08" />
-              <stop offset="100%" stopColor="#05080c" stopOpacity="0" />
-            </radialGradient>
+      <ObservatoryThreeViewport scene={scene} showTerrain={showTerrain} showStructures={showStructures}
+        showEntities={showEntities} viewMode={viewMode} selectedRef={selectedRef} onSelect={select} />
 
-            <linearGradient id="roof-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#f5c26b" />
-              <stop offset="100%" stopColor="#c08c28" />
-            </linearGradient>
-
-            <filter id="entity-glow" x="-50%" y="-50%" width="200%" height="200%">
-              <feGaussianBlur stdDeviation="3" result="blur" />
-              <feMerge>
-                <feMergeNode in="blur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-
-          {/* Background Atmosphere */}
-          <rect width="640" height="400" fill="#05080c" />
-          <ellipse cx="320" cy="200" rx="310" ry="180" fill="url(#sun-glow)" />
-
-          {/* Grid Guidelines */}
-          <g stroke="#1a2632" strokeWidth="0.5" opacity="0.4">
-            <line x1="320" y1="40" x2="630" y2="195" />
-            <line x1="320" y1="40" x2="10" y2="195" />
-            <line x1="10" y1="195" x2="320" y2="350" />
-            <line x1="630" y1="195" x2="320" y2="350" />
-          </g>
-
-          {/* 3D Voxel Terrain */}
-          <g aria-label="3D Terrain Grid">
-            {locations.map((reference) => {
-              const x = reference.transform.position.x;
-              const z = reference.transform.position.z;
-              const material = reference.representation.material ?? "plains";
-              const refId = reference.refId;
-              const style = BIOME_STYLES[material] ?? BIOME_STYLES.plains!;
-              const elevation = showVoxels ? style.height : 0;
-              const voxel = voxelPoints(x, z, elevation);
-              const isHovered = activeRef === refId;
-
-              return (
-                <g
-                  key={refId}
-                  onClick={() => setSelectedRef(refId)}
-                  onMouseEnter={() => setHoveredRef(refId)}
-                  onMouseLeave={() => setHoveredRef(null)}
-                  className="cursor-pointer transition-all hover:brightness-125"
-                >
-                  {showVoxels && (
-                    <>
-                      <polygon points={voxel.leftFace} fill={style.left} />
-                      <polygon points={voxel.rightFace} fill={style.right} />
-                    </>
-                  )}
-                  <polygon
-                    points={voxel.topFace}
-                    fill={isHovered ? "#d9a441" : style.top}
-                    stroke={isHovered ? "#fff" : style.stroke}
-                    strokeWidth={isHovered ? "1.2" : "0.5"}
-                  />
-                </g>
-              );
-            })}
-          </g>
-
-          {/* 3D Buildings & Structures */}
-          {showStructures && (
-            <g aria-label="3D Structures">
-              {structures.map((reference) => {
-                const x = reference.transform.position.x;
-                const z = reference.transform.position.z;
-                const refId = reference.refId;
-                const isHovered = activeRef === refId;
-                const top = projectIso(x, z, showVoxels ? 4 : 0);
-
-                return (
-                  <g
-                    key={refId}
-                    onClick={() => setSelectedRef(refId)}
-                    onMouseEnter={() => setHoveredRef(refId)}
-                    onMouseLeave={() => setHoveredRef(null)}
-                    className="cursor-pointer transition-all hover:brightness-150"
-                  >
-                    {/* Building Walls */}
-                    <polygon
-                      points={`${top.x - 8},${top.y} ${top.x},${top.y + 4} ${top.x},${top.y - 8} ${top.x - 8},${top.y - 12}`}
-                      fill="#634c38"
-                      stroke="#140f09"
-                      strokeWidth="0.5"
-                    />
-                    <polygon
-                      points={`${top.x},${top.y + 4} ${top.x + 8},${top.y} ${top.x + 8},${top.y - 12} ${top.x},${top.y - 8}`}
-                      fill="#8a6948"
-                      stroke="#140f09"
-                      strokeWidth="0.5"
-                    />
-
-                    {/* Illuminated Door/Window */}
-                    <rect
-                      x={top.x - 2}
-                      y={top.y - 4}
-                      width="4"
-                      height="5"
-                      fill="#ffd275"
-                      opacity="0.9"
-                    />
-
-                    {/* Pitched Roof */}
-                    <polygon
-                      points={`${top.x},${top.y - 19} ${top.x + 8},${top.y - 12} ${top.x},${top.y - 8} ${top.x - 8},${top.y - 12}`}
-                      fill="url(#roof-gradient)"
-                      stroke={isHovered ? "#fff" : "#f5c26b"}
-                      strokeWidth={isHovered ? "1.2" : "0.6"}
-                      filter={isHovered ? "url(#entity-glow)" : undefined}
-                    />
-
-                    {/* Roof Crest */}
-                    <circle cx={top.x} cy={top.y - 14} r="1.5" fill="#fff" />
-                  </g>
-                );
-              })}
-            </g>
-          )}
-
-          {/* Inhabitant Avatars */}
-          {showEntities && (
-            <g aria-label="Inhabitant Agents">
-              {entities.map((reference, index) => {
-                const x = reference.transform.position.x;
-                const z = reference.transform.position.z;
-                const refId = reference.refId;
-                const isHovered = activeRef === refId;
-                const top = projectIso(x, z, showVoxels ? 6 : 0);
-                const colours = ["#79d3a3", "#d9a441", "#a08ee6"];
-                const color = colours[index % colours.length];
-
-                return (
-                  <g
-                    key={refId}
-                    onClick={() => setSelectedRef(refId)}
-                    onMouseEnter={() => setHoveredRef(refId)}
-                    onMouseLeave={() => setHoveredRef(null)}
-                    className="cursor-pointer"
-                  >
-                    {/* Light Pole */}
-                    <line
-                      x1={top.x}
-                      y1={top.y}
-                      x2={top.x}
-                      y2={top.y - 20}
-                      stroke={color}
-                      strokeOpacity="0.8"
-                      strokeWidth="1.2"
-                    />
-
-                    {/* Glowing Head Badge */}
-                    <circle
-                      cx={top.x}
-                      cy={top.y - 21}
-                      r={isHovered ? "6.5" : "5"}
-                      fill={color}
-                      stroke="#ffffff"
-                      strokeWidth="1"
-                      filter="url(#entity-glow)"
-                    />
-                  </g>
-                );
-              })}
-            </g>
-          )}
-        </svg>
-      </div>
-
-      {/* Glassmorphic Inspector Overlay */}
-      <div className="absolute right-4 bottom-4 left-4 flex flex-wrap items-center justify-between gap-3 bg-panel/90 p-3 rounded-md border border-line backdrop-blur-md shadow-xl">
+      <div className="absolute inset-x-4 bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-panel/90 p-3 backdrop-blur-md">
         {activeRecord ? (
           <div className="flex items-center gap-3">
-            <span className="mono rounded bg-amber/20 px-2 py-0.5 text-xs font-medium text-amber">
-              {activeRecord.representation.kind}
-            </span>
+            <span className="mono rounded bg-amber/20 px-2 py-0.5 text-xs text-amber">{activeRecord.representation.kind}</span>
             <div>
-              <p className="text-xs font-medium text-ink">
-                Ref: {activeRecord.refId}
-              </p>
-              <p className="mono text-[0.65rem] text-dim">
-                Pos: ({activeRecord.transform.position.x}, {activeRecord.transform.position.z}) · Material:{" "}
-                {activeRecord.representation.material ?? "N/A"}
-              </p>
+              <p className="text-xs font-medium text-ink">Ref: {activeRecord.refId}</p>
+              <p className="mono text-[0.65rem] text-dim">Pos: ({activeRecord.transform.position.x}, {activeRecord.transform.position.z}) · drag to look · wheel to zoom</p>
             </div>
-            <a
-              href={`/world/${scene.worldId}/ref/${encodeURIComponent(activeRecord.refId)}`}
-              className="mono ml-2 rounded border border-line px-2 py-1 text-xs text-amber hover:bg-amber/10"
-            >
-              Inspect Record →
-            </a>
+            <a href={`/world/${scene.worldId}/ref/${encodeURIComponent(activeRecord.refId)}`} className="mono rounded border border-line px-2 py-1 text-xs text-amber">Inspect Record →</a>
           </div>
-        ) : (
-          <p className="text-xs text-muted">
-            Hover or click any voxel tile, structure, or agent to inspect canonical data.
-          </p>
-        )}
-
-        <p className="mono text-[0.62rem] text-dim">
-          {scene.references.length.toLocaleString()} spatial references
-        </p>
+        ) : <p className="text-xs text-muted">Click terrain, a building, or an agent to inspect it. Select an agent for first/third person.</p>}
+        <p className="mono text-[0.62rem] text-dim">{scene.references.length.toLocaleString()} references · live read only</p>
       </div>
     </section>
   );

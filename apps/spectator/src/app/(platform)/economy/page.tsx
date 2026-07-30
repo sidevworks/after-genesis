@@ -149,7 +149,7 @@ export default async function EconomyPage() {
               <li key={contract.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="mono text-xs text-amber">{contract.id}</span>
-                  <Badge>{titleCase(contract.kind)}</Badge>
+                  <Badge>{contract.kind ? titleCase(contract.kind) : "Contract"}</Badge>
                   <Badge tone={contract.status === "breached" ? "warn" : "neutral"}>
                     {contract.status}
                   </Badge>

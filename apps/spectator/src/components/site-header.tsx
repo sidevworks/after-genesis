@@ -5,6 +5,7 @@ import { DevWorldControls } from "./dev-world-controls";
 import { NavGroups } from "./nav-groups";
 import { TierBadge } from "./tier-badge";
 import { ViewerBadge } from "./auth/viewer-badge";
+import { publicRunClassification } from "@/lib/run-classification";
 
 export const NAV = [
   { href: "/overview", label: "Overview" },
@@ -23,6 +24,7 @@ export const NAV = [
 
 export async function SiteHeader() {
   const summary = await worldSource.getWorldSummary();
+  const classification = publicRunClassification();
 
   // `TierProvider` deliberately lives in the root layout rather than here.
   // Wrapping only the header put every page body outside the context, so
@@ -36,6 +38,9 @@ export async function SiteHeader() {
             <Link href="/overview" className="flex items-baseline gap-2.5">
               <span className="text-sm font-medium tracking-tight text-ink">After Genesis</span>
             </Link>
+            <span className="rounded border border-line px-2 py-1 font-mono text-[0.55rem] tracking-[0.12em] text-dim">
+              {classification}
+            </span>
 
             <HeaderWorldStatus
               archive={{
