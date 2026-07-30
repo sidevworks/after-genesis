@@ -33,6 +33,46 @@ function response(
   });
 }
 
+function visibleTargets(...ids: readonly string[]): Set<string> {
+  const basis = new Set<string>();
+  for (const id of ids) {
+    if (id.startsWith("str_")) basis.add(`observed:structure:${id}`);
+    else basis.add(`observed:inhabitant:${id}`);
+  }
+  return basis;
+}
+
+function socialState() {
+  return buildGenesis({
+    worldId: "world_neutral_social",
+    seed: "neutral-social",
+    width: 8,
+    height: 8,
+    founder: {
+      id: "inh_founder",
+      displayName: "Founder",
+      modelId: "test-model",
+      sex: "female",
+      inventory: { energy: 1000, compute: 1000, food: 10, water: 10, wood: 10 },
+      traits: {},
+      values: [],
+      privateGoals: [],
+    },
+    inhabitants: [
+      {
+        id: "inh_other",
+        displayName: "Other",
+        modelId: "test-model",
+        sex: "male",
+        inventory: { energy: 1000, compute: 1000, food: 10, water: 10 },
+        traits: {},
+        values: [],
+        privateGoals: [],
+      },
+    ],
+  }).state;
+}
+
 describe("neutral inhabitant protocol", () => {
   it("translates a neutral move without semantic repair", () => {
     const parsed = parseNeutralModelResponse(
@@ -63,6 +103,20 @@ describe("neutral inhabitant protocol", () => {
       ok: false,
       code: "invalid_shape",
       reason: expect.stringContaining("parameters.to"),
+    });
+  });
+
+  it("rejects a target id that was not visible in the turn packet", () => {
+    const raw = JSON.parse(response("communicate", {})) as {
+      attempt: { target_ids: readonly string[]; message: string | null };
+    };
+    raw.attempt.target_ids = ["inh_hidden"];
+    raw.attempt.message = "Are you there?";
+
+    expect(parseNeutralModelResponse(JSON.stringify(raw), new Set())).toMatchObject({
+      ok: false,
+      code: "invalid_shape",
+      reason: expect.stringContaining("not a visible target"),
     });
   });
 
@@ -179,7 +233,7 @@ describe("neutral inhabitant protocol", () => {
     raw.attempt.target_ids = ["inh_other"];
     raw.attempt.message = "A proposed group for comparing observations.";
 
-    const parsed = parseNeutralModelResponse(JSON.stringify(raw), new Set());
+    const parsed = parseNeutralModelResponse(JSON.stringify(raw), visibleTargets("inh_other"));
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.action).toMatchObject({
@@ -196,6 +250,36 @@ describe("neutral inhabitant protocol", () => {
     expect(getActionSpec(parsed.action.type).payload.safeParse(parsed.action.payload).success).toBe(true);
   });
 
+  it("resolves a neutral group formation in the real engine", () => {
+    const raw = JSON.parse(response("form_group", {
+      label: "Shared Watch",
+      kind: "council",
+      membership_rule: "open",
+      decision_rule: "majority",
+    })) as { attempt: { target_ids: readonly string[]; message: string | null } };
+    raw.attempt.target_ids = ["inh_other"];
+    raw.attempt.message = "Compare observations before acting.";
+    const parsed = parseNeutralModelResponse(JSON.stringify(raw), visibleTargets("inh_other"));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    const resolved = runAction({
+      state: socialState(),
+      actorId: "inh_founder",
+      action: parsed.action,
+      simTime: simTime(0),
+      sequence: 1,
+    });
+
+    expect(resolved.outcome.status).toBe("resolved");
+    expect(Object.values(resolved.state.organisations)[0]).toMatchObject({
+      name: "Shared Watch",
+      kind: "council",
+      founder: "inh_founder",
+      invited: ["inh_other"],
+    });
+  });
+
   it("maps a neutral exchange offer into a real trade action", () => {
     const raw = JSON.parse(response("offer_exchange", {
       give: { resources: { wood: 2 } },
@@ -204,7 +288,7 @@ describe("neutral inhabitant protocol", () => {
     raw.attempt.target_ids = ["inh_other"];
     raw.attempt.message = "Two wood for one food.";
 
-    const parsed = parseNeutralModelResponse(JSON.stringify(raw), new Set());
+    const parsed = parseNeutralModelResponse(JSON.stringify(raw), visibleTargets("inh_other"));
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
     expect(parsed.action).toMatchObject({
@@ -217,6 +301,29 @@ describe("neutral inhabitant protocol", () => {
       submittedAttempt: { capability: "offer_exchange" },
     });
     expect(getActionSpec(parsed.action.type).payload.safeParse(parsed.action.payload).success).toBe(true);
+  });
+
+  it("resolves a neutral exchange offer in the real engine", () => {
+    const raw = JSON.parse(response("offer_exchange", {
+      give: { resources: { wood: 2 } },
+      want: { resources: { food: 1 } },
+    })) as { attempt: { target_ids: readonly string[]; message: string | null } };
+    raw.attempt.target_ids = ["inh_other"];
+    raw.attempt.message = "Two wood for one food.";
+    const parsed = parseNeutralModelResponse(JSON.stringify(raw), visibleTargets("inh_other"));
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    const resolved = runAction({
+      state: socialState(),
+      actorId: "inh_founder",
+      action: parsed.action,
+      simTime: simTime(0),
+      sequence: 1,
+    });
+
+    expect(resolved.outcome.status).toBe("resolved");
+    expect(resolved.events[0]).toMatchObject({ type: "action.offer_trade" });
   });
 
   it("maps neutral issued units into a real currency action", () => {
@@ -241,6 +348,33 @@ describe("neutral inhabitant protocol", () => {
       submittedAttempt: { capability: "issue_units" },
     });
     expect(getActionSpec(parsed.action.type).payload.safeParse(parsed.action.payload).success).toBe(true);
+  });
+
+  it("resolves neutral issued units in the real engine", () => {
+    const raw = JSON.parse(response("issue_units", {
+      label: "Pebble",
+      symbol: "PBL",
+      supply: 10,
+    })) as { attempt: { message: string | null } };
+    raw.attempt.message = "A countable token for future exchange.";
+    const parsed = parseNeutralModelResponse(JSON.stringify(raw), new Set());
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    const resolved = runAction({
+      state: socialState(),
+      actorId: "inh_founder",
+      action: parsed.action,
+      simTime: simTime(0),
+      sequence: 1,
+    });
+
+    expect(resolved.outcome.status).toBe("resolved");
+    expect(Object.values(resolved.state.currencies)[0]).toMatchObject({
+      name: "Pebble",
+      symbol: "PBL",
+      issuedSupply: 10,
+    });
   });
 
   it("keeps recovery inside the engine's real rest limit", () => {
@@ -316,7 +450,7 @@ describe("neutral inhabitant protocol", () => {
       if (["communicate", "propose", "respond", "record"].includes(capability)) {
         raw.attempt.message = "A bounded test message.";
       }
-      const parsed = parseNeutralModelResponse(JSON.stringify(raw), new Set());
+      const parsed = parseNeutralModelResponse(JSON.stringify(raw), visibleTargets(...targetIds));
       expect(parsed.ok).toBe(true);
       if (!parsed.ok) return;
       expect(

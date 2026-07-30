@@ -441,6 +441,20 @@ function requiredParameterProblem(
   }
 }
 
+function allowedTargetIds(allowedBasisIds: ReadonlySet<string>): ReadonlySet<string> {
+  const out = new Set<string>();
+  for (const basisId of allowedBasisIds) {
+    if (basisId.startsWith("self:")) out.add(basisId.slice("self:".length));
+    if (basisId.startsWith("observed:inhabitant:")) {
+      out.add(basisId.slice("observed:inhabitant:".length));
+    }
+    if (basisId.startsWith("observed:structure:")) {
+      out.add(basisId.slice("observed:structure:".length));
+    }
+  }
+  return out;
+}
+
 /**
  * Deterministic capability adapter. The same accepted neutral response always
  * produces byte-identical engine input.
@@ -803,6 +817,14 @@ export function parseNeutralModelResponse(
     return failure(
       "invalid_shape",
       "decision_record.basis_ids contained an id absent from this TURN_PACKET.",
+    );
+  }
+  const targets = allowedTargetIds(allowedBasisIds);
+  const unknownTarget = validated.data.attempt.target_ids.find((id) => !targets.has(id));
+  if (unknownTarget !== undefined) {
+    return failure(
+      "invalid_shape",
+      `attempt.target_ids contained ${unknownTarget}, which is not a visible target in this TURN_PACKET.`,
     );
   }
   if (depthOf(validated.data.attempt.parameters, MAX_PAYLOAD_DEPTH) > MAX_PAYLOAD_DEPTH) {
