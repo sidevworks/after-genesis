@@ -32,7 +32,7 @@ type DevStatus = {
   } | null;
 };
 
-type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
+type GeminiModel = "gemini-3.6-flash";
 type CognitionMode = "fast-ai" | "deep-ai" | "offline";
 
 const CONTROL_URL = process.env.NEXT_PUBLIC_DEV_WORLD_CONTROL_URL ?? "http://127.0.0.1:8787";
@@ -66,12 +66,11 @@ export function DevWorldControls() {
   const cognitionInitializedRef = useRef(false);
 
   const provider = cognitionMode === "offline" ? "offline" : "gemini";
-  const model: GeminiModel =
-    cognitionMode === "fast-ai" ? "gemini-3.5-flash-lite" : "gemini-3.6-flash";
+  const model: GeminiModel = "gemini-3.6-flash";
 
   function modeFromStatus(body: DevStatus): CognitionMode {
     if (body.provider === "offline") return "offline";
-    return body.model === "gemini-3.5-flash-lite" ? "fast-ai" : "deep-ai";
+    return "deep-ai";
   }
 
   async function refresh() {
@@ -153,7 +152,7 @@ export function DevWorldControls() {
           className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
           aria-label="Cognition mode"
         >
-          <option value="fast-ai">Fast AI · Gemini 3.5 Flash-Lite</option>
+          <option value="fast-ai">Fast AI · Gemini 3.6 Flash</option>
           <option value="deep-ai">In-depth AI · Gemini 3.6 Flash</option>
           <option value="offline">No AI · engine-only test</option>
         </select>

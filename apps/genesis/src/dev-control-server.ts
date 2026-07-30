@@ -42,7 +42,7 @@ const DEV_VOICE_DIR = `apps/spectator/public/voice/${DEV_VOICE_REEL}`;
 const GENERATED_BY_A_DEV_RUN: readonly string[] = [DEV_WORLD_DIR, DEV_VOICE_DIR];
 
 type CognitionProvider = "gemini" | "offline";
-type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
+type GeminiModel = "gemini-3.6-flash";
 
 type Status = {
   running: boolean;
@@ -82,10 +82,7 @@ let lastError: string | null = null;
 let currentChild: ChildProcess | null = null;
 let stopRequested = false;
 let activeProvider: CognitionProvider = "gemini";
-let activeModel: GeminiModel =
-  process.env.AG_MODEL_ROUTINE === "gemini-3.5-flash-lite"
-    ? "gemini-3.5-flash-lite"
-    : "gemini-3.6-flash";
+let activeModel: GeminiModel = "gemini-3.6-flash";
 let activeVoiceEnabled = false;
 let voiceState: Status["voice"]["state"] = "idle";
 let voiceLastPublishedAt: string | null = null;
@@ -553,8 +550,11 @@ function parseProvider(params: URLSearchParams): CognitionProvider {
 
 function parseModel(params: URLSearchParams): GeminiModel {
   const model = params.get("model") ?? activeModel;
-  if (model !== "gemini-3.5-flash-lite" && model !== "gemini-3.6-flash") {
-    throw new Error("model must be gemini-3.5-flash-lite or gemini-3.6-flash");
+  if (model === "gemini-3.5-flash-lite") {
+    return "gemini-3.6-flash";
+  }
+  if (model !== "gemini-3.6-flash") {
+    throw new Error("model must be gemini-3.6-flash");
   }
   return model;
 }
