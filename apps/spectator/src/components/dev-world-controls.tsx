@@ -266,33 +266,39 @@ export function DevWorldControls() {
           </button>
         ))}
         <span className="mono ml-auto text-dim">
-          {status?.running
-            ? progress !== null
-              ? `${progress.completedTurns}/${progress.targetTurns} turns · ${progress.percent}% · ${dayOf(
-                  progress.simTime,
-                )}`
-              : latestLine(status.lastOutput) ?? "processing..."
-            : status?.summary
-              ? `${dayOf(status.summary.simTime)} · ${status.summary.eventCount} events · pop ${status.summary.living}/${status.summary.total}`
-              : status
-                ? "controller online · awaiting Genesis"
-                : "controller offline"}
+          {progress !== null
+            ? `${status?.running ? "running" : progress.percent === 100 ? "complete" : "stopped"} · ${progress.completedTurns}/${progress.targetTurns} turns · ${progress.percent}% · ${dayOf(
+                progress.simTime,
+              )}`
+            : status?.running
+              ? latestLine(status.lastOutput) ?? "processing..."
+              : status?.summary
+                ? `${dayOf(status.summary.simTime)} · ${status.summary.eventCount} events · pop ${status.summary.living}/${status.summary.total}`
+                : status
+                  ? "controller online · awaiting Genesis"
+                  : "controller offline"}
         </span>
-        {status?.running && progress !== null && (
+        <div className="flex w-full items-center gap-2">
+          <span className="mono shrink-0 text-[10px] uppercase tracking-wider text-dim">
+            Progress
+          </span>
           <div
-            className="h-1.5 w-full overflow-hidden rounded-full bg-line"
+            className="h-1.5 flex-1 overflow-hidden rounded-full bg-line"
             role="progressbar"
             aria-label="Simulation progress"
             aria-valuemin={0}
-            aria-valuemax={progress.targetTurns}
-            aria-valuenow={progress.completedTurns}
+            aria-valuemax={progress?.targetTurns ?? 100}
+            aria-valuenow={progress?.completedTurns ?? 0}
           >
             <div
               className="h-full bg-amber transition-[width] duration-500"
-              style={{ width: `${progress.percent}%` }}
+              style={{ width: `${progress?.percent ?? 0}%` }}
             />
           </div>
-        )}
+          <span className="mono w-24 text-right text-[10px] text-dim">
+            {progress === null ? "not running" : `${progress.percent}%`}
+          </span>
+        </div>
         {provider === "offline" && (
           <span className="text-warn">No autonomous reasoning in this mode</span>
         )}

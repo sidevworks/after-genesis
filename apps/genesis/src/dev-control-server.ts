@@ -88,6 +88,11 @@ let activeModel: GeminiModel =
 let voiceState: Status["voice"]["state"] = "idle";
 let voiceLastPublishedAt: string | null = null;
 let voiceError: string | null = null;
+let fastForwardProgress: {
+  baseEventCount: number;
+  targetTurns: number;
+  startingSimTime: number;
+} | null = null;
 
 const SPEEDS: Record<string, string> = {
   realtime: "1h",
@@ -242,6 +247,7 @@ async function publishVoice(): Promise<void> {
 }
 
 async function reset(): Promise<void> {
+  fastForwardProgress = null;
   // `--reset` erases the run's events, state and model audit. Clear everything
   // published from the previous run too, so nothing the old world knew or said
   // survives into the new one — including on screen and in rendered audio.
@@ -270,6 +276,7 @@ async function reset(): Promise<void> {
 }
 
 async function advance(params: URLSearchParams): Promise<void> {
+  fastForwardProgress = null;
   const days = Number(params.get("days") ?? "1");
   const speed = params.get("speed") ?? "realtime";
   const turnDurationMs = Math.max(1, Math.floor((DAY_DURATION_MS[speed] ?? 0) / 12));
@@ -311,6 +318,13 @@ async function fastForward(params: URLSearchParams): Promise<void> {
   if (!Number.isSafeInteger(days) || days < 1 || days > 833) {
     throw new Error("fast-forward days must be an integer from 1 to 833");
   }
+
+  const startingEvents = await readLiveEvents();
+  fastForwardProgress = {
+    baseEventCount: startingEvents.count,
+    targetTurns: days * 12,
+    startingSimTime: startingEvents.simTime,
+  };
 
   await run(
     "npm",
@@ -366,25 +380,22 @@ async function status(): Promise<Status> {
       chainHead: world.summary?.chainHead ?? "",
     };
     let progress: Status["progress"] = null;
-    const days = Number(/--days (\d+)/.exec(lastCommand ?? "")?.[1] ?? 0);
-    if ((jobRunning || childRunning) && days > 0) {
+    if (fastForwardProgress !== null) {
       try {
-        const eventRaw = await readFile(
-          resolve(ROOT, RUN_DIR, "events", "after-genesis-demo.jsonl"),
-          "utf8",
-        );
-        const lines = eventRaw.split("\n").filter((line) => line.trim() !== "");
-        const last = JSON.parse(lines.at(-1) ?? "{}") as { simTime?: unknown };
-        const targetTurns = days * 12;
+        const liveEvents = await readLiveEvents();
+        const targetTurns = fastForwardProgress.targetTurns;
         const completedTurns = Math.max(
           0,
-          Math.min(targetTurns, lines.length - summary.eventCount),
+          Math.min(targetTurns, liveEvents.count - fastForwardProgress.baseEventCount),
         );
         progress = {
           completedTurns,
           targetTurns,
           percent: Math.floor((completedTurns * 100) / targetTurns),
-          simTime: typeof last.simTime === "number" ? last.simTime : summary.simTime,
+          simTime:
+            completedTurns === 0
+              ? fastForwardProgress.startingSimTime
+              : liveEvents.simTime,
         };
       } catch {
         progress = null;
@@ -424,6 +435,19 @@ async function status(): Promise<Status> {
       progress: null,
     };
   }
+}
+
+async function readLiveEvents(): Promise<{ count: number; simTime: number }> {
+  const eventRaw = await readFile(
+    resolve(ROOT, RUN_DIR, "events", "after-genesis-demo.jsonl"),
+    "utf8",
+  );
+  const lines = eventRaw.split("\n").filter((line) => line.trim() !== "");
+  const last = JSON.parse(lines.at(-1) ?? "{}") as { simTime?: unknown };
+  return {
+    count: lines.length,
+    simTime: typeof last.simTime === "number" ? last.simTime : 0,
+  };
 }
 
 async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
