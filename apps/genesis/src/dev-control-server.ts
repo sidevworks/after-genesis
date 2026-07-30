@@ -278,7 +278,11 @@ async function reset(): Promise<void> {
   );
   await exportFixtures();
   if (activeVoiceEnabled) await publishVoice();
-  else voiceState = "stale";
+  else {
+    voiceState = "idle";
+    voiceError = null;
+    voiceLastPublishedAt = null;
+  }
 }
 
 async function advance(params: URLSearchParams): Promise<void> {

@@ -326,7 +326,7 @@ export function DevWorldControls() {
         {status?.voice.state === "rendering" && (
           <span className="text-amber">Rendering voice…</span>
         )}
-        {status?.voice.state === "stale" && (
+        {status?.voice.enabled && status.voice.state === "stale" && (
           <button
             type="button"
             disabled={status.running}

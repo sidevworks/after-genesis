@@ -88,7 +88,7 @@ export function buildVoiceRegistry(
       female: required(env, "ELEVENLABS_VOICE_CHILD_FEMALE"),
     }),
     childMaturityBelow: parsedMaturity,
-    modelId: env.ELEVENLABS_MODEL_ID?.trim() || "eleven_multilingual_v2",
+    modelId: env.ELEVENLABS_MODEL_ID?.trim() || "eleven_flash_v2_5",
   };
 }
 
