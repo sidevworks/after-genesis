@@ -441,6 +441,40 @@ describe("captions state canonical fields and nothing else", () => {
     expect(observing.caption).toContain("Contents withheld by canonical visibility.");
   });
 
+  it("shows disclosed canonical speech verbatim instead of a generic communication label", () => {
+    const built = buildChronicle(
+      makeRun({
+        activities: [
+          envelope({
+            sequence: 7,
+            actionType: "communicate",
+            activityState: "conversing",
+            contentsDisclosed: true,
+          }),
+        ],
+        events: [
+          {
+            sequence: 7,
+            simTime: 120,
+            realTimestamp: "2026-01-01T00:00:00.000Z",
+            canonicalType: "action.communicate",
+            actorId: "inh_a",
+            visibility: "public",
+            location: { x: 0, y: 0 },
+            outcomeStatus: "resolved",
+            detail: { message: "Let us gather beside the river." },
+            hash: "sha256:event",
+            prevHash: "sha256:previous",
+          },
+        ],
+      }),
+    );
+
+    expect(canonicalSegments(trackOf(built, "inh_a"))[0]?.caption).toBe(
+      "“Let us gather beside the river.”",
+    );
+  });
+
   it("names the canonical activity state, the duration and the withholding on every envelope-only caption", () => {
     const envelopeOnly = chronicle.tracks
       .flatMap((track) => track.segments)

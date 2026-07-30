@@ -296,6 +296,17 @@ function disclosedCaption(
       }
       break;
     }
+    case "communicate":
+    case "announce":
+    case "perform": {
+      const message =
+        readText(detail, "message") ??
+        readText(detail, "text") ??
+        readText(detail, "content") ??
+        readText(detail, "utterance");
+      if (message !== null) return `“${message}”`;
+      break;
+    }
     case "rest":
       return `Rested at ${formatCoord(to)} for ${formatMinutes(minutes)}.`;
     case "wait":

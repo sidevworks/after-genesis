@@ -77,6 +77,7 @@ const limit = Number.parseInt(arg("limit", "0"), 10) || Number.POSITIVE_INFINITY
  */
 const plain = process.argv.includes("--plain");
 const live = process.argv.includes("--live");
+const input = arg("input", "");
 
 /**
  * Load `.env` without a dependency.
@@ -163,8 +164,23 @@ interface Reel {
  * reel once existed, built from a retained demo run; it was removed with that
  * run, because audio derived from a previous world is not this world's voice.
  */
-function reels(): readonly Reel[] {
-  const all: Reel[] = [{ name: "month", run: observatoryRun as unknown as ObservatoryRun }];
+async function reels(): Promise<readonly Reel[]> {
+  let run = observatoryRun as unknown as ObservatoryRun;
+  const requestedInput =
+    input.length > 0
+      ? resolve(REPO_ROOT, input)
+      : live
+        ? join(APP_ROOT, ".dev-world", "observatory-run.json")
+        : null;
+  if (requestedInput !== null) {
+    if (!existsSync(requestedInput)) {
+      throw new Error(
+        `voice reel input does not exist at ${requestedInput}; run the dev controller export first`,
+      );
+    }
+    run = JSON.parse(await readFile(requestedInput, "utf8")) as ObservatoryRun;
+  }
+  const all: Reel[] = [{ name: "month", run }];
   return reel === "all" ? all : all.filter((entry) => entry.name === reel);
 }
 
@@ -172,7 +188,7 @@ async function main(): Promise<void> {
   const env = await loadEnv();
   const registry = buildVoiceRegistry(env);
 
-  for (const { name, run } of reels()) {
+  for (const { name, run } of await reels()) {
     const chronicle = buildChronicle(run);
     const lookup = speakerLookupFor(run);
     const selectedBase = selectVoiceLines(chronicle, lookup);

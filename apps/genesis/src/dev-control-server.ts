@@ -239,6 +239,7 @@ async function publishVoice(): Promise<void> {
       "--",
       `--reel=${DEV_VOICE_REEL}`,
       "--live",
+      `--input=${DEV_OBSERVATORY_FILE}`,
       "--limit=80",
     ]);
     voiceState = "ready";
@@ -295,31 +296,35 @@ async function advance(params: URLSearchParams): Promise<void> {
     targetTurns: turns,
     startingSimTime: startingEvents.simTime,
   };
-  for (let turn = 1; turn <= turns; turn++) {
-    if (stopRequested) throw new Error("dev controller job stopped");
-    const started = Date.now();
-    await run(
-      "npm",
-      [
-        "run",
-        "world",
-        "--",
-        "demo",
-        "--resume",
-        "--turns",
-        "1",
-        "--provider",
-        activeProvider,
-        "--output",
-        RUN_DIR,
-      ],
-      cognitionEnv(activeProvider, activeModel),
-    );
-    await exportFixtures();
-    if (activeVoiceEnabled) await publishVoice();
-    lastOutput = `${lastOutput}\n[dev-clock] published turn ${turn}/${turns}\n`.slice(-12_000);
-    const remainingDelay = turnDurationMs - (Date.now() - started);
-    if (turn < turns && remainingDelay > 0) await sleep(remainingDelay);
+  try {
+    for (let turn = 1; turn <= turns; turn++) {
+      if (stopRequested) throw new Error("dev controller job stopped");
+      const started = Date.now();
+      await run(
+        "npm",
+        [
+          "run",
+          "world",
+          "--",
+          "demo",
+          "--resume",
+          "--turns",
+          "1",
+          "--provider",
+          activeProvider,
+          "--output",
+          RUN_DIR,
+        ],
+        cognitionEnv(activeProvider, activeModel),
+      );
+      await exportFixtures();
+      if (activeVoiceEnabled) await publishVoice();
+      lastOutput = `${lastOutput}\n[dev-clock] published turn ${turn}/${turns}\n`.slice(-12_000);
+      const remainingDelay = turnDurationMs - (Date.now() - started);
+      if (turn < turns && remainingDelay > 0) await sleep(remainingDelay);
+    }
+  } finally {
+    if (stopRequested) await finalizeStoppedRun();
   }
   if (!activeVoiceEnabled) {
     voiceState = "stale";
@@ -340,33 +345,49 @@ async function fastForward(params: URLSearchParams): Promise<void> {
     startingSimTime: startingEvents.simTime,
   };
 
-  await run(
-    "npm",
-    [
-      "run",
-      "world",
-      "--",
-      "demo",
-      "--resume",
-      "--days",
-      String(days),
-      "--provider",
-      activeProvider,
-      "--output",
-      RUN_DIR,
-    ],
-    cognitionEnv(activeProvider, activeModel),
+  try {
+    await run(
+      "npm",
+      [
+        "run",
+        "world",
+        "--",
+        "demo",
+        "--resume",
+        "--days",
+        String(days),
+        "--provider",
+        activeProvider,
+        "--output",
+        RUN_DIR,
+      ],
+      cognitionEnv(activeProvider, activeModel),
+    );
+    await exportFixtures();
+
+    if (activeVoiceEnabled) await publishVoice();
+    else {
+      voiceState = "stale";
+      voiceError = null;
+    }
+  } finally {
+    if (stopRequested) await finalizeStoppedRun();
+  }
+  lastOutput = `${lastOutput}\n[fast-forward] published ${days} simulated day(s); voice pending\n`.slice(
+    -12_000,
+  );
+}
+
+async function finalizeStoppedRun(): Promise<void> {
+  lastOutput = `${lastOutput}\n[dev-control] publishing last committed turn after stop\n`.slice(
+    -12_000,
   );
   await exportFixtures();
-
   if (activeVoiceEnabled) await publishVoice();
   else {
     voiceState = "stale";
     voiceError = null;
   }
-  lastOutput = `${lastOutput}\n[fast-forward] published ${days} simulated day(s); voice pending\n`.slice(
-    -12_000,
-  );
 }
 
 function sleep(ms: number): Promise<void> {
