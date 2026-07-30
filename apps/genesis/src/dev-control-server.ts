@@ -42,10 +42,12 @@ const DEV_VOICE_DIR = `apps/spectator/public/voice/${DEV_VOICE_REEL}`;
 const GENERATED_BY_A_DEV_RUN: readonly string[] = [DEV_WORLD_DIR, DEV_VOICE_DIR];
 
 type CognitionProvider = "gemini" | "offline";
+type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
 
 type Status = {
   running: boolean;
   provider: CognitionProvider;
+  model: GeminiModel;
   voice: {
     state: "idle" | "stale" | "rendering" | "ready" | "error";
     lastPublishedAt: string | null;
@@ -79,6 +81,10 @@ let lastError: string | null = null;
 let currentChild: ChildProcess | null = null;
 let stopRequested = false;
 let activeProvider: CognitionProvider = "offline";
+let activeModel: GeminiModel =
+  process.env.AG_MODEL_ROUTINE === "gemini-3.5-flash-lite"
+    ? "gemini-3.5-flash-lite"
+    : "gemini-3.6-flash";
 let voiceState: Status["voice"]["state"] = "idle";
 let voiceLastPublishedAt: string | null = null;
 let voiceError: string | null = null;
@@ -166,16 +172,23 @@ function startJob(job: () => Promise<void>): void {
     });
 }
 
-function startProviderJob(provider: CognitionProvider, job: () => Promise<void>): void {
+function startProviderJob(
+  provider: CognitionProvider,
+  model: GeminiModel,
+  job: () => Promise<void>,
+): void {
   if (jobRunning || childRunning) throw new Error("dev controller is already running a job");
   activeProvider = provider;
+  activeModel = model;
   startJob(job);
 }
 
-function cognitionEnv(provider: CognitionProvider): NodeJS.ProcessEnv {
+function cognitionEnv(provider: CognitionProvider, model: GeminiModel): NodeJS.ProcessEnv {
   if (provider === "offline") return {};
   return {
     AG_SPEND_ENFORCEMENT: "freeze",
+    AG_MODEL_ROUTINE: model,
+    AG_MODEL_DELIBERATE: model,
   };
 }
 
@@ -250,7 +263,7 @@ async function reset(): Promise<void> {
       "--output",
       RUN_DIR,
     ],
-    cognitionEnv(activeProvider),
+    cognitionEnv(activeProvider, activeModel),
   );
   await exportFixtures();
   await publishVoice();
@@ -283,7 +296,7 @@ async function advance(params: URLSearchParams): Promise<void> {
         "--output",
         RUN_DIR,
       ],
-      cognitionEnv(activeProvider),
+      cognitionEnv(activeProvider, activeModel),
     );
     await exportFixtures();
     await publishVoice();
@@ -314,7 +327,7 @@ async function fastForward(params: URLSearchParams): Promise<void> {
       "--output",
       RUN_DIR,
     ],
-    cognitionEnv(activeProvider),
+    cognitionEnv(activeProvider, activeModel),
   );
   await exportFixtures();
 
@@ -380,6 +393,7 @@ async function status(): Promise<Status> {
     return {
       running: jobRunning || childRunning,
       provider: activeProvider,
+      model: activeModel,
       voice: {
         state: voiceState,
         lastPublishedAt: voiceLastPublishedAt,
@@ -396,6 +410,7 @@ async function status(): Promise<Status> {
     return {
       running: jobRunning || childRunning,
       provider: activeProvider,
+      model: activeModel,
       voice: {
         state: voiceState,
         lastPublishedAt: voiceLastPublishedAt,
@@ -417,15 +432,27 @@ async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> 
   try {
     if (req.method === "GET" && url.pathname === "/status") return send(res, 200, await status());
     if (req.method === "POST" && url.pathname === "/reset") {
-      startProviderJob(parseProvider(url.searchParams), reset);
+      startProviderJob(
+        parseProvider(url.searchParams),
+        parseModel(url.searchParams),
+        reset,
+      );
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/advance") {
-      startProviderJob(parseProvider(url.searchParams), () => advance(url.searchParams));
+      startProviderJob(
+        parseProvider(url.searchParams),
+        parseModel(url.searchParams),
+        () => advance(url.searchParams),
+      );
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/fast-forward") {
-      startProviderJob(parseProvider(url.searchParams), () => fastForward(url.searchParams));
+      startProviderJob(
+        parseProvider(url.searchParams),
+        parseModel(url.searchParams),
+        () => fastForward(url.searchParams),
+      );
       return send(res, 202, await status());
     }
     if (req.method === "POST" && url.pathname === "/stop") {
@@ -451,6 +478,14 @@ function parseProvider(params: URLSearchParams): CognitionProvider {
     throw new Error("provider must be gemini or offline");
   }
   return provider;
+}
+
+function parseModel(params: URLSearchParams): GeminiModel {
+  const model = params.get("model") ?? activeModel;
+  if (model !== "gemini-3.5-flash-lite" && model !== "gemini-3.6-flash") {
+    throw new Error("model must be gemini-3.5-flash-lite or gemini-3.6-flash");
+  }
+  return model;
 }
 
 createServer((req, res) => {

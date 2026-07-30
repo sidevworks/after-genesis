@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 type DevStatus = {
   running: boolean;
   provider: "gemini" | "offline";
+  model: GeminiModel;
   voice: {
     state: "idle" | "stale" | "rendering" | "ready" | "error";
     lastPublishedAt: string | null;
@@ -29,6 +30,8 @@ type DevStatus = {
     simTime: number;
   } | null;
 };
+
+type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
 
 const CONTROL_URL = process.env.NEXT_PUBLIC_DEV_WORLD_CONTROL_URL ?? "http://127.0.0.1:8787";
 
@@ -55,6 +58,7 @@ export function DevWorldControls() {
   const [days, setDays] = useState("1");
   const [speed, setSpeed] = useState("instant");
   const [provider, setProvider] = useState<"gemini" | "offline">("offline");
+  const [model, setModel] = useState<GeminiModel>("gemini-3.6-flash");
   const liveRefreshRef = useRef(false);
   const lastChainHeadRef = useRef<string | null>(null);
   const providerInitializedRef = useRef(false);
@@ -68,6 +72,7 @@ export function DevWorldControls() {
       if (!providerInitializedRef.current) {
         providerInitializedRef.current = true;
         setProvider(body.provider);
+        setModel(body.model ?? "gemini-3.6-flash");
       }
       setError(null);
       const chainHead = body.summary?.chainHead ?? null;
@@ -91,6 +96,7 @@ export function DevWorldControls() {
       const body = (await response.json()) as DevStatus & { error?: string };
       setStatus(body);
       setProvider(body.provider);
+      setModel(body.model ?? model);
       if (!response.ok) throw new Error(body.error ?? `controller returned ${response.status}`);
       liveRefreshRef.current = true;
       lastChainHeadRef.current = body.summary?.chainHead ?? null;
@@ -104,12 +110,12 @@ export function DevWorldControls() {
     const value = Number(days);
     const safeDays = Number.isSafeInteger(value) && value >= 1 ? Math.min(value, 365_000) : 1;
     void post(
-      `/advance?days=${safeDays}&speed=${encodeURIComponent(speed)}&provider=${provider}`,
+      `/advance?days=${safeDays}&speed=${encodeURIComponent(speed)}&provider=${provider}&model=${model}`,
     );
   }
 
   function fastForward(daysToRun: number) {
-    void post(`/fast-forward?days=${daysToRun}&provider=${provider}`);
+    void post(`/fast-forward?days=${daysToRun}&provider=${provider}&model=${model}`);
   }
 
   useEffect(() => {
@@ -139,10 +145,22 @@ export function DevWorldControls() {
           <option value="gemini">AI cognition · Gemini</option>
           <option value="offline">Mechanical engine test · no AI</option>
         </select>
+        {provider === "gemini" && (
+          <select
+            value={model}
+            disabled={status?.running}
+            onChange={(event) => setModel(event.currentTarget.value as GeminiModel)}
+            className="rounded border border-line bg-panel-2 px-2 py-1 text-muted disabled:opacity-45"
+            aria-label="Gemini model"
+          >
+            <option value="gemini-3.5-flash-lite">Fast experiments · Gemini 3.5 Flash-Lite</option>
+            <option value="gemini-3.6-flash">Higher quality · Gemini 3.6 Flash</option>
+          </select>
+        )}
         <button
           type="button"
           disabled={status?.running}
-          onClick={() => void post(`/reset?provider=${provider}`)}
+          onClick={() => void post(`/reset?provider=${provider}&model=${model}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           Reset Day 0
@@ -159,7 +177,7 @@ export function DevWorldControls() {
           type="button"
           disabled={status?.running || worldUnavailable}
           onClick={() =>
-            void post(`/advance?days=1&speed=realtime&provider=${provider}`)
+            void post(`/advance?days=1&speed=realtime&provider=${provider}&model=${model}`)
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -168,7 +186,7 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=fast&provider=${provider}`)}
+          onClick={() => void post(`/advance?days=1&speed=fast&provider=${provider}&model=${model}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           24h in 10m
@@ -176,7 +194,7 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=max&provider=${provider}`)}
+          onClick={() => void post(`/advance?days=1&speed=max&provider=${provider}&model=${model}`)}
           className="rounded border border-amber-dim bg-amber/10 px-2.5 py-1 text-amber hover:bg-amber/20 disabled:opacity-45"
         >
           24h in 1m
@@ -184,7 +202,7 @@ export function DevWorldControls() {
         <button
           type="button"
           disabled={status?.running || worldUnavailable}
-          onClick={() => void post(`/advance?days=1&speed=turbo&provider=${provider}`)}
+          onClick={() => void post(`/advance?days=1&speed=turbo&provider=${provider}&model=${model}`)}
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
           24h in 10s
@@ -193,7 +211,7 @@ export function DevWorldControls() {
           type="button"
           disabled={status?.running || worldUnavailable}
           onClick={() =>
-            void post(`/advance?days=1&speed=instant&provider=${provider}`)
+            void post(`/advance?days=1&speed=instant&provider=${provider}&model=${model}`)
           }
           className="rounded border border-line px-2.5 py-1 text-muted hover:border-amber-dim hover:text-amber disabled:opacity-45"
         >
@@ -236,7 +254,7 @@ export function DevWorldControls() {
         <span className="eyebrow text-dim">
           Fast-forward{provider === "gemini" ? " · paid Gemini" : " · offline"}
         </span>
-        {[1, 10, 100].map((daysToRun) => (
+        {[1, 10, 25, 50, 100].map((daysToRun) => (
           <button
             key={daysToRun}
             type="button"
