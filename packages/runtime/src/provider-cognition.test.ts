@@ -156,7 +156,31 @@ describe("ProviderCognitionService", () => {
     const prompt = captured.records[0]?.request.systemPrompt ?? "";
     expect(prompt).toContain('- move: parameters must contain {"to"');
     expect(prompt).toContain('- use: parameters must contain {"resource":"food"|"water"');
-    expect(prompt).toContain("No civilisational, social, creative, reproductive or survival outcome");
+    expect(prompt).toContain("Your behavior must be driven entirely by the traits, values, and private goals");
+  });
+
+  it("injects exploration and logistics notices to reduce repetitive waiting", async () => {
+    const captured = audit();
+    const cognition = service(
+      new ScriptedProvider([neutralResponse()]),
+      captured.store,
+    );
+
+    await cognition.propose({
+      state: state(),
+      actorId: "inh_founder",
+      simTime: 0 as never,
+      sequence: 1,
+    });
+
+    const request = captured.records[0]?.request;
+    const systemPrompt = request?.systemPrompt ?? "";
+    const userPrompt = request?.userPrompt ?? "";
+    expect(systemPrompt).toContain("MATERIAL CARRYING");
+    expect(userPrompt).toContain("You can carry at most");
+    expect(userPrompt).toContain("One move can go at most");
+    expect(userPrompt).toContain("Nearest visible resource sources");
+    expect(userPrompt).toContain("Travel is not free");
   });
 
   it("turns a provider response into an audited structured proposal", async () => {

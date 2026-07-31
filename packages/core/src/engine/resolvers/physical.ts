@@ -143,6 +143,11 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     structureId: id,
     kind: input.structureKind,
     location: input.coord,
+    builtBy: ctx.actor.id,
+    builder: {
+      id: ctx.actor.id,
+      kind: "inhabitant" as const,
+    },
     process: derivePhysicalProcess({
       actionType: "build",
       actorIds: [ctx.actor.id],
@@ -347,9 +352,12 @@ export const storeGoodsResolver: Resolver = (ctx, payload): ResolutionResult => 
     structureId: structure.id,
     direction: input.direction,
     moved,
+    structureOwnerId: structure.owner,
+    storageOwnerKind: structure.owner === null ? "none" : "inhabitant",
     storedAfter: storage,
     carriedAfter: carriedTotal(holder.inventory),
     capacity: structure.capacity,
+    storedBy: ctx.actor.id,
   };
   return {
     outcome: { status: "resolved", detail },

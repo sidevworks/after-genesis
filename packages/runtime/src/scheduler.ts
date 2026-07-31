@@ -1,5 +1,6 @@
 import type { EventStore, SimTime, StateStore, WorldState } from "@after-genesis/core";
 import { simTime } from "@after-genesis/core";
+import type { TimeScalingEngine } from "./time-scaling.js";
 
 export interface TurnTask {
   readonly taskId: string;
@@ -14,13 +15,15 @@ export interface TurnQueue {
    * Enqueue by stable task id. Implementations must treat an already-existing
    * task with the same id as success, never create a second logical task.
    */
-  enqueue(task: TurnTask): Promise<"created" | "already-exists">;
+  enqueue(task: TurnTask, options?: { readonly notBeforeRealMs?: number }): Promise<"created" | "already-exists">;
 }
 
 export interface SchedulerDependencies {
   readonly eventStore: EventStore;
   readonly stateStore: StateStore<WorldState>;
   readonly queue: TurnQueue;
+  /** Optional production pacing. Omit for deterministic/offline simulations. */
+  readonly timeScaling?: TimeScalingEngine;
 }
 
 export type ScheduleResult =
@@ -66,21 +69,32 @@ export async function scheduleNextTurn(
     expectedSequence,
     simTime: simTime(scheduledTime),
   };
-  const result = await deps.queue.enqueue(task);
+  const result = await deps.queue.enqueue(
+    task,
+    deps.timeScaling === undefined
+      ? undefined
+      : { notBeforeRealMs: deps.timeScaling.realDueAt(task.simTime) },
+  );
   return { status: "scheduled", task, duplicate: result === "already-exists" };
 }
 
 /** In-memory queue for mechanical simulation and scheduler contract tests. */
 export class MemoryTurnQueue implements TurnQueue {
   readonly #tasks = new Map<string, TurnTask>();
+  readonly #scheduleOptions = new Map<string, { readonly notBeforeRealMs?: number }>();
 
-  async enqueue(task: TurnTask): Promise<"created" | "already-exists"> {
+  async enqueue(task: TurnTask, options?: { readonly notBeforeRealMs?: number }): Promise<"created" | "already-exists"> {
     if (this.#tasks.has(task.taskId)) return "already-exists";
     this.#tasks.set(task.taskId, structuredClone(task));
+    if (options !== undefined) this.#scheduleOptions.set(task.taskId, { ...options });
     return "created";
   }
 
   tasks(): TurnTask[] {
     return [...this.#tasks.values()].map((task) => structuredClone(task));
+  }
+
+  scheduleOptions(taskId: string): { readonly notBeforeRealMs?: number } | null {
+    return this.#scheduleOptions.get(taskId) ?? null;
   }
 }

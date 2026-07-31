@@ -12,6 +12,14 @@ export interface ObservatoryBuildingVisual {
   dispose(): void;
 }
 
+export type BuildingMaterialHint = "wood" | "metal" | "stone" | "default";
+
+export interface BuildingMaterialProfile {
+  readonly wall: number;
+  readonly timber: number;
+  readonly stone: number;
+}
+
 const BUILD_PRIMITIVES = new Set(["build", "building", "construction", "construct"]);
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
@@ -57,6 +65,70 @@ function material(
   });
 }
 
+export function getBuildingMaterial(
+  structureKind: string,
+  primaryResource?: string,
+): THREE.MeshStandardMaterial {
+  const resource = String(primaryResource ?? "").toLowerCase();
+  const kind = structureKind.toLowerCase();
+  if (kind.includes("forge") || kind.includes("workshop") || /(iron|copper|metal)/.test(resource)) {
+    return material(0x4a5568, { roughness: 0.3, metalness: 0.8 });
+  }
+  if (/(wood|timber|log)/.test(resource)) {
+    return material(0x744210, { roughness: 0.9, metalness: 0 });
+  }
+  return material(0xa0aec0, { roughness: 0.7, metalness: 0.1 });
+}
+
+function detectMaterialHint(reference: SceneReference): BuildingMaterialHint {
+  const raw = String(reference.representation.material ?? "");
+  const material = raw.toLowerCase();
+  if (material.includes("iron") || material.includes("copper") || material.includes("metal")) {
+    return "metal";
+  }
+  if (
+    material.includes("wood") ||
+    material.includes("timber") ||
+    material.includes("log")
+  ) {
+    return "wood";
+  }
+  if (material.includes("stone") || material.includes("rock") || material.includes("marble")) {
+    return "stone";
+  }
+  return "default";
+}
+
+function resolveBuildingMaterials(reference: SceneReference): BuildingMaterialProfile {
+  const hint = detectMaterialHint(reference);
+  if (hint === "metal") {
+    return {
+      wall: 0x4a5568,
+      timber: 0x5b5d66,
+      stone: 0x6e7380,
+    };
+  }
+  if (hint === "wood") {
+    return {
+      wall: 0x744210,
+      timber: 0x8b5a2b,
+      stone: 0x9b7652,
+    };
+  }
+  if (hint === "stone") {
+    return {
+      wall: 0x8f7f73,
+      timber: 0x564737,
+      stone: 0x6f6b74,
+    };
+  }
+  return {
+    wall: 0x9b7652,
+    timber: 0x4e3523,
+    stone: 0x777d80,
+  };
+}
+
 /**
  * Creates recognizable, low-poly building geometry for the Observatory canvas.
  * The geometry is a visual projection only: canonical position and disclosed
@@ -67,6 +139,7 @@ export function createObservatoryBuildingVisual(
   references: readonly SceneReference[],
 ): ObservatoryBuildingVisual {
   const group = new THREE.Group();
+  const materialProfile = resolveBuildingMaterials(reference);
   group.name = `observatory-building:${reference.refId}`;
   group.userData.refId = reference.refId;
   group.position.set(
@@ -79,9 +152,9 @@ export function createObservatoryBuildingVisual(
   group.scale.setScalar(0.42);
 
   const state = buildingConstructionState(reference, references);
-  const wall = material(0x9b7652);
-  const timber = material(0x4e3523);
-  const stone = material(0x777d80);
+  const wall = material(materialProfile.wall);
+  const timber = material(materialProfile.timber);
+  const stone = material(materialProfile.stone);
   const roof = material(0x6f382d, { roughness: 0.92 });
   const glass = material(0xffc75e, {
     emissive: 0x6b3c0b,

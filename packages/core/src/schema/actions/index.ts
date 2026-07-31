@@ -132,6 +132,21 @@ import {
   GuardLocationPayloadSchema,
 } from "./security.js";
 import {
+  AcceptMatingPayloadSchema,
+  AttackPayloadSchema,
+  DefendPayloadSchema,
+  DiePayloadSchema,
+  DismantlePayloadSchema,
+  DisposeRemainsPayloadSchema,
+  DestroyPayloadSchema,
+  FleePayloadSchema,
+  LootRemainsPayloadSchema,
+  ProposeMatingPayloadSchema,
+  RejectMatingPayloadSchema,
+  RepairPayloadSchema,
+  SelfTerminatePayloadSchema,
+} from "./survival.js";
+import {
   AcceptTradePayloadSchema,
   OfferTradePayloadSchema,
   RejectTradePayloadSchema,
@@ -153,6 +168,7 @@ export * from "./neutral.js";
 export * from "./organisations.js";
 export * from "./resources.js";
 export * from "./security.js";
+export * from "./survival.js";
 export * from "./trade.js";
 
 /**
@@ -922,25 +938,23 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     schemaVersion: 1,
     payload: CreateInhabitantPayloadSchema,
     activity: "working",
-    // §7 requires creation to consume declared resources and to require time.
-    // Three simulated days during which the creator does nothing else. These
-    // values are the published §6.2 contract: expensive enough to require a
-    // storehouse and deliberate preparation, but attainable within a rehearsal.
-    baseDuration: days(3),
+    // REDUCED DURATION: 1 simulated day instead of 3 days
+    baseDuration: days(1),
+    // REDUCED COSTS: Achievable for a diligent gatherer/builder
     baseCost: {
-      food: 200,
-      water: 200,
-      wood: 100,
-      stone: 50,
-      energy: 800,
-      compute: 400,
+      // A creation must pay for the newborn's first provisions as well as the
+      // material lost in creating it. These floors must never be below
+      // CHILD_ENDOWMENT (40 food, 40 water), or conservation rejects the turn.
+      food: 60,
+      water: 60,
+      wood: 20,
+      stone: 10,
+      energy: 300,
+      compute: 150,
     },
-    // Creation is atomic: an interrupted creation loses everything committed.
-    // There is no half-made inhabitant.
     interruption: "progress_lost",
     visibility: "public",
     requiresConsent: false,
-    // §11H: explicitly restricted.
     allowedWhileConfined: false,
     minimumMaturity: MATURITY.ADULT,
     description:
@@ -1253,6 +1267,19 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     description:
       "Refuse, withhold, obstruct, resist, flee or call for help against someone enforcing a demand. Leaves compulsion as the only remaining route.",
   },
+  dismantle: { type: "dismantle", schemaVersion: 1, payload: DismantlePayloadSchema, activity: "working", baseDuration: hours(2), baseCost: { energy: 15 }, interruption: "partial_progress_kept", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.ADOLESCENT, description: "Carefully take apart a nearby structure or artifact and recover its physical materials." },
+  destroy: { type: "destroy", schemaVersion: 1, payload: DestroyPayloadSchema, activity: "working", baseDuration: hours(1), baseCost: { energy: 25 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.ADOLESCENT, description: "Irreversibly destroy a nearby structure, artifact, or natural material deposit." },
+  repair: { type: "repair", schemaVersion: 1, payload: RepairPayloadSchema, activity: "working", baseDuration: hours(1), baseCost: { energy: 10 }, interruption: "partial_progress_kept", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.ADOLESCENT, description: "Spend wood or stone to restore a nearby damaged structure's integrity." },
+  attack: { type: "attack", schemaVersion: 1, payload: AttackPayloadSchema, activity: "working", baseDuration: minutes(15), baseCost: { energy: 20 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.ADOLESCENT, description: "Strike a nearby inhabitant or structure, causing observable physical damage." },
+  defend: { type: "defend", schemaVersion: 1, payload: DefendPayloadSchema, activity: "defending", baseDuration: hours(1), baseCost: { energy: 5 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.ADOLESCENT, description: "Take an active defensive stance that reduces incoming physical attack damage." },
+  flee: { type: "flee", schemaVersion: 1, payload: FleePayloadSchema, activity: "travelling", baseDuration: minutes(15), baseCost: { energy: 10 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.NEWBORN, description: "Urgently travel to a safer nearby tile away from a named threat when possible." },
+  die: { type: "die", schemaVersion: 1, payload: DiePayloadSchema, activity: "idle", baseDuration: minutes(0), baseCost: {}, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.NEWBORN, description: "Record an irreversible forced death when an inhabitant's integrity or energy is exhausted." },
+  loot_remains: { type: "loot_remains", schemaVersion: 1, payload: LootRemainsPayloadSchema, activity: "working", baseDuration: minutes(30), baseCost: { energy: 5 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.NEWBORN, description: "Recover conserved materials from nearby remains left by a dead inhabitant." },
+  dispose_remains: { type: "dispose_remains", schemaVersion: 1, payload: DisposeRemainsPayloadSchema, activity: "working", baseDuration: hours(1), baseCost: { energy: 10 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.ADOLESCENT, description: "Bury, burn, or recycle nearby remains after their recoverable materials are gone." },
+  propose_mating: { type: "propose_mating", schemaVersion: 1, payload: ProposeMatingPayloadSchema, activity: "conversing", baseDuration: minutes(15), baseCost: { energy: 2, compute: 2 }, interruption: "none", visibility: "participants", requiresConsent: true, allowedWhileConfined: true, minimumMaturity: MATURITY.ADULT, description: "Offer another nearby adult a consensual proposal to create a genetically mixed offspring." },
+  accept_mating: { type: "accept_mating", schemaVersion: 1, payload: AcceptMatingPayloadSchema, activity: "working", baseDuration: hours(1), baseCost: { energy: 30, compute: 20 }, interruption: "none", visibility: "local", requiresConsent: true, allowedWhileConfined: false, minimumMaturity: MATURITY.ADULT, description: "Accept a current mating proposal and create one independently configured offspring from both parents." },
+  reject_mating: { type: "reject_mating", schemaVersion: 1, payload: RejectMatingPayloadSchema, activity: "conversing", baseDuration: minutes(5), baseCost: {}, interruption: "none", visibility: "participants", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.ADULT, description: "Decline a mating proposal without creating an offspring or changing either parent." },
+  self_terminate: { type: "self_terminate", schemaVersion: 1, payload: SelfTerminatePayloadSchema, activity: "idle", baseDuration: minutes(0), baseCost: {}, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.ADOLESCENT, description: "Irreversibly end the actor's run, leaving recoverable materials as nearby remains." },
 } satisfies Record<ActionType, ActionSpec>);
 
 /**
@@ -1340,6 +1367,19 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("appeal_decision"), payload: AppealDecisionPayloadSchema }),
   z.object({ type: z.literal("attempt_escape"), payload: AttemptEscapePayloadSchema }),
   z.object({ type: z.literal("resist_enforcement"), payload: ResistEnforcementPayloadSchema }),
+  z.object({ type: z.literal("dismantle"), payload: DismantlePayloadSchema }),
+  z.object({ type: z.literal("destroy"), payload: DestroyPayloadSchema }),
+  z.object({ type: z.literal("repair"), payload: RepairPayloadSchema }),
+  z.object({ type: z.literal("attack"), payload: AttackPayloadSchema }),
+  z.object({ type: z.literal("defend"), payload: DefendPayloadSchema }),
+  z.object({ type: z.literal("flee"), payload: FleePayloadSchema }),
+  z.object({ type: z.literal("die"), payload: DiePayloadSchema }),
+  z.object({ type: z.literal("loot_remains"), payload: LootRemainsPayloadSchema }),
+  z.object({ type: z.literal("dispose_remains"), payload: DisposeRemainsPayloadSchema }),
+  z.object({ type: z.literal("propose_mating"), payload: ProposeMatingPayloadSchema }),
+  z.object({ type: z.literal("accept_mating"), payload: AcceptMatingPayloadSchema }),
+  z.object({ type: z.literal("reject_mating"), payload: RejectMatingPayloadSchema }),
+  z.object({ type: z.literal("self_terminate"), payload: SelfTerminatePayloadSchema }),
 ]);
 
 /** A validated action: a type and a payload the engine may now safely read. */

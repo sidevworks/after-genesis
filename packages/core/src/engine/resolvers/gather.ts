@@ -20,6 +20,7 @@ import { getActionSpec } from "../../schema/actions/index.js";
 import { RESOURCE_KINDS, chebyshevDistance, coordKey } from "../../schema/primitives.js";
 import type { Coord, ResourceBundle, ResourceKind } from "../../schema/primitives.js";
 import { derivePhysicalProcess } from "../../schema/physical-process.js";
+import { elderEnergyCost, elderGatherYield, isElderAt } from "../aging.js";
 import {
   MAX_SKILL,
   depositAt,
@@ -170,11 +171,12 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
   const { state, actor } = ctx;
   const rules = state.rules;
 
-  if (energyOf(actor) < rules.gatherEnergyCost) {
+  const energyCost = elderEnergyCost(actor, ctx.simTime, rules.gatherEnergyCost);
+  if (energyOf(actor) < energyCost) {
     return reject(
       ctx,
       RejectionCode.InsufficientEnergy,
-      `gathering costs ${rules.gatherEnergyCost} energy and only ${energyOf(actor)} is available`,
+      `gathering costs ${energyCost} energy and only ${energyOf(actor)} is available`,
     );
   }
 
@@ -204,12 +206,13 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
   // holds. The draw above happens either way, so a full pack does not shift the
   // random stream and desynchronise replay.
   const free = remainingCapacity(actor, rules);
-  const amount = computeYield(
+  const normalYield = computeYield(
     rules.gatherBaseYield[terrain],
     skill,
     Math.min(source.available, free),
     bonusRoll,
   );
+  const amount = elderGatherYield(actor, ctx.simTime, normalYield);
 
   if (free <= 0) {
     return reject(
@@ -225,7 +228,7 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
   }
 
   const gained: ResourceBundle = { [source.resource]: amount } as ResourceBundle;
-  const paid = spend(actor, { energy: rules.gatherEnergyCost });
+  const paid = spend(actor, { energy: energyCost });
   /* c8 ignore next 3 */
   if (paid === null) {
     return reject(ctx, RejectionCode.InsufficientEnergy, "energy could not be spent");
@@ -259,7 +262,7 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
     startedAt: ctx.simTime,
     minutes: rules.gatherDurationMinutes,
     interruption: GATHER_SPEC.interruption,
-    resourceCost: { energy: rules.gatherEnergyCost },
+    resourceCost: { energy: energyCost },
   });
   next = begun.state;
 
@@ -271,7 +274,8 @@ export const gatherResolver: Resolver = (ctx, payload): ResolutionResult => {
     skill,
     bonus: bonusRoll,
     depositRemaining: remaining[source.resource] ?? 0,
-    energySpent: rules.gatherEnergyCost,
+    energySpent: energyCost,
+    elder: isElderAt(actor, ctx.simTime),
     minutes: rules.gatherDurationMinutes,
     process: derivePhysicalProcess({
       actionType: "gather",

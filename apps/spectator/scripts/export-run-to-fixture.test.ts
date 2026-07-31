@@ -4,6 +4,28 @@ import { describe, expect, it } from "vitest";
 import { parseJsonl, replayHistory } from "@after-genesis/audit";
 import type { CanonicalEvent, WorldState } from "@after-genesis/core";
 
+const EXPLORE_RADIUS = 5;
+
+function expandDiscovery(knownLocations: readonly string[], map: { readonly width: number; readonly height: number }): Set<string> {
+  const discovered = new Set<string>();
+  for (const key of knownLocations) {
+    const [rawX, rawY] = key.split(",");
+    const x = Number(rawX);
+    const y = Number(rawY);
+    if (!Number.isInteger(x) || !Number.isInteger(y)) continue;
+    for (let dy = -EXPLORE_RADIUS; dy <= EXPLORE_RADIUS; dy += 1) {
+      for (let dx = -EXPLORE_RADIUS; dx <= EXPLORE_RADIUS; dx += 1) {
+        const nx = x + dx;
+        const ny = y + dy;
+        if (nx < 0 || ny < 0 || nx >= map.width || ny >= map.height) continue;
+        if (Math.max(Math.abs(dx), Math.abs(dy)) > EXPLORE_RADIUS) continue;
+        discovered.add(`${nx},${ny}`);
+      }
+    }
+  }
+  return discovered;
+}
+
 describe("Export simulation run to Spectator fixture", () => {
   it("converts 2,001-turn simulation run into world.json fixture", () => {
     const RUN_DIR = resolve(process.env.AG_EXPORT_RUN_DIR ?? ".worlds/3-month-run");
@@ -143,6 +165,14 @@ describe("Export simulation run to Spectator fixture", () => {
     };
 
     const rawDeposits = state.map.deposits ?? Object.values(state.deposits ?? {});
+
+    const discovered = Object.values(state.inhabitants).reduce((acc, inhabitant) => {
+      for (const tile of expandDiscovery(inhabitant.knownLocations ?? [], state.map)) {
+        acc.add(tile);
+      }
+      return acc;
+    }, new Set<string>());
+
     const tiles = state.map.terrain.map((terrainKind, index) => {
       const x = index % state.map.width;
       const y = Math.floor(index / state.map.width);
@@ -182,6 +212,7 @@ describe("Export simulation run to Spectator fixture", () => {
       height: state.map.height,
       genesisSeed: state.seed,
       tiles,
+      discovered: [...discovered],
       deposits: rawDeposits.map((d: any) => ({
         id: d.id,
         resource: d.resource,

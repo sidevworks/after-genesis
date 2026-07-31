@@ -86,7 +86,7 @@ function tickForward(
 }
 
 describe("the ailment table (§8)", () => {
-  it("orders the fuses the way physiology does: thirst, then hunger, then sleep", () => {
+  it("keeps need progression ordering: thirst, then hunger, then sleep", () => {
     expect(DEHYDRATION.minutesPerSeverityPoint).toBeLessThan(
       STARVATION.minutesPerSeverityPoint,
     );
@@ -95,14 +95,13 @@ describe("the ailment table (§8)", () => {
     );
   });
 
-  it("kills of thirst in about three days and of hunger in about three weeks", () => {
-    const days = (a: typeof DEHYDRATION) =>
-      (a.minutesPerSeverityPoint * TERMINAL_SEVERITY) / MINUTES_PER_DAY;
-    expect(days(DEHYDRATION)).toBeGreaterThan(2.8);
-    expect(days(DEHYDRATION)).toBeLessThan(3.2);
-    expect(days(STARVATION)).toBeGreaterThan(19);
-    expect(days(STARVATION)).toBeLessThan(22);
-    expect(days(EXHAUSTION)).toBeGreaterThan(28);
+  it("keeps thirst and hunger as non-terminal trackers while exhaustion can still kill", () => {
+    expect(DEHYDRATION.terminal).toBe(false);
+    expect(STARVATION.terminal).toBe(false);
+    expect(EXHAUSTION.terminal).toBe(true);
+    expect((EXHAUSTION.minutesPerSeverityPoint * TERMINAL_SEVERITY) / MINUTES_PER_DAY).toBeGreaterThan(
+      28,
+    );
   });
 
   it("leaves the social need alone — isolation is not modelled as lethal", () => {
@@ -247,37 +246,37 @@ describe("needs that bite (§8)", () => {
 });
 
 describe("death is real and irreversible (§1, §8)", () => {
-  const dieOfThirst = (): WorldState =>
-    tickForward(worldWithNeeds({ thirst: NEED_CEILING }), 0, 5 * MINUTES_PER_DAY, 60);
+  const dieOfFatigue = (): WorldState =>
+    tickForward(worldWithNeeds({ fatigue: NEED_CEILING }), 0, 40 * MINUTES_PER_DAY, 60);
 
-  it("kills an inhabitant who never drinks, at about day three", () => {
-    const state = dieOfThirst();
+  it("kills an inhabitant who never rests, at about day thirty", () => {
+    const state = dieOfFatigue();
     const dead = state.inhabitants["inh_founder"];
     expect(dead?.status).toBe("dead");
     expect(dead?.deathTime).not.toBeNull();
     const day = (dead?.deathTime ?? 0) / MINUTES_PER_DAY;
-    expect(day).toBeGreaterThan(2.9);
-    expect(day).toBeLessThan(3.1);
+    expect(day).toBeGreaterThan(28);
+    expect(day).toBeLessThan(31);
   });
 
   it("records both halves of the death event", () => {
-    const dead = dieOfThirst().inhabitants["inh_founder"];
+    const dead = dieOfFatigue().inhabitants["inh_founder"];
     expect(dead?.deathTime).not.toBeNull();
     expect(dead?.deathSequence).not.toBeNull();
     expect(Number.isSafeInteger(dead?.deathSequence ?? NaN)).toBe(true);
   });
 
   it("closes the activity handle and schedules nothing after death", () => {
-    const dead = dieOfThirst().inhabitants["inh_founder"];
+    const dead = dieOfFatigue().inhabitants["inh_founder"];
     expect(dead?.activity.activityId).toBeNull();
     expect(dead?.activity.state).toBe("idle");
     expect(dead?.nextEligibleTime).toBe(dead?.deathTime);
   });
 
   it("emits one neutral death event naming the condition, not a verdict", () => {
-    let state = { ...worldWithNeeds({ thirst: NEED_CEILING }), simTime: simTime(0) };
+    let state = { ...worldWithNeeds({ fatigue: NEED_CEILING }), simTime: simTime(0) };
     let deathEvent: { type: string; resolution: unknown } | undefined;
-    for (let t = 60; t <= 5 * MINUTES_PER_DAY && deathEvent === undefined; t += 60) {
+    for (let t = 60; t <= 45 * MINUTES_PER_DAY && deathEvent === undefined; t += 60) {
       const now = simTime(t);
       const tick = advanceHealth({ ...state, simTime: now }, now, state.sequence + t / 60);
       state = tick.state;
@@ -285,33 +284,30 @@ describe("death is real and irreversible (§1, §8)", () => {
     }
     expect(deathEvent).toBeDefined();
     const detail = deathEvent?.resolution as Record<string, unknown>;
-    expect(detail["kind"]).toBe("dehydration");
-    expect(detail["need"]).toBe("thirst");
+    expect(detail["kind"]).toBe("exhaustion");
+    expect(detail["need"]).toBe("fatigue");
     expect(canonicalJson(detail)).not.toMatch(/tragic|sad|grief|murder|crime/i);
   });
 
-  it("kills faster of thirst than of hunger", () => {
-    const thirsty = tickForward(worldWithNeeds({ thirst: NEED_CEILING }), 0, 30 * MINUTES_PER_DAY, 60);
-    const hungry = tickForward(worldWithNeeds({ hunger: NEED_CEILING }), 0, 30 * MINUTES_PER_DAY, 60);
-    const a = thirsty.inhabitants["inh_founder"]?.deathTime ?? 0;
-    const b = hungry.inhabitants["inh_founder"]?.deathTime ?? 0;
-    expect(a).toBeGreaterThan(0);
-    expect(b).toBeGreaterThan(0);
-    expect(a).toBeLessThan(b);
-    expect(b / a).toBeGreaterThan(5);
+  it("does not die from thirst or hunger saturation alone", () => {
+    const thirsty = tickForward(worldWithNeeds({ thirst: NEED_CEILING }), 0, 60 * MINUTES_PER_DAY, 60);
+    const hungry = tickForward(worldWithNeeds({ hunger: NEED_CEILING }), 0, 60 * MINUTES_PER_DAY, 60);
+    expect(thirsty.inhabitants["inh_founder"]?.status).toBe("alive");
+    expect(hungry.inhabitants["inh_founder"]?.status).toBe("alive");
+    expect(dieOfFatigue().inhabitants["inh_founder"]?.status).toBe("dead");
   });
 
-  it("is survivable: an inhabitant who drinks on day two lives", () => {
-    let state = tickForward(worldWithNeeds({ thirst: NEED_CEILING }), 0, 2 * MINUTES_PER_DAY, 60);
+  it("is survivable: an inhabitant who rests on day two lives", () => {
+    let state = tickForward(worldWithNeeds({ fatigue: NEED_CEILING }), 0, 2 * MINUTES_PER_DAY, 60);
     expect(state.inhabitants["inh_founder"]?.status).toBe("alive");
     const founder = founderOf(state);
-    state = forceInhabitant(state, { ...founder, needs: { ...founder.needs, thirst: 0 } });
+    state = forceInhabitant(state, { ...founder, needs: { ...founder.needs, fatigue: 0 } });
     const later = tickForward(state, state.simTime, 30 * MINUTES_PER_DAY, 60);
     expect(later.inhabitants["inh_founder"]?.status).toBe("alive");
   });
 
   it("stops progressing a dead inhabitant's conditions", () => {
-    const dead = dieOfThirst();
+    const dead = dieOfFatigue();
     const atDeath = canonicalJson(dead.conditions);
     const later = tickForward(dead, dead.simTime, 60 * MINUTES_PER_DAY, 600);
     expect(canonicalJson(later.conditions)).toBe(atDeath);
@@ -319,12 +315,12 @@ describe("death is real and irreversible (§1, §8)", () => {
   });
 
   it("reports how long a saturated inhabitant has left", () => {
-    const state = tickForward(worldWithNeeds({ thirst: NEED_CEILING }), 0, 10, 10);
+    const state = tickForward(worldWithNeeds({ fatigue: NEED_CEILING }), 0, 10, 10);
     expect(minutesToDeath(state, "inh_founder")).toBe(
-      (TERMINAL_SEVERITY - 1) * DEHYDRATION.minutesPerSeverityPoint,
+      (TERMINAL_SEVERITY - 1) * EXHAUSTION.minutesPerSeverityPoint,
     );
     expect(minutesToDeath(worldWithNeeds({}), "inh_founder")).toBeNull();
-    expect(minutesToDeath(dieOfThirst(), "inh_founder")).toBeNull();
+    expect(minutesToDeath(dieOfFatigue(), "inh_founder")).toBeNull();
   });
 });
 
@@ -351,7 +347,7 @@ describe("§8 death must never delete history", () => {
     if (withNeeds === undefined) throw new Error("no founder");
     return forceInhabitant(state, {
       ...withNeeds,
-      needs: { ...withNeeds.needs, thirst: NEED_CEILING },
+      needs: { ...withNeeds.needs, fatigue: NEED_CEILING },
       beliefs: { inh_second: "keeps their word" },
       relationships: {
         inh_second: {
@@ -364,20 +360,22 @@ describe("§8 death must never delete history", () => {
     });
   }
 
-  it("preserves inventory, memories, relationships and lineage byte-identically", () => {
+  it("preserves memories, relationships and lineage while moving property into lootable remains", () => {
     const before = populatedWorld();
     const living = before.inhabitants["inh_founder"];
     if (living === undefined) throw new Error("no founder");
     expect(Object.keys(before.memories).length).toBeGreaterThan(0);
     expect(Object.keys(living.relationships).length).toBeGreaterThan(0);
 
-    const after = tickForward(before, before.simTime, 5 * MINUTES_PER_DAY, 60);
+    const after = tickForward(before, before.simTime, 40 * MINUTES_PER_DAY, 60);
     const corpse = after.inhabitants["inh_founder"];
     expect(corpse?.status).toBe("dead");
 
-    expect(canonicalJson(corpse?.inventory)).toBe(canonicalJson(living.inventory));
-    expect(canonicalJson(corpse?.concealed)).toBe(canonicalJson(living.concealed));
-    expect(canonicalJson(corpse?.exposed)).toBe(canonicalJson(living.exposed));
+    const remains = after.remains[`rem_${living.id}`];
+    expect(corpse?.inventory).toEqual({});
+    expect(corpse?.concealed).toEqual({});
+    expect(corpse?.exposed).toEqual({});
+    expect(remains?.inventory).toMatchObject({ food: living.inventory.food, water: living.inventory.water });
     expect(canonicalJson(corpse?.relationships)).toBe(canonicalJson(living.relationships));
     expect(canonicalJson(corpse?.beliefs)).toBe(canonicalJson(living.beliefs));
     expect(canonicalJson(corpse?.skills)).toBe(canonicalJson(living.skills));
@@ -397,7 +395,7 @@ describe("§8 death must never delete history", () => {
 
   it("does not redistribute the dead's property (§8 leaves that to survivors)", () => {
     const before = populatedWorld();
-    const after = tickForward(before, before.simTime, 5 * MINUTES_PER_DAY, 60);
+    const after = tickForward(before, before.simTime, 40 * MINUTES_PER_DAY, 60);
     expect(after.inhabitants["inh_founder"]?.status).toBe("dead");
     expect(canonicalJson(after.inhabitants["inh_second"]?.inventory)).toBe(
       canonicalJson(before.inhabitants["inh_second"]?.inventory),
@@ -410,13 +408,13 @@ describe("§8 death must never delete history", () => {
   });
 
   it("leaves the world satisfying every invariant", () => {
-    const after = tickForward(populatedWorld(), 1, 5 * MINUTES_PER_DAY, 60);
+    const after = tickForward(populatedWorld(), 1, 40 * MINUTES_PER_DAY, 60);
     expect(formatViolations(checkInvariants(after))).toBe("");
   });
 
   it("holds every invariant at every step of the dying, not only at the end", () => {
     let state = { ...populatedWorld(), simTime: simTime(1) };
-    for (let t = 61; t <= 5 * MINUTES_PER_DAY; t += 60) {
+    for (let t = 61; t <= 40 * MINUTES_PER_DAY; t += 60) {
       const now = simTime(t);
       state = {
         ...advanceHealth({ ...state, simTime: now }, now, state.sequence + 1).state,
@@ -432,10 +430,10 @@ describe("§15 inhabitants cannot act after death", () => {
   it("rejects the dead actor's turns with DEAD, from the killing turn onwards", () => {
     // The tick runs inside `runAction` itself, so the very turn on which the
     // progression runs out is also the turn the death guard refuses.
-    let state = worldWithNeeds({ thirst: NEED_CEILING });
+    let state = worldWithNeeds({ fatigue: NEED_CEILING });
     let now: SimTime = simTime(0);
     let killingOutcome: unknown;
-    for (let turn = 0; turn < 200; turn++) {
+    for (let turn = 0; turn < 900; turn++) {
       now = simTime(now + 60);
       const result = runAction({
         state,
@@ -469,8 +467,8 @@ describe("§15 inhabitants cannot act after death", () => {
   it("kills through the ordinary turn path, with no special caller support", () => {
     // `settleExpiredActivities` keeps its old name and signature, so the
     // existing pipeline gains mortality without being edited.
-    let state = { ...worldWithNeeds({ thirst: NEED_CEILING }), simTime: simTime(0) };
-    for (let t = 60; t <= 5 * MINUTES_PER_DAY; t += 60) {
+    let state = { ...worldWithNeeds({ fatigue: NEED_CEILING }), simTime: simTime(0) };
+    for (let t = 60; t <= 40 * MINUTES_PER_DAY; t += 60) {
       state = settleExpiredActivities({ ...state, simTime: simTime(t) }, simTime(t));
     }
     expect(state.inhabitants["inh_founder"]?.status).toBe("dead");
@@ -479,9 +477,9 @@ describe("§15 inhabitants cannot act after death", () => {
   it("returns the death event when the caller asks for it", () => {
     // Run to the brink through the discarding path, then take the last step
     // through `worldTick`, which hands the caller the events.
-    let state = { ...worldWithNeeds({ thirst: NEED_CEILING }), simTime: simTime(0) };
+    let state = { ...worldWithNeeds({ fatigue: NEED_CEILING }), simTime: simTime(0) };
     let t = 0;
-    while (state.inhabitants["inh_founder"]?.status === "alive" && t < 5 * MINUTES_PER_DAY) {
+    while (state.inhabitants["inh_founder"]?.status === "alive" && t < 40 * MINUTES_PER_DAY) {
       t += 60;
       const previous = state;
       state = settleExpiredActivities({ ...state, simTime: simTime(t) }, simTime(t));
@@ -499,10 +497,10 @@ describe("§15 inhabitants cannot act after death", () => {
 describe("§15 replayed history produces an identical state checksum", () => {
   /** Drive a world to extinction twice through the public turn entry point. */
   function starveRun(seed: string): { checksums: string[]; final: WorldState } {
-    let state = worldWithNeeds({ thirst: NEED_CEILING, hunger: NEED_CEILING }, seed);
+    let state = worldWithNeeds({ fatigue: NEED_CEILING }, seed);
     const checksums = [computeStateChecksum(state)];
     let now: SimTime = simTime(0);
-    for (let turn = 0; turn < 200; turn++) {
+    for (let turn = 0; turn < 900; turn++) {
       now = simTime(now + 60);
       state = runAction({
         state,
@@ -585,11 +583,11 @@ describe("§8 the year-one failure, end to end", () => {
     expect(Object.keys(timeline).sort()).toEqual(["inh_b", "inh_c", "inh_founder"]);
     for (const id of Object.keys(timeline)) {
       const days = (timeline[id] ?? 0) / MINUTES_PER_DAY;
-      expect(days, `${id} died on day ${days}`).toBeGreaterThan(2.9);
-      expect(days, `${id} died on day ${days}`).toBeLessThan(3.5);
-      // They still hold every unit of the food and water they never touched.
-      expect(state.inhabitants[id]?.inventory.food ?? 0).toBeGreaterThan(0);
-      expect(state.inhabitants[id]?.inventory.water ?? 0).toBeGreaterThan(0);
+      expect(days, `${id} died on day ${days}`).toBeGreaterThan(28);
+      expect(days, `${id} died on day ${days}`).toBeLessThan(31);
+      // Their unused provisions remain recoverable on the tile where they died.
+      expect(state.remains[`rem_${id}`]?.inventory.food ?? 0).toBeGreaterThan(0);
+      expect(state.remains[`rem_${id}`]?.inventory.water ?? 0).toBeGreaterThan(0);
     }
     expect(formatViolations(checkInvariants(state))).toBe("");
   });

@@ -42,7 +42,7 @@ const DEV_VOICE_DIR = `apps/spectator/public/voice/${DEV_VOICE_REEL}`;
 const GENERATED_BY_A_DEV_RUN: readonly string[] = [DEV_WORLD_DIR, DEV_VOICE_DIR];
 
 type CognitionProvider = "gemini" | "offline";
-type GeminiModel = "gemini-3.5-flash-lite" | "gemini-3.6-flash";
+type GeminiModel = "gemini-3.5-flash-lite";
 type ModelSet = {
   routine: GeminiModel;
   deliberate: GeminiModel;
@@ -87,8 +87,8 @@ let lastError: string | null = null;
 let currentChild: ChildProcess | null = null;
 let stopRequested = false;
 let activeProvider: CognitionProvider = "gemini";
-let activeRoutineModel: GeminiModel = "gemini-3.6-flash";
-let activeDeliberateModel: GeminiModel = "gemini-3.6-flash";
+let activeRoutineModel: GeminiModel = "gemini-3.5-flash-lite";
+let activeDeliberateModel: GeminiModel = "gemini-3.5-flash-lite";
 let activeVoiceEnabled = false;
 let voiceState: Status["voice"]["state"] = "idle";
 let voiceLastPublishedAt: string | null = null;
@@ -98,6 +98,7 @@ let simulationProgress: {
   targetTurns: number;
   startingSimTime: number;
 } | null = null;
+const DEFAULT_PUBLISH_EVERY_TURNS = 12;
 
 const SPEEDS: Record<string, string> = {
   realtime: "1h",
@@ -211,6 +212,24 @@ function stopJob(): void {
   currentChild?.kill("SIGTERM");
 }
 
+function parsePublishEvery(params: URLSearchParams): number {
+  const raw = params.get("publishEvery");
+  if (raw === null) return DEFAULT_PUBLISH_EVERY_TURNS;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 1 || value > 10_000) {
+    throw new Error("publishEvery must be an integer from 1 to 10000");
+  }
+  return value;
+}
+
+function parsePublishingEnabled(params: URLSearchParams): boolean {
+  const raw = params.get("publish");
+  if (raw === null) return true;
+  if (raw === "off" || raw === "false" || raw === "0") return false;
+  if (raw === "on" || raw === "true" || raw === "1") return true;
+  throw new Error("publish must be on|off|true|false|1|0");
+}
+
 async function exportFixtures(): Promise<void> {
   await mkdir(resolve(ROOT, DEV_WORLD_DIR), { recursive: true });
   await run(
@@ -296,6 +315,8 @@ async function advance(params: URLSearchParams): Promise<void> {
   const days = Number(params.get("days") ?? "1");
   const speed = params.get("speed") ?? "realtime";
   const turnDurationMs = Math.max(1, Math.floor((DAY_DURATION_MS[speed] ?? 0) / 12));
+  const publishEvery = parsePublishEvery(params);
+  const publishWorld = parsePublishingEnabled(params);
   if (!Number.isSafeInteger(days) || days < 1 || days > 365_000) {
     throw new Error("days must be an integer from 1 to 365000");
   }
@@ -311,6 +332,8 @@ async function advance(params: URLSearchParams): Promise<void> {
     for (let turn = 1; turn <= turns; turn++) {
       if (stopRequested) throw new Error("dev controller job stopped");
       const started = Date.now();
+      const isLastTurn = turn === turns;
+      const shouldPublishTurn = isLastTurn || turn % publishEvery === 0;
       await run(
         "npm",
         [
@@ -331,8 +354,10 @@ async function advance(params: URLSearchParams): Promise<void> {
           deliberate: activeDeliberateModel,
         }),
       );
-      await exportFixtures();
-      if (activeVoiceEnabled) await publishVoice();
+      if (publishWorld && shouldPublishTurn) {
+        await exportFixtures();
+        if (activeVoiceEnabled) await publishVoice();
+      }
       lastOutput = `${lastOutput}\n[dev-clock] published turn ${turn}/${turns}\n`.slice(-12_000);
       const remainingDelay = turnDurationMs - (Date.now() - started);
       if (turn < turns && remainingDelay > 0) await sleep(remainingDelay);
@@ -547,8 +572,8 @@ function parseModel(
   fallback?: GeminiModel,
 ): GeminiModel {
   const model = params.get(key) ?? fallback ?? activeRoutineModel;
-  if (model !== "gemini-3.5-flash-lite" && model !== "gemini-3.6-flash") {
-    throw new Error("model must be gemini-3.5-flash-lite or gemini-3.6-flash");
+  if (model !== "gemini-3.5-flash-lite") {
+    throw new Error("model must be gemini-3.5-flash-lite");
   }
   return model;
 }

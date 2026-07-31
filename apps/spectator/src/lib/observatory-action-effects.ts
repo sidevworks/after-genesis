@@ -14,6 +14,7 @@ import {
   MeshBasicMaterial,
   MeshStandardMaterial,
   RingGeometry,
+  Vector3,
   type Scene,
 } from "three";
 import type { SceneReference } from "./observatory-types";
@@ -29,6 +30,106 @@ interface ActionEffect {
 }
 
 const clamp01 = (value: number): number => Math.min(1, Math.max(0, value));
+
+export function spawnActionParticles(
+  type: "build" | "gather" | "craft",
+  coord: { x: number; y: number },
+  scene: Scene,
+) {
+  const particleCount = type === "build" ? 24 : 12;
+  const group = new Group();
+
+  // Voxel particles!
+  const geometry = new BoxGeometry(0.08, 0.08, 0.08);
+  const color = type === "build" ? 0xecc94b : type === "craft" ? 0x805ad5 : 0x4299e1;
+
+  // Make them glow so the Bloom pass catches them
+  const material = new MeshStandardMaterial({
+    color,
+    emissive: color,
+    emissiveIntensity: 1.5,
+    roughness: 0.4,
+    metalness: 0.1,
+    transparent: true,
+    opacity: 1,
+    flatShading: true,
+  });
+
+  const particles: { mesh: Mesh; velocity: Vector3; rotSpeed: Vector3 }[] = [];
+
+  for (let i = 0; i < particleCount; i++) {
+    const mesh = new Mesh(geometry, material);
+    // Start near the center of the tile
+    mesh.position.set(
+      coord.x + (Math.random() - 0.5) * 0.5,
+      0.2 + Math.random() * 0.3,
+      coord.y + (Math.random() - 0.5) * 0.5
+    );
+    mesh.castShadow = true;
+    mesh.receiveShadow = true;
+
+    // Random upward/outward velocity for a satisfying "pop"
+    const velocity = new Vector3(
+      (Math.random() - 0.5) * 2.5,
+      2 + Math.random() * 3, // upward burst
+      (Math.random() - 0.5) * 2.5
+    );
+
+    const rotSpeed = new Vector3(
+      (Math.random() - 0.5) * 15,
+      (Math.random() - 0.5) * 15,
+      (Math.random() - 0.5) * 15
+    );
+
+    particles.push({ mesh, velocity, rotSpeed });
+    group.add(mesh);
+  }
+
+  scene.add(group);
+
+  const start = performance.now();
+  const lifetime = 900; // ms
+  let lastTime = start;
+
+  const animate = () => {
+    const now = performance.now();
+    const dt = (now - lastTime) / 1000;
+    lastTime = now;
+    const elapsed = now - start;
+    const lifeFraction = Math.min(1, elapsed / lifetime);
+
+    // Fade out near the end of life
+    material.opacity = 1 - Math.pow(lifeFraction, 3);
+
+    for (const p of particles) {
+      // Apply gravity
+      p.velocity.y -= 12.0 * dt;
+
+      // Update position and rotation
+      p.mesh.position.addScaledVector(p.velocity, dt);
+      p.mesh.rotation.x += p.rotSpeed.x * dt;
+      p.mesh.rotation.y += p.rotSpeed.y * dt;
+      p.mesh.rotation.z += p.rotSpeed.z * dt;
+
+      // Simple floor collision / bounce
+      if (p.mesh.position.y < 0.04) {
+        p.mesh.position.y = 0.04;
+        p.velocity.y *= -0.4; // Bounce
+        p.velocity.x *= 0.7;  // Friction
+        p.velocity.z *= 0.7;
+      }
+    }
+
+    if (lifeFraction < 1) {
+      requestAnimationFrame(animate);
+    } else {
+      scene.remove(group);
+      geometry.dispose();
+      material.dispose();
+    }
+  };
+  requestAnimationFrame(animate);
+}
 
 export function observatoryActionKind(primitive: string): ActionKind {
   const action = primitive.toLowerCase();
@@ -54,10 +155,12 @@ const COLOUR: Record<ActionKind, number> = {
 export class ObservatoryActionEffects {
   private readonly effects = new Map<string, ActionEffect>();
   private readonly ringGeometry = new RingGeometry(0.48, 0.58, 32);
-  private readonly moteGeometry = new BoxGeometry(0.1, 0.1, 0.1);
-  private readonly trailGeometry = new ConeGeometry(0.12, 0.34, 5);
+  private readonly moteGeometry = new BoxGeometry(0.12, 0.12, 0.12);
+  private readonly trailGeometry = new ConeGeometry(0.12, 0.34, 4); // 4 sides for low-poly look
   private readonly ringMaterials = new Map<ActionKind, MeshBasicMaterial>();
   private readonly moteMaterials = new Map<ActionKind, MeshStandardMaterial>();
+  private readonly particleSpawned = new Set<string>();
+  private readonly particleKeysThisTick = new Set<string>();
 
   constructor(private readonly scene: Scene) {
     for (const kind of Object.keys(COLOUR) as ActionKind[]) {
@@ -67,22 +170,27 @@ export class ObservatoryActionEffects {
         opacity: 0.34,
         depthWrite: false,
       }));
+      // Upgraded to catch studio lighting and bloom
       this.moteMaterials.set(kind, new MeshStandardMaterial({
         color: COLOUR[kind],
         emissive: COLOUR[kind],
-        emissiveIntensity: 0.65,
-        roughness: 0.4,
+        emissiveIntensity: 1.2, // Boosted to trigger the UnrealBloomPass
+        roughness: 0.3,
+        metalness: 0.2,
+        flatShading: true,      // Fits the voxel aesthetic
       }));
     }
   }
 
   update(references: readonly SceneReference[], elapsedSeconds: number): void {
     for (const effect of this.effects.values()) effect.seen = false;
+    this.particleKeysThisTick.clear();
 
     for (const reference of references) {
       if (reference.activity === null) continue;
       const kind = observatoryActionKind(reference.activity.primitive);
       const key = `${reference.refId}:${reference.activity.actionRef}`;
+      const particleKey = `${kind}:${reference.refId}:${reference.activity.actionRef}`;
       let effect = this.effects.get(key);
       if (effect === undefined || effect.kind !== kind) {
         if (effect !== undefined) this.destroy(key, effect);
@@ -104,6 +212,28 @@ export class ObservatoryActionEffects {
         reference.transform.rotation.w,
       );
       this.animate(effect, reference.activity.progress, elapsedSeconds);
+
+      // Trigger 3D physics particles on start of a major physical action
+      if (kind === "build" || kind === "gather" || kind === "craft") {
+        this.particleKeysThisTick.add(particleKey);
+        if (!this.particleSpawned.has(particleKey)) {
+          spawnActionParticles(
+            kind,
+            {
+              x: reference.transform.position.x,
+              y: reference.transform.position.z,
+            },
+            this.scene,
+          );
+          this.particleSpawned.add(particleKey);
+        }
+      }
+    }
+
+    for (const key of this.particleSpawned) {
+      if (!this.particleKeysThisTick.has(key)) {
+        this.particleSpawned.delete(key);
+      }
     }
 
     for (const effect of this.effects.values()) {
@@ -202,6 +332,8 @@ export class ObservatoryActionEffects {
 
   dispose(): void {
     for (const [key, effect] of this.effects) this.destroy(key, effect);
+    this.particleSpawned.clear();
+    this.particleKeysThisTick.clear();
     this.ringGeometry.dispose();
     this.moteGeometry.dispose();
     this.trailGeometry.dispose();

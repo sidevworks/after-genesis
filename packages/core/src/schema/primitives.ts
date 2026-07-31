@@ -23,9 +23,9 @@ export type Quantity = number;
 export const DeltaSchema = z.number().int();
 
 /**
- * The eight primitive resources.
+ * The primitive resources, expanded to include the full material encyclopedia.
  *
- * `energy` is an inhabitant's capacity to act; `compute` is its allowance for
+ * `energy` and `compute` are an inhabitant's capacity to act and allowance for
  * cognition (§11B). Both are consumed by living, which is what makes time and
  * attention genuinely scarce rather than nominally scarce.
  */
@@ -38,6 +38,31 @@ export const ResourceKindSchema = z.enum([
   "compute",
   "land_use_rights",
   "storage_capacity",
+  "aluminum",
+  "antimony",
+  "barite",
+  "beryllium",
+  "coal",
+  "cobalt",
+  "copper",
+  "gypsum",
+  "halite",
+  "iron_ore",
+  "kaolin",
+  "lead",
+  "limestone",
+  "lithium",
+  "manganese",
+  "molybdenum",
+  "nickel",
+  "quartz",
+  "rare_earth_elements",
+  "silver",
+  "sulfur",
+  "tantalum",
+  "titanium",
+  "vanadium",
+  "zinc",
 ]);
 export type ResourceKind = z.infer<typeof ResourceKindSchema>;
 
@@ -58,6 +83,31 @@ export const CONSERVED_RESOURCES: ReadonlySet<ResourceKind> = new Set([
   "stone",
   "land_use_rights",
   "storage_capacity",
+  "aluminum",
+  "antimony",
+  "barite",
+  "beryllium",
+  "coal",
+  "cobalt",
+  "copper",
+  "gypsum",
+  "halite",
+  "iron_ore",
+  "kaolin",
+  "lead",
+  "limestone",
+  "lithium",
+  "manganese",
+  "molybdenum",
+  "nickel",
+  "quartz",
+  "rare_earth_elements",
+  "silver",
+  "sulfur",
+  "tantalum",
+  "titanium",
+  "vanadium",
+  "zinc",
 ]);
 
 /** A bundle of resources. Absent keys mean zero. */

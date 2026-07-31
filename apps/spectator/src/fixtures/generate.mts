@@ -54,6 +54,7 @@ const IMAGE_DIGEST =
   "sha256:0d9b1c4a6f2e83b7c15d0aa93e7f42186bb5c0d97e34a1f80cc26be4d5197a3f";
 const WIDTH = 32;
 const HEIGHT = 32;
+const RESOURCE_SCALE = 10;
 const MIN_PER_DAY = 1440;
 const NOW = 89 * MIN_PER_DAY + 14 * 60 + 20; // Day 90 14:20
 const GENESIS_REAL_MS = Date.parse("2026-07-07T09:00:00.000Z");
@@ -146,10 +147,15 @@ interface Person {
   parents: string[];
   birth: number;
   at: { x: number; y: number };
+  sex?: "male" | "female";
   death?: number;
 }
 
-const P: Person[] = [
+function seededSex(personId: string): "male" | "female" {
+  return seedFrom(`inhabitant-sex:${personId}`) % 2 === 0 ? "male" : "female";
+}
+
+const BASE_PERSONS: Person[] = [
   { id: "INH-001", name: "Aleth", generation: 0, parents: [], birth: at(1, 0, 0), at: { x: 14, y: 17 } },
   { id: "INH-002", name: "Berrun", generation: 1, parents: ["INH-001"], birth: at(4, 7, 40), at: { x: 15, y: 16 } },
   { id: "INH-003", name: "Cael", generation: 1, parents: ["INH-001"], birth: at(7, 11, 5), at: { x: 16, y: 15 }, death: at(51, 4, 12) },
@@ -164,8 +170,50 @@ const P: Person[] = [
   { id: "INH-012", name: "Lume", generation: 2, parents: ["INH-006"], birth: at(37, 18, 35), at: { x: 18, y: 21 } },
 ];
 
+const CORNER_STARTER_LOCATIONS: Array<{ x: number; y: number }> = [
+  { x: 0, y: 0 },
+  { x: 31, y: 0 },
+  { x: 0, y: 31 },
+  { x: 31, y: 31 },
+  { x: 15, y: 0 },
+  { x: 15, y: 31 },
+  { x: 0, y: 15 },
+  { x: 31, y: 15 },
+];
+
+const CORNER_INHABITANTS = CORNER_STARTER_LOCATIONS.map((location, index) => ({
+  id: `INH-${String(13 + index).padStart(3, "0")}`,
+  name: `Corner-${String(index + 1).padStart(2, "0")}`,
+  generation: 0,
+  parents: [],
+  birth: at(1, 0, 0),
+  at: location,
+}));
+
+const STARTER_SPAWN_POINTS: Array<{ x: number; y: number }> = [
+  { x: 6, y: 6 },
+  { x: 21, y: 3 },
+  { x: 2, y: 23 },
+  { x: 29, y: 18 },
+  { x: 14, y: 14 },
+  { x: 8, y: 28 },
+  { x: 27, y: 26 },
+  { x: 4, y: 12 },
+  { x: 19, y: 20 },
+  { x: 30, y: 29 },
+];
+
+const P: Person[] = [...BASE_PERSONS, ...CORNER_INHABITANTS].slice(0, 10).map((person, index) => ({
+  ...person,
+  at: STARTER_SPAWN_POINTS[index] ?? person.at,
+  sex: person.sex ?? seededSex(person.id),
+}));
+
 const byId = new Map(P.map((p) => [p.id, p]));
-const nameOf = (id: string): string => byId.get(id)?.name ?? id;
+const fallbackPerson = P[0]!;
+const resolvePerson = (id: string) => byId.get(id) ?? fallbackPerson;
+const nameOf = (id: string): string => resolvePerson(id).name;
+const locationOf = (id: string) => resolvePerson(id).at;
 
 /* ---------------------------------------------------------- structures --- */
 
@@ -235,7 +283,9 @@ add({
   simTime: 0,
   type: "world.genesis",
   actor: null,
-  description: `World ${WORLD_ID} was initialised on a ${WIDTH}x${HEIGHT} grid from published seed ${GENESIS_SEED}. Inhabitant Aleth was instantiated at tile (14,17) with 40 units of food, 40 units of water and 12 units of energy.`,
+  description: `World ${WORLD_ID} was initialised on a ${WIDTH}x${HEIGHT} grid from published seed ${GENESIS_SEED}. Inhabitant Aleth was instantiated at tile (14,17) with ${
+    40 * RESOURCE_SCALE
+  } units of food, ${40 * RESOURCE_SCALE} units of water and ${12 * RESOURCE_SCALE} units of energy.`,
   subjects: ["INH-001"],
   location: { x: 14, y: 17 },
   inputs: { seed: GENESIS_SEED, width: WIDTH, height: HEIGHT, founder: "INH-001" },
@@ -406,9 +456,9 @@ for (const [teacher, student, skill, time] of teachings) {
     simTime: time,
     type: "skill.taught",
     actor: teacher,
-    description: `${nameOf(teacher)} taught ${skill} to ${nameOf(student)} for 240 minutes at tile (${byId.get(teacher)!.at.x},${byId.get(teacher)!.at.y}). ${nameOf(student)}'s recorded ${skill} proficiency increased by 0.11.`,
+    description: `${nameOf(teacher)} taught ${skill} to ${nameOf(student)} for 240 minutes at tile (${locationOf(teacher).x},${locationOf(teacher).y}). ${nameOf(student)}'s recorded ${skill} proficiency increased by 0.11.`,
     subjects: [teacher, student],
-    location: byId.get(teacher)!.at,
+    location: locationOf(teacher),
     inputs: { skill, minutes: 240, delta: 0.11 },
   });
 }
@@ -891,9 +941,9 @@ for (const [artId, creator, title, time, kind] of artifactEvents) {
     simTime: time,
     type: "artifact.created",
     actor: creator,
-    description: `${nameOf(creator)} created artifact ${artId} of kind ${kind}, titled '${title}', at tile (${byId.get(creator)!.at.x},${byId.get(creator)!.at.y}), consuming 5 units of energy and 260 minutes. The artifact content is stored verbatim and is attributed to ${nameOf(creator)}.`,
+    description: `${nameOf(creator)} created artifact ${artId} of kind ${kind}, titled '${title}', at tile (${locationOf(creator).x},${locationOf(creator).y}), consuming 5 units of energy and 260 minutes. The artifact content is stored verbatim and is attributed to ${nameOf(creator)}.`,
     subjects: [creator],
-    location: byId.get(creator)!.at,
+    location: locationOf(creator),
     inputs: { artifactId: artId, kind, minutes: 260, energy: 5 },
   });
 }
@@ -942,9 +992,9 @@ for (const [time, from, to, gave, got] of tradeEvents) {
     simTime: time,
     type: "transfer.executed",
     actor: from,
-    description: `${nameOf(from)} transferred ${gave} to ${nameOf(to)} and received ${got}. Both parties recorded consent at tile (${byId.get(from)!.at.x},${byId.get(from)!.at.y}).`,
+    description: `${nameOf(from)} transferred ${gave} to ${nameOf(to)} and received ${got}. Both parties recorded consent at tile (${locationOf(from).x},${locationOf(from).y}).`,
     subjects: [from, to],
-    location: byId.get(from)!.at,
+    location: locationOf(from),
     inputs: { counterparty: to, consented: true },
   });
 }
@@ -1001,7 +1051,13 @@ add({
 
 /* --- Procedural filler -------------------------------------------------- */
 
-const RESOURCES = ["food", "water", "wood", "stone"] as const;
+const RESOURCES = [
+  "food", "water", "wood", "stone", "aluminum", "antimony", "barite", "beryllium",
+  "coal", "cobalt", "copper", "gypsum", "halite", "iron_ore", "kaolin", "lead",
+  "limestone", "lithium", "manganese", "molybdenum", "nickel", "quartz",
+  "rare_earth_elements", "silver", "sulfur", "tantalum", "titanium", "vanadium", "zinc"
+] as const;
+
 const SKILLS = [
   "gathering",
   "construction",
@@ -1257,7 +1313,17 @@ const creationEventOf = (id: string): string =>
       e["resolution"] === "applied",
   )?.["id"] as string) ?? "EV-00000";
 
-const TRAIT_NAMES = ["curiosity", "caution", "persistence", "sociability", "candour", "acquisitiveness"];
+const TRAIT_NAMES = [
+  "curiosity",
+  "caution",
+  "persistence",
+  "sociability",
+  "candour",
+  "acquisitiveness",
+  "altruism",
+  "territoriality",
+  "impatience",
+];
 const VALUE_POOL = [
   "keeping a complete record",
   "self-reliance",
@@ -1269,6 +1335,37 @@ const VALUE_POOL = [
   "craft quality",
   "plain speech",
   "long memory",
+  "wealth accumulation",
+  "solitude",
+  "architectural dominance",
+  "technological progress",
+  "strict hierarchy",
+  "absolute equality",
+  "territorial control",
+];
+
+const GOAL_POOL = [
+  // Economic & Innovation
+  "Invent and establish a widely accepted unit of exchange (currency) so you don't have to carry heavy materials.",
+  "Hoard a massive surplus of rare materials (metals, quartz) and refuse to give them away for free.",
+  "Establish a dominant trade hub where all exchanges must take place.",
+
+  // Political & Social
+  "Found an exclusive organisation and restrict membership to those who pay a toll.",
+  "Ensure all local inhabitants pool their resources into a single, jointly-owned storehouse.",
+  "Oppose any inhabitant who tries to claim private ownership of land or structures.",
+  "Become the most reputed teacher in the settlement by instructing others.",
+
+  // Exploration & Independence
+  "Explore the far edges of the known map to find untouched resource deposits.",
+  "Build a private, secure shelter far away from the main settlement and guard it.",
+  "Refuse to rely on others; gather and build everything you need independently.",
+
+  // Legacy & Architecture
+  "Sponsor the creation of as many new Generation 2 inhabitants as possible.",
+  "Build the most imposing and expensive stone structure in the world.",
+  "Create a permanent written record (artifact) of the settlement's history and conflicts.",
+  "Construct a bridge or road network connecting distant resources to a central hub.",
 ];
 
 const SKILL_PROFILE: Record<string, Array<[string, number, number]>> = {
@@ -1403,11 +1500,19 @@ const HEALTH: Record<string, { integrity: number; conditions: Array<Record<strin
 
 const inhabitants = P.map((p) => {
   const traitRng = mulberry32(seedFrom(GENESIS_SEED + p.id));
+
   const traits = TRAIT_NAMES.map((name) => ({
     name,
-    value: Number((0.15 + traitRng() * 0.8).toFixed(2)),
+    value: Number((0.10 + traitRng() * 0.90).toFixed(2)),
   }));
-  const values = [0, 1, 2].map((i) => VALUE_POOL[(seedFrom(p.id) + i * 3) % VALUE_POOL.length]!);
+
+  const shuffledValues = [...VALUE_POOL].sort(() => traitRng() - 0.5);
+  const values = shuffledValues.slice(0, 2 + Math.floor(traitRng() * 2));
+
+  const shuffledGoals = [...GOAL_POOL].sort(() => traitRng() - 0.5);
+  const privateGoalCount = 2 + Math.floor(traitRng() * 2);
+  const privateGoals = shuffledGoals.slice(0, privateGoalCount);
+
   const skills = (SKILL_PROFILE[p.id] ?? []).map(([name, level, practiceCount]) => {
     const taught = teachings.find((t) => t[1] === p.id && t[2] === name);
     return taught
@@ -1445,6 +1550,7 @@ const inhabitants = P.map((p) => {
       });
     }
   }
+
   // Recorded valence, tuned to what actually happened between these two.
   const VALENCE: Record<string, number> = {
     "INH-002|INH-009": -0.71, "INH-009|INH-002": -0.78,
@@ -1465,12 +1571,12 @@ const inhabitants = P.map((p) => {
 
   const inventory = deceased
     ? [
-        { resource: "wood", quantity: 18 },
-        { resource: "stone", quantity: 9 },
+        { resource: "wood", quantity: 18 * RESOURCE_SCALE },
+        { resource: "stone", quantity: 9 * RESOURCE_SCALE },
       ]
-    : (["food", "water", "wood", "stone", "energy"] as const).map((resource) => ({
+    : (["food", "water", "wood", "stone", "iron_ore", "energy"] as const).map((resource) => ({
         resource,
-        quantity: Math.floor(traitRng() * 34) + (resource === "energy" ? 2 : 4),
+        quantity: (Math.floor(traitRng() * 34) + (resource === "energy" ? 2 : 4)) * RESOURCE_SCALE,
       }));
 
   const ownedStructures = S.filter((s) => s.ownerId === p.id).map((s) => s.id);
@@ -1512,6 +1618,7 @@ const inhabitants = P.map((p) => {
     id: p.id,
     name: p.name,
     generation: p.generation,
+    sex: p.sex,
     status: deceased ? "deceased" : "active",
     at: p.at,
     birthSimTime: p.birth,
@@ -1523,7 +1630,8 @@ const inhabitants = P.map((p) => {
     childIds: P.filter((c) => c.parents.includes(p.id)).map((c) => c.id),
     traits,
     values,
-    privateGoalCount: 2 + Math.floor(traitRng() * 3),
+    privateGoalCount,
+    privateGoals,
     disclosedGoals: [],
     needs: (["food", "water", "rest", "safety", "purpose"] as const).map((name) => ({
       name,
@@ -1623,11 +1731,29 @@ for (let y = 0; y < HEIGHT; y += 1) {
         (terrain === "fertile" ? 0.6 + tileRng() * 0.4 : terrain === "water" ? 0 : tileRng() * 0.5).toFixed(2),
       ),
     };
+
+
     const r = tileRng();
-    if (terrain === "forest" && r < 0.5) tile["deposit"] = { resource: "wood", remaining: 40 + Math.floor(r * 200) };
-    else if (terrain === "stone" && r < 0.6) tile["deposit"] = { resource: "stone", remaining: 60 + Math.floor(r * 240) };
-    else if (terrain === "water" && r < 0.9) tile["deposit"] = { resource: "water", remaining: 900 };
-    else if (terrain === "fertile" && r < 0.55) tile["deposit"] = { resource: "food", remaining: 30 + Math.floor(r * 90) };
+    if (terrain === "forest" && r < 0.5) {
+      tile["deposit"] = { resource: "wood", remaining: (40 + Math.floor(r * 200)) * RESOURCE_SCALE };
+    } else if (terrain === "stone" && r < 0.6) {
+      const ores = [
+        "stone", "stone", "stone", "stone", "stone", // Keep basic stone common
+        "aluminum", "antimony", "barite", "beryllium", "coal",
+        "cobalt", "copper", "gypsum", "halite", "iron_ore",
+        "kaolin", "lead", "limestone", "lithium", "manganese",
+        "molybdenum", "nickel", "quartz", "rare_earth_elements",
+        "silver", "sulfur", "tantalum", "titanium", "vanadium", "zinc"
+      ];
+      const selectedOre = ores[Math.floor(tileRng() * ores.length)];
+      tile["deposit"] = { resource: selectedOre, remaining: (60 + Math.floor(r * 240)) * RESOURCE_SCALE };
+    } else if (terrain === "water" && r < 0.9) {
+
+
+      tile["deposit"] = { resource: "water", remaining: 900 * RESOURCE_SCALE };
+    } else if (terrain === "fertile" && r < 0.55) {
+      tile["deposit"] = { resource: "food", remaining: (30 + Math.floor(r * 90)) * RESOURCE_SCALE };
+    }
     tiles.push(tile);
   }
 }
@@ -1678,9 +1804,10 @@ const map = {
 const allIds = P.map((p) => p.id);
 
 function recognition(recognised: string[], rejected: string[]) {
+  const present = new Set(allIds);
   return {
-    recognisedByIds: recognised,
-    rejectedByIds: rejected,
+    recognisedByIds: recognised.filter((id) => present.has(id)),
+    rejectedByIds: rejected.filter((id) => present.has(id)),
     unengagedIds: allIds.filter((id) => !recognised.includes(id) && !rejected.includes(id)),
   };
 }
@@ -1925,7 +2052,7 @@ const artifacts = artifactEvents.map(([artId, creator, title, time, kind]) => {
   const creationEventId =
     (events.find((e) => e["type"] === "artifact.created" && (e["inputs"] as Record<string, unknown>)["artifactId"] === artId)?.["id"] as string) ?? "";
   const provenance: Array<Record<string, unknown>> = [
-    { simTime: time, eventId: creationEventId, kind: "created", description: `${nameOf(creator)} created ${artId} at tile (${byId.get(creator)!.at.x},${byId.get(creator)!.at.y}).` },
+    { simTime: time, eventId: creationEventId, kind: "created", description: `${nameOf(creator)} created ${artId} at tile (${locationOf(creator).x},${locationOf(creator).y}).` },
   ];
   if (artId === "ART-003") {
     provenance.push({

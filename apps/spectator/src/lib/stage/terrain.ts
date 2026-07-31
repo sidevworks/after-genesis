@@ -34,12 +34,14 @@ import {
   Color,
   ConeGeometry,
   DodecahedronGeometry,
+  BufferGeometry,
   InstancedMesh,
   Matrix4,
   MeshStandardMaterial,
   Object3D,
   type Scene,
 } from "three";
+import { RoundedBoxGeometry } from "three/examples/jsm/geometries/RoundedBoxGeometry.js";
 import {
   SCATTER_COLOURS,
   TERRAIN_COLOURS,
@@ -92,7 +94,7 @@ export class Terrain {
   private readonly scene: Scene;
   private readonly map: TerrainMap;
   private readonly meshes: InstancedMesh[] = [];
-  private readonly geometries: BoxGeometry[] = [];
+  private readonly geometries: BufferGeometry[] = [];
   private readonly materials: MeshStandardMaterial[] = [];
 
   private waterMesh: InstancedMesh | null = null;
@@ -128,7 +130,7 @@ export class Terrain {
       if (tiles === undefined || tiles.length === 0) continue;
 
       const blockHeight = TERRAIN_HEIGHTS[kind];
-      const geometry = new BoxGeometry(1, blockHeight, 1);
+      const geometry = new RoundedBoxGeometry(1, blockHeight, 1, 2, kind === "water" ? 0.03 : 0.05);
       const material = new MeshStandardMaterial({
         color: TERRAIN_COLOURS[kind],
         roughness: TERRAIN_ROUGHNESS[kind],
@@ -338,7 +340,7 @@ export class Terrain {
 
   private addInstances(
     count: number,
-    geometry: BoxGeometry | ConeGeometry | DodecahedronGeometry,
+    geometry: BufferGeometry,
     material: MeshStandardMaterial,
     write: (index: number, mesh: InstancedMesh) => void,
     castShadow: boolean,
@@ -356,7 +358,7 @@ export class Terrain {
     if (mesh.instanceColor !== null) mesh.instanceColor.needsUpdate = true;
     this.scene.add(mesh);
     this.meshes.push(mesh);
-    this.geometries.push(geometry as BoxGeometry);
+    this.geometries.push(geometry);
     this.materials.push(material);
   }
 

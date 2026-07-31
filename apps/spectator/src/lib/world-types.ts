@@ -139,6 +139,8 @@ export interface WorldMap {
   /** Row-major, length = width * height. */
   tiles: Tile[];
   structures: Structure[];
+  /** Tile ids (`x,y`) that are currently revealed. Omitted for legacy fixtures. */
+  discovered?: readonly string[];
   /** Current positions of every inhabitant, living and deceased. */
   occupants: Array<{
     id: string;

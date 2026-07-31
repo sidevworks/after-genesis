@@ -19,6 +19,7 @@
 import { IMPASSABLE_TERRAIN, chebyshevDistance, coordKey } from "../../schema/primitives.js";
 import type { Coord } from "../../schema/primitives.js";
 import { getActionSpec } from "../../schema/actions/index.js";
+import { elderEnergyCost, isElderAt } from "../aging.js";
 import { isNight } from "../../time.js";
 import {
   idiv,
@@ -206,7 +207,11 @@ export const moveResolver: Resolver = (ctx, payload): ResolutionResult => {
 
   const night = isNight(ctx.simTime);
   const minutes = travelMinutes(route.baseMinutes, rules, night);
-  const energyCost = idivCeil(minutes, rules.travelMinutesPerEnergy);
+  const energyCost = elderEnergyCost(
+    actor,
+    ctx.simTime,
+    idivCeil(minutes, rules.travelMinutesPerEnergy),
+  );
   if (energyOf(actor) < energyCost) {
     return reject(
       ctx,
@@ -256,6 +261,7 @@ export const moveResolver: Resolver = (ctx, payload): ResolutionResult => {
     minutes,
     night,
     energySpent: energyCost,
+    elder: isElderAt(actor, ctx.simTime),
     terrain,
   };
 

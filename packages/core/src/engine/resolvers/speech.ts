@@ -29,13 +29,13 @@ export const communicateResolver: Resolver = (ctx, payload): ResolutionResult =>
     recipients.some(
       (recipient) =>
         recipient.status !== "alive" ||
-        chebyshevDistance(ctx.actor.location, recipient.location) > 1,
+        chebyshevDistance(ctx.actor.location, recipient.location) > 5,
     )
   ) {
     return reject(
       ctx,
       RejectionCode.InvalidPayload,
-      "every recipient must be alive and within speaking distance",
+      "every recipient must be alive and within speaking distance (radius 5)",
     );
   }
   const paid = spend(ctx.actor, COMMUNICATE.baseCost);

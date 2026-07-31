@@ -27,11 +27,11 @@ import type { ActionType, ActivityState, InterruptionPolicy } from "../schema/ac
 import type { Coord, Quantity, ResourceBundle, Terrain } from "../schema/primitives.js";
 import { RESOURCE_KINDS, addBundles, coordKey } from "../schema/primitives.js";
 import type { SimTime } from "../time.js";
-import { GENESIS_TIME } from "../time.js";
+import { GENESIS_TIME, MINUTES_PER_DAY } from "../time.js";
 import { HashDomain, hashValue, type Sha256Hex } from "../util/hash.js";
 
 /** Bumped when the shape of `WorldState` changes. A change is constitutional (§23). */
-export const STATE_SCHEMA_VERSION = 2;
+export const STATE_SCHEMA_VERSION = 3;
 
 /* ------------------------------------------------------------------------- */
 /* Map                                                                        */
@@ -245,6 +245,18 @@ export interface Inhabitant {
   readonly concealed: ResourceBundle;
   readonly maxEnergy: number;
   readonly maxCompute: number;
+  /**
+   * Canonical biological clock. `birthTime` remains the historical event time;
+   * lifecycle is the simulation-facing representation used by mortality and
+   * preserves the exact tick budget across replay.
+   */
+  readonly lifecycle: InhabitantLifecycle;
+  /** Fixed at birth from the world seed. Reaching this age causes a system death. */
+  readonly maxLifespanDays: number;
+  /** Physical integrity, 0..100. At 0 the inhabitant is dead. */
+  readonly integrity: number;
+  /** An active defensive stance reduces damage until this simulated instant. */
+  readonly defendingUntil: SimTime;
 
   readonly skills: SkillSet;
   /** Private. Keyed by the other inhabitant's id. */
@@ -272,6 +284,12 @@ export interface Inhabitant {
   readonly deathTime: SimTime | null;
   /** Id into `WorldState.confinements` while confined (§11H). */
   readonly confinementId: string | null;
+}
+
+export interface InhabitantLifecycle {
+  readonly birthTick: SimTime;
+  readonly maxLifespanTicks: number;
+  readonly isElder: boolean;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -318,6 +336,30 @@ export interface Artifact {
   readonly location: Coord | null;
   readonly createdSequence: number;
   readonly createdAt: SimTime;
+}
+
+/** Conserved holdings left at a location after an inhabitant dies. */
+export interface Remains {
+  readonly id: string;
+  readonly deceasedId: string;
+  readonly location: Coord;
+  readonly inventory: ResourceBundle;
+  readonly createdAt: SimTime;
+  readonly createdSequence: number;
+  readonly disposedAt: SimTime | null;
+  readonly disposalMethod: "bury" | "burn" | "recycle" | null;
+}
+
+/** A private, one-time reproduction offer. Consent is represented separately. */
+export interface MatingProposal {
+  readonly id: string;
+  readonly proposerId: string;
+  readonly recipientId: string;
+  readonly proposedName: string;
+  readonly createdAt: SimTime;
+  readonly createdSequence: number;
+  readonly status: "pending" | "accepted" | "rejected" | "expired";
+  readonly resolvedAt: SimTime | null;
 }
 
 export interface OrganisationRule {
@@ -700,7 +742,7 @@ export interface WorldRules {
 
 export const DEFAULT_RULES: WorldRules = Object.freeze({
   populationLimit: 64,
-  sightRadius: 4,
+  sightRadius: 10,
   nightSightRadius: 2,
   maxMoveDistance: 8,
   maxEnergy: 1000,
@@ -711,7 +753,6 @@ export const DEFAULT_RULES: WorldRules = Object.freeze({
     barren: 12,
     forest: 20,
     stone_deposit: 18,
-    // Water is impassable; the cost is unreachable but must be a number.
     water: 1_000_000,
   }),
   nightTravelNumerator: 3,
@@ -719,14 +760,16 @@ export const DEFAULT_RULES: WorldRules = Object.freeze({
   travelMinutesPerEnergy: 4,
   observeDurationMinutes: 5,
   observeEnergyCost: 2,
-  gatherDurationMinutes: 60,
-  gatherEnergyCost: 40,
+  // IMPROVEMENT: Halved gather time and energy cost to create a resource surplus
+  gatherDurationMinutes: 30,
+  gatherEnergyCost: 20,
+  // IMPROVEMENT: Boosted base yields by ~50% so they spend less time foraging
   gatherBaseYield: Object.freeze({
-    plains: 2,
-    fertile: 4,
-    forest: 5,
-    stone_deposit: 4,
-    water: 6,
+    plains: 3,
+    fertile: 6,
+    forest: 8,
+    stone_deposit: 6,
+    water: 9,
     barren: 1,
   }),
   consumeDurationMinutes: 15,
@@ -735,20 +778,20 @@ export const DEFAULT_RULES: WorldRules = Object.freeze({
   waitDefaultMinutes: 30,
   waitMaxMinutes: 720,
   restEnergyPerMinute: 1,
-  minutesPerHunger: 30,
-  minutesPerThirst: 20,
+  // IMPROVEMENT: Increased minutes per hunger/thirst to slow down the decay
+  minutesPerHunger: 45,
+  minutesPerThirst: 35,
   minutesPerFatigue: 45,
   minutesPerSocial: 90,
   restMinutesPerFatigueRelief: 6,
-  foodHungerRelief: 20,
-  foodEnergyGain: 30,
-  waterThirstRelief: 25,
-  waterEnergyGain: 10,
+  // IMPROVEMENT: Food and water relieve more need per unit consumed
+  foodHungerRelief: 30,
+  foodEnergyGain: 40,
+  waterThirstRelief: 35,
+  waterEnergyGain: 15,
   maxConsumePerAction: 20,
-  // Scarcity is active in the default world. These numbers are not goals or
-  // instructions; they are physical pressure: a body can carry only so much,
-  // carried food decays, and sleeping under shelter is materially better.
-  carryCapacity: 150,
+  // IMPROVEMENT: Slightly raised carry capacity so they can transport building materials easier
+  carryCapacity: 200,
   minutesPerFoodSpoil: 720,
   foodSpoilDivisor: 20,
   shelterRestMultiplier: 2,
@@ -807,6 +850,8 @@ export interface WorldState {
   readonly activities: Readonly<Record<string, ActivityRecord>>;
   readonly memories: Readonly<Record<string, MemoryRecord>>;
   readonly confinements: Readonly<Record<string, Confinement>>;
+  readonly remains: Readonly<Record<string, Remains>>;
+  readonly matingProposals: Readonly<Record<string, MatingProposal>>;
 
   readonly publicRecords: PublicRecords;
   readonly ledger: ResourceLedger;
@@ -862,6 +907,8 @@ export function createWorldState(options: CreateWorldOptions): WorldState {
     activities: {},
     memories: {},
     confinements: {},
+    remains: {},
+    matingProposals: {},
     publicRecords: { announcements: [] },
     ledger: { genesisTotal, created: {}, destroyed: {} },
     rules,
@@ -891,10 +938,13 @@ export interface MakeInhabitantOptions {
   readonly modelId?: string;
   readonly maxEnergy?: number;
   readonly maxCompute?: number;
+  readonly maxLifespanDays?: number;
+  readonly lifecycle?: InhabitantLifecycle;
 }
 
 /** A blank, alive, idle inhabitant. Pure; does not touch any ledger. */
 export function makeInhabitant(options: MakeInhabitantOptions): Inhabitant {
+  const maxLifespanDays = options.maxLifespanDays ?? 44;
   return {
     id: options.id,
     displayName: options.displayName,
@@ -914,6 +964,16 @@ export function makeInhabitant(options: MakeInhabitantOptions): Inhabitant {
     concealed: { ...(options.concealed ?? {}) },
     maxEnergy: options.maxEnergy ?? DEFAULT_RULES.maxEnergy,
     maxCompute: options.maxCompute ?? DEFAULT_RULES.maxCompute,
+    // Callers that create canonical inhabitants pass a deterministic draw from
+    // the world seed. A stable default keeps hand-built test fixtures valid.
+    lifecycle: options.lifecycle ?? {
+      birthTick: options.birthTime,
+      maxLifespanTicks: maxLifespanDays * MINUTES_PER_DAY,
+      isElder: false,
+    },
+    maxLifespanDays,
+    integrity: 100,
+    defendingUntil: GENESIS_TIME,
     skills: { ...(options.skills ?? {}) },
     relationships: {},
     beliefs: {},
@@ -1004,6 +1064,31 @@ export function putConfinement(state: WorldState, confinement: Confinement): Wor
     ...state,
     confinements: { ...state.confinements, [confinement.id]: confinement },
   };
+}
+
+export function putRemains(state: WorldState, remains: Remains): WorldState {
+  return { ...state, remains: { ...state.remains, [remains.id]: remains } };
+}
+
+export function putMatingProposal(state: WorldState, proposal: MatingProposal): WorldState {
+  return {
+    ...state,
+    matingProposals: { ...state.matingProposals, [proposal.id]: proposal },
+  };
+}
+
+export function removeStructure(state: WorldState, id: string): WorldState {
+  if (state.structures[id] === undefined) return state;
+  const structures = { ...state.structures };
+  delete structures[id];
+  return { ...state, structures };
+}
+
+export function removeArtifact(state: WorldState, id: string): WorldState {
+  if (state.artifacts[id] === undefined) return state;
+  const artifacts = { ...state.artifacts };
+  delete artifacts[id];
+  return { ...state, artifacts };
 }
 
 /** Advance world time. Refuses to move backwards (§15 "world time cannot move backwards"). */
@@ -1132,6 +1217,9 @@ export function totalHeldResources(state: WorldState): ResourceBundle {
   }
   for (const organisation of sortedValues(state.organisations)) {
     total = addBundles(total, organisation.property);
+  }
+  for (const remains of sortedValues(state.remains)) {
+    total = addBundles(total, remains.inventory);
   }
   return total;
 }

@@ -93,6 +93,20 @@ export const ActionTypeSchema = z.enum([
   "appeal_decision",
   "attempt_escape",
   "resist_enforcement",
+  // Entropy, conflict, lifecycle, and consensual reproduction.
+  "dismantle",
+  "destroy",
+  "repair",
+  "attack",
+  "defend",
+  "flee",
+  "die",
+  "loot_remains",
+  "dispose_remains",
+  "propose_mating",
+  "accept_mating",
+  "reject_mating",
+  "self_terminate",
 ]);
 export type ActionType = z.infer<typeof ActionTypeSchema>;
 
@@ -124,6 +138,7 @@ export const ActivityStateSchema = z.enum([
   "recovering",
   "sleeping",
   "confined",
+  "defending",
 ]);
 export type ActivityState = z.infer<typeof ActivityStateSchema>;
 

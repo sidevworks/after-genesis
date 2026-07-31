@@ -98,9 +98,13 @@ export function makeObservation(overrides: Partial<Observation> = {}): Observati
     self: {
       id: "inh_alpha",
       displayName: "Alder",
+      sex: "female",
       generation: 1,
       maturity: 4,
       birthTime: 0,
+      ageDays: 10,
+      maxLifespanDays: 44,
+      elder: false,
       location: { x: 6, y: 9 },
       terrain: "plains",
       activity: "idle",
@@ -150,8 +154,9 @@ export function makeObservation(overrides: Partial<Observation> = {}): Observati
     },
     nearbyInhabitants: [
       {
-        id: "inh_bravo",
+      id: "inh_bravo",
         displayName: "Bracken",
+        sex: "female",
         distance: 1,
         location: { x: 7, y: 9 },
         visibleActivity: "gathering",
@@ -161,6 +166,7 @@ export function makeObservation(overrides: Partial<Observation> = {}): Observati
       {
         id: "inh_charlie",
         displayName: "Cress",
+        sex: "male",
         distance: 3,
         location: { x: 6, y: 12 },
         visibleActivity: "building",

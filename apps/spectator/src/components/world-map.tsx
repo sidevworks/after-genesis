@@ -154,26 +154,57 @@ export function WorldMapView({
     [map],
   );
 
+  const discoveredSet = useMemo(() => new Set(map.discovered ?? []), [map.discovered]);
+  const hasDiscoveryMask = map.discovered !== undefined;
+
+  const canSeeTile = useCallback(
+    (x: number, y: number): boolean => !hasDiscoveryMask || discoveredSet.has(`${x},${y}`),
+    [hasDiscoveryMask, discoveredSet],
+  );
+
   const structuresByTile = useMemo(() => {
     const index = new Map<string, Structure[]>();
     for (const s of map.structures) {
       const key = `${s.at.x},${s.at.y}`;
+      if (!canSeeTile(s.at.x, s.at.y)) continue;
       index.set(key, [...(index.get(key) ?? []), s]);
     }
     return index;
-  }, [map.structures]);
+  }, [canSeeTile, map.structures]);
+
+  const structureGlyphs = useMemo(() => {
+    const result: Structure[] = [];
+    for (const structure of structuresByTile.values()) {
+      for (const value of structure) {
+        result.push(value);
+      }
+    }
+    return result;
+  }, [structuresByTile]);
 
   const occupantsByTile = useMemo(() => {
     const index = new Map<string, WorldMap["occupants"]>();
     for (const o of map.occupants) {
       const key = `${o.at.x},${o.at.y}`;
+      if (!canSeeTile(o.at.x, o.at.y)) continue;
       index.set(key, [...(index.get(key) ?? []), o]);
     }
     return index;
-  }, [map.occupants]);
+  }, [canSeeTile, map.occupants]);
+
+  const occupantsList = useMemo(() => {
+    const result: Array<(typeof map.occupants)[number]> = [];
+    for (const occupants of occupantsByTile.values()) {
+      for (const inhabitant of occupants) {
+        result.push(inhabitant);
+      }
+    }
+    return result;
+  }, [occupantsByTile]);
 
   const active = hovered ?? selected;
   const activeTile = tileAt(active.x, active.y);
+  const activeTileVisible = activeTile === undefined ? false : canSeeTile(active.x, active.y);
   const activeStructures = structuresByTile.get(`${active.x},${active.y}`) ?? [];
   const activeOccupants = occupantsByTile.get(`${active.x},${active.y}`) ?? [];
 
@@ -218,15 +249,17 @@ export function WorldMapView({
   const compact = variant === "compact";
 
   const summaryLine = activeTile
-    ? `Tile ${active.x}, ${active.y}. ${TERRAIN_LABEL[activeTile.terrain]}. ${
-        activeStructures.length > 0
-          ? `${activeStructures.map((s) => s.name).join(", ")}. `
-          : ""
-      }${
-        activeOccupants.length > 0
-          ? `Present: ${activeOccupants.map((o) => o.name).join(", ")}.`
-          : "No inhabitant present."
-      }`
+    ? activeTileVisible
+      ? `Tile ${active.x}, ${active.y}. ${TERRAIN_LABEL[activeTile.terrain]}. ${
+          activeStructures.length > 0
+            ? `${activeStructures.map((s) => s.name).join(", ")}. `
+            : ""
+        }${
+          activeOccupants.length > 0
+            ? `Present: ${activeOccupants.map((o) => o.name).join(", ")}.`
+            : "No inhabitant present."
+        }`
+      : `Tile ${active.x}, ${active.y} is not discovered yet.`
     : "";
 
   return (
@@ -298,29 +331,43 @@ export function WorldMapView({
                   width={1}
                   height={1}
                   fill={shade(TERRAIN_COLOUR[tile.terrain], ((fertilityOf(tile) ?? 0.4) - 0.4) * 0.28)}
+                  opacity={canSeeTile(tile.x, tile.y) ? 1 : 0.35}
                 />
               ))}
+
+              {hasDiscoveryMask &&
+                map.tiles
+                  .filter((tile) => !canSeeTile(tile.x, tile.y))
+                  .map((tile) => (
+                    <rect
+                      key={`unseen-${tile.x},${tile.y}`}
+                      x={tile.x}
+                      y={tile.y}
+                      width={1}
+                      height={1}
+                      fill="rgba(3, 6, 11, 0.88)"
+                    />
+                  ))}
 
               {/* Recorded land-use claims. A dotted edge, not a fence. */}
               <g fill="none" stroke="rgba(217,164,65,0.45)" strokeWidth={0.06} strokeDasharray="0.16 0.12">
                 {map.tiles
                   .filter((t) => t.claimedBy)
+                  .filter((t) => canSeeTile(t.x, t.y))
                   .map((t) => (
                     <rect key={`c${t.x},${t.y}`} x={t.x + 0.05} y={t.y + 0.05} width={0.9} height={0.9} />
                   ))}
               </g>
 
               <g style={{ shapeRendering: "geometricPrecision" }}>
-                {map.structures.map((s) => (
+                {structureGlyphs.map((s) => (
                   <StructureGlyph key={s.id} structure={s} />
                 ))}
               </g>
 
               <g style={{ shapeRendering: "geometricPrecision" }}>
-                {map.occupants.map((o, index) => {
-                  const same = map.occupants.filter(
-                    (other) => other.at.x === o.at.x && other.at.y === o.at.y,
-                  );
+                {occupantsList.map((o, index) => {
+                  const same = occupantsByTile.get(`${o.at.x},${o.at.y}`) ?? [];
                   const idx = same.indexOf(o);
                   const offset = same.length > 1 ? (idx - (same.length - 1) / 2) * 0.34 : 0;
                   const deceased = o.status === "deceased";
@@ -410,11 +457,19 @@ export function WorldMapView({
                   <span
                     aria-hidden
                     className="inline-block size-3 rounded-[2px]"
-                    style={{ background: TERRAIN_COLOUR[activeTile.terrain] }}
+                    style={
+                      activeTileVisible
+                        ? { background: TERRAIN_COLOUR[activeTile.terrain] }
+                        : { background: "#0b1016" }
+                    }
                   />
-                  {TERRAIN_LABEL[activeTile.terrain]}
+                  {activeTileVisible ? TERRAIN_LABEL[activeTile.terrain] : "Undiscovered"}
                   <span className="mono text-xs text-dim">
-                    fertility {fertilityOf(activeTile) === null ? "unrecorded" : percent(fertilityOf(activeTile)!)}
+                    {activeTileVisible
+                      ? `fertility ${
+                        fertilityOf(activeTile) === null ? "unrecorded" : percent(fertilityOf(activeTile)!)
+                      }`
+                      : "hidden"}
                   </span>
                 </p>
               </div>
@@ -422,7 +477,9 @@ export function WorldMapView({
               <div>
                 <p className="eyebrow">Deposit</p>
                 <p className="mono mt-1 text-sm text-muted">
-                  {activeTile.deposit
+                  {!activeTileVisible
+                    ? "hidden"
+                    : activeTile.deposit
                     ? `${activeTile.deposit.remaining} units of ${activeTile.deposit.resource}`
                     : "none recorded"}
                 </p>
@@ -431,7 +488,7 @@ export function WorldMapView({
               <div>
                 <p className="eyebrow">Recorded land-use rights</p>
                 <p className="mono mt-1 text-sm text-muted">
-                  {activeTile.claimedBy ?? "unclaimed"}
+                  {activeTileVisible ? activeTile.claimedBy ?? "unclaimed" : "undiscovered"}
                 </p>
               </div>
 

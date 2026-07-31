@@ -96,6 +96,7 @@ export const noNegativeBalances: Check = (state) => {
   }
   for (const s of sortedValues(state.structures)) scan(s.id, "storage", s.storage);
   for (const o of sortedValues(state.organisations)) scan(o.id, "property", o.property);
+  for (const remains of sortedValues(state.remains)) scan(remains.id, "remains", remains.inventory);
 
   for (const c of sortedValues(state.currencies)) {
     for (const holder of sortedIds(c.holdings)) {
@@ -410,6 +411,10 @@ export const simTimeNonDecreasing: Check = (state) => {
   }
   for (const i of sortedValues(state.inhabitants)) {
     check(i.id, "birthTime", i.birthTime);
+    check(i.id, "lifecycle.birthTick", i.lifecycle.birthTick);
+    if (!Number.isSafeInteger(i.lifecycle.maxLifespanTicks) || i.lifecycle.maxLifespanTicks <= 0) {
+      out.push(violation("sim_time_non_decreasing", spec, i.id, "lifecycle maxLifespanTicks is invalid"));
+    }
     if (i.lastActionTime !== null) check(i.id, "lastActionTime", i.lastActionTime);
     if (i.deathTime !== null) check(i.id, "deathTime", i.deathTime);
   }

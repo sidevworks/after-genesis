@@ -519,6 +519,31 @@ const RESOURCE_QUANTITIES_JSON_SCHEMA = {
     stone: { type: "integer", minimum: 0 },
     energy: { type: "integer", minimum: 0 },
     compute: { type: "integer", minimum: 0 },
+    aluminum: { type: "integer", minimum: 0 },
+    antimony: { type: "integer", minimum: 0 },
+    barite: { type: "integer", minimum: 0 },
+    beryllium: { type: "integer", minimum: 0 },
+    coal: { type: "integer", minimum: 0 },
+    cobalt: { type: "integer", minimum: 0 },
+    copper: { type: "integer", minimum: 0 },
+    gypsum: { type: "integer", minimum: 0 },
+    halite: { type: "integer", minimum: 0 },
+    iron_ore: { type: "integer", minimum: 0 },
+    kaolin: { type: "integer", minimum: 0 },
+    lead: { type: "integer", minimum: 0 },
+    limestone: { type: "integer", minimum: 0 },
+    lithium: { type: "integer", minimum: 0 },
+    manganese: { type: "integer", minimum: 0 },
+    molybdenum: { type: "integer", minimum: 0 },
+    nickel: { type: "integer", minimum: 0 },
+    quartz: { type: "integer", minimum: 0 },
+    rare_earth_elements: { type: "integer", minimum: 0 },
+    silver: { type: "integer", minimum: 0 },
+    sulfur: { type: "integer", minimum: 0 },
+    tantalum: { type: "integer", minimum: 0 },
+    titanium: { type: "integer", minimum: 0 },
+    vanadium: { type: "integer", minimum: 0 },
+    zinc: { type: "integer", minimum: 0 },
   },
 } as const;
 
@@ -545,7 +570,14 @@ export const NEUTRAL_RESPONSE_JSON_SCHEMA = {
             radius: { type: "integer", minimum: 1, maximum: 8 },
             resource: {
               type: "string",
-              enum: ["food", "water", "wood", "stone"],
+              enum: [
+                "food", "water", "wood", "stone",
+                "aluminum", "antimony", "barite", "beryllium", "coal",
+                "cobalt", "copper", "gypsum", "halite", "iron_ore",
+                "kaolin", "lead", "limestone", "lithium", "manganese",
+                "molybdenum", "nickel", "quartz", "rare_earth_elements",
+                "silver", "sulfur", "tantalum", "titanium", "vanadium", "zinc"
+              ],
             },
             amount: { type: "integer", minimum: 1 },
             quantity: { type: "integer", minimum: 1 },
@@ -630,7 +662,7 @@ export const NEUTRAL_RESPONSE_JSON_SCHEMA = {
       type: "object",
       additionalProperties: false,
       properties: {
-            priority_now: { anyOf: [{ type: "string" }, { type: "number" }] },
+        priority_now: { anyOf: [{ type: "string" }, { type: "number" }] },
         basis_ids: { type: "array", items: { type: "string" }, maxItems: 64 },
         basis_summary: { type: "string" },
         expected_local_change: { type: "string" },
@@ -778,10 +810,19 @@ function requiredParameterProblem(
       }
       return null;
     }
-    case "separate":
-      return stringParameter(parameters, "resource") === null
-        ? 'separate requires parameters.resource equal to "food", "water", "wood", or "stone".'
+    case "separate": {
+      const validResources = [
+        "food", "water", "wood", "stone", "aluminum", "antimony", "barite",
+        "beryllium", "coal", "cobalt", "copper", "gypsum", "halite", "iron_ore",
+        "kaolin", "lead", "limestone", "lithium", "manganese", "molybdenum",
+        "nickel", "quartz", "rare_earth_elements", "silver", "sulfur",
+        "tantalum", "titanium", "vanadium", "zinc"
+      ];
+      const res = stringParameter(parameters, "resource");
+      return res === null || !validResources.includes(res)
+        ? 'separate requires parameters.resource to be a valid gatherable material.'
         : null;
+    }
     case "attach":
     case "combine":
       if (objectParameter(parameters, "materials") === null) {

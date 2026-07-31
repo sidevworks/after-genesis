@@ -101,9 +101,13 @@ export interface SelfView {
   /** AUTHORED. */
   readonly displayName: string;
   readonly generation: number;
+  readonly sex: "male" | "female";
   readonly maturity: Maturity;
   /** Simulated minutes since Genesis. */
   readonly birthTime: number;
+  readonly ageDays: number;
+  readonly maxLifespanDays: number;
+  readonly elder: boolean;
   readonly location: Point;
   readonly terrain: string;
   readonly activity: string;
@@ -158,6 +162,7 @@ export interface PerceivedInhabitant {
   readonly id: string;
   /** AUTHORED. */
   readonly displayName: string;
+  readonly sex: "male" | "female";
   /** Chebyshev distance in tiles. */
   readonly distance: number;
   readonly location: Point;

@@ -22,6 +22,8 @@
  */
 import {
   computeStateChecksum,
+  findRoute,
+  findSource,
   runAction,
   sealEvent,
   settleExpiredActivities,
@@ -30,12 +32,17 @@ import {
   type Clock,
   type EventStore,
   type IdempotencyStore,
+  type Coord,
   type ProposedAction,
+  type ResourceKind,
   type Sha256Hex,
   type SimTime,
   type StateStore,
   type Visibility,
   type WorldState,
+  allCoords,
+  terrainAt,
+  IMPASSABLE_TERRAIN,
 } from "@after-genesis/core";
 
 /** Raised when the model could not be reached. Reschedules; never mutates. */
@@ -132,6 +139,220 @@ export type TurnResult =
   | { readonly status: "deferred"; readonly reason: string };
 
 const DEFAULT_CLAIM_TTL_SECONDS = 300;
+
+type CriticalNeed = "hunger" | "thirst";
+
+function needResource(need: CriticalNeed): Extract<ResourceKind, "food" | "water"> {
+  return need === "thirst" ? "water" : "food";
+}
+
+function extractResourceFromPayload(payload: unknown): Extract<ResourceKind, "food" | "water"> | null {
+  if (payload === null || payload === undefined || typeof payload !== "object") {
+    return null;
+  }
+  const candidate = payload as { resource?: unknown };
+  return candidate.resource === "food" || candidate.resource === "water"
+    ? candidate.resource
+    : null;
+}
+
+function criticalNeedFor(actorNeeds: { readonly hunger: number; readonly thirst: number }): CriticalNeed | null {
+  if (actorNeeds.thirst >= 95) {
+    return "thirst";
+  }
+  if (actorNeeds.hunger >= 95) {
+    return "hunger";
+  }
+  return null;
+}
+
+function isSurvivalAligned(state: WorldState, actorId: string, action: ProposedAction, need: CriticalNeed): boolean {
+  const neededResource = needResource(need);
+  if (action.type === "consume" || action.type === "gather") {
+    if (extractResourceFromPayload(action.payload) !== neededResource) {
+      return false;
+    }
+
+    if (action.type === "consume") {
+      const actor = state.inhabitants[actorId];
+      if (actor === undefined) return false;
+      return (actor.inventory[neededResource] ?? 0) > 0;
+    }
+
+    const actor = state.inhabitants[actorId];
+    if (actor === undefined) return false;
+    return findSource(state, actor.location, neededResource) !== null;
+  }
+  return action.type === "move";
+}
+
+function hasCarryForNeed(state: WorldState, actorId: string, need: CriticalNeed): boolean {
+  const actor = state.inhabitants[actorId];
+  if (actor === undefined) return false;
+  const inventory = actor.inventory;
+  const needed = needResource(need);
+  return (inventory[needed] ?? 0) > 0;
+}
+
+function nextStepTowardsGatherSource(
+  state: WorldState,
+  actorLocation: Coord,
+  need: CriticalNeed,
+): Coord | null {
+  const resource = needResource(need);
+  let bestStep: Coord | null = null;
+  let bestMinutes = Number.MAX_SAFE_INTEGER;
+  let bestPathLength = Number.MAX_SAFE_INTEGER;
+
+  for (const destination of allCoords(state.map)) {
+    const terrain = terrainAt(state.map, destination);
+    if (terrain === null || IMPASSABLE_TERRAIN.has(terrain)) continue;
+    if (findSource(state, destination, resource) === null) continue;
+
+    const route = findRoute(state.map, state.rules, actorLocation, destination);
+    if (route === null || route.path.length === 0) continue;
+    const nextStep = route.path[0];
+    if (nextStep === undefined) continue;
+    if (
+      route.baseMinutes < bestMinutes ||
+      (route.baseMinutes === bestMinutes && route.path.length < bestPathLength)
+    ) {
+      bestMinutes = route.baseMinutes;
+      bestPathLength = route.path.length;
+      bestStep = nextStep;
+    }
+  }
+
+  return bestStep;
+}
+
+type StorageTarget = {
+  readonly structureId: string;
+  readonly structureLocation: Coord;
+  readonly amount: number;
+  readonly firstStep: Coord | null;
+};
+
+function findNearbyStorageWithResource(
+  state: WorldState,
+  actorLocation: Coord,
+  need: CriticalNeed,
+): StorageTarget | null {
+  const resource = needResource(need);
+  let best: StorageTarget | null = null;
+  let bestMinutes = Number.MAX_SAFE_INTEGER;
+  let bestPathLength = Number.MAX_SAFE_INTEGER;
+
+  for (const structure of Object.values(state.structures)) {
+    const amount = structure.storage[resource] ?? 0;
+    if (amount <= 0) {
+      continue;
+    }
+    const route = findRoute(state.map, state.rules, actorLocation, structure.location);
+    if (route === null || route.path.length === 0) {
+      if (
+        actorLocation.x === structure.location.x &&
+        actorLocation.y === structure.location.y
+      ) {
+        return {
+          structureId: structure.id,
+          structureLocation: structure.location,
+          amount,
+          firstStep: null,
+        };
+      }
+      continue;
+    }
+
+    if (
+      route.baseMinutes < bestMinutes ||
+      (route.baseMinutes === bestMinutes && route.path.length < bestPathLength)
+    ) {
+      bestMinutes = route.baseMinutes;
+      bestPathLength = route.path.length;
+      best = {
+        structureId: structure.id,
+        structureLocation: structure.location,
+        amount,
+        firstStep: route.path[0] ?? null,
+      };
+    }
+  }
+
+  return best;
+}
+
+function applyCriticalNeedGuard(
+  state: WorldState,
+  actorId: string,
+  action: ProposedAction,
+  need: CriticalNeed,
+): ProposedAction {
+  if (isSurvivalAligned(state, actorId, action, need)) {
+    return action;
+  }
+
+  const resource = needResource(need);
+  if (hasCarryForNeed(state, actorId, need)) {
+    return {
+      type: "consume",
+      payload: { resource },
+      rationale: "critical need override: consume held survival resource",
+    };
+  }
+
+  const actor = state.inhabitants[actorId];
+  if (actor !== undefined) {
+    const sourceHere = findSource(state, actor.location, resource);
+    if (sourceHere !== null) {
+      return {
+        type: "gather",
+        payload: { resource },
+        rationale: `critical need override: gather ${resource} from nearby source`,
+      };
+    }
+
+    const storageTarget = findNearbyStorageWithResource(state, actor.location, need);
+    const isAtStorage = storageTarget !== null &&
+      storageTarget.structureLocation.x === actor.location.x &&
+      storageTarget.structureLocation.y === actor.location.y;
+    if (isAtStorage) {
+      return {
+        type: "store_goods",
+        payload: {
+          structureId: storageTarget.structureId,
+          direction: "withdraw",
+          resources: { [resource]: 1 },
+          note: "critical need override: withdraw survival resource from local storage",
+        },
+        rationale: `critical need override: withdraw ${resource} from local storage`,
+      };
+    }
+
+    if (storageTarget !== null && storageTarget.firstStep !== null) {
+      return {
+        type: "move",
+        payload: { to: storageTarget.firstStep },
+        rationale: `critical need override: move toward ${resource} storage`,
+      };
+    }
+    const next = nextStepTowardsGatherSource(state, actor.location, need);
+    if (next !== null) {
+      return {
+        type: "move",
+        payload: { to: { x: next.x, y: next.y } },
+        rationale: `critical need override: move toward ${resource} source`,
+      };
+    }
+
+  }
+
+  return {
+    type: "wait",
+    payload: {},
+    rationale: `critical need override: no nearby ${resource} source`,
+  };
+}
 
 /** Map a resolver's default visibility onto the event envelope. */
 function visibilityFor(
@@ -285,8 +506,12 @@ export async function executeTurn(
       type: "wait",
       payload: {},
     };
+    const criticalNeed = actorForEligibility ? criticalNeedFor(actorForEligibility.needs) : null;
+    const safeAction = criticalNeed === null
+      ? action
+      : applyCriticalNeedGuard(state, actorId, action, criticalNeed);
 
-    const resolution = runAction({ state, actorId, action, simTime, sequence });
+    const resolution = runAction({ state, actorId, action: safeAction, simTime, sequence });
 
     // ---- §14.14–16: seal, append, persist -----------------------------------
     const postStateChecksum = computeStateChecksum(resolution.state);
@@ -298,10 +523,10 @@ export async function executeTurn(
       simTime,
       realTimestamp: deps.clock.nowIso(),
       actor: actorId,
-      type: primary?.type ?? `action.${action.type}`,
+      type: primary?.type ?? `action.${safeAction.type}`,
       inputs: {
         taskId,
-        action,
+        action: safeAction,
         ...(cognition.action === null
           ? { noop: cognition.noopReason ?? "cognition produced no valid action" }
           : {}),

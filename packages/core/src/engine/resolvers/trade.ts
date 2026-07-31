@@ -54,7 +54,6 @@ import {
 } from "../../schema/actions/trade.js";
 import { TransferPropertyPayloadSchema } from "../../schema/actions/resources.js";
 import { addBundles, chebyshevDistance } from "../../schema/primitives.js";
-import type { ResourceBundle } from "../../schema/primitives.js";
 import { addDuration, duration } from "../../time.js";
 import {
   EMPTY_CONSIDERATION,
@@ -106,7 +105,7 @@ const sortedUnique = (ids: readonly string[]): string[] => [...new Set(ids)].sor
  * them to move would let two inhabitants pool their caps, and would make an
  * inhabitant able to sell the very thing it needs in order to act.
  */
-const UNTRADEABLE: readonly (keyof ResourceBundle)[] = ["energy", "compute"];
+const UNTRADEABLE = ["energy", "compute"] as const;
 
 /** Reject a proposed side, or return `null` if it is well formed. */
 export function malformedSide(side: TradeSide): string | null {

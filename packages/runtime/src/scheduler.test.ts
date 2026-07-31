@@ -10,6 +10,7 @@ import {
 } from "@after-genesis/persistence";
 import { describe, expect, it } from "vitest";
 import { MemoryTurnQueue, scheduleNextTurn } from "./scheduler.js";
+import { TimeScalingEngine } from "./time-scaling.js";
 
 async function setup() {
   const built = buildGenesis({
@@ -95,6 +96,19 @@ describe("scheduleNextTurn", () => {
     const second = await scheduleNextTurn(deps, fixture.worldId);
     expect(second).toMatchObject({ status: "scheduled", duplicate: true });
     expect(fixture.queue.tasks()).toHaveLength(1);
+  });
+
+  it("delays a turn until its exact scaled real-time due instant", async () => {
+    const fixture = await setup();
+    const timeScaling = new TimeScalingEngine({ realAnchorMs: 1_000_000, simAnchor: 0 as never });
+    const result = await scheduleNextTurn(
+      { eventStore: fixture.events, stateStore: fixture.states, queue: fixture.queue, timeScaling },
+      fixture.worldId,
+    );
+    expect(result.status).toBe("scheduled");
+    if (result.status === "scheduled") {
+      expect(fixture.queue.scheduleOptions(result.task.taskId)).toEqual({ notBeforeRealMs: 1_000_000 });
+    }
   });
 
   it("refuses to schedule against a stale state snapshot", async () => {

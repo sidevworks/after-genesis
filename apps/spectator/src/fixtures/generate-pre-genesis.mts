@@ -34,6 +34,8 @@ for (let y = 0; y < HEIGHT; y++) {
   }
 }
 
+const discovered = tiles.map((tile) => `${tile.x},${tile.y}`);
+
 const world = {
   generatedBy: "src/fixtures/generate-pre-genesis.mts",
   note:
@@ -59,7 +61,15 @@ const world = {
     sourceCommit: null,
     imageDigest: null,
   },
-  map: { width: WIDTH, height: HEIGHT, genesisSeed: GENESIS_SEED, tiles, structures: [], occupants: [] },
+  map: {
+    width: WIDTH,
+    height: HEIGHT,
+    genesisSeed: GENESIS_SEED,
+    tiles,
+    structures: [],
+    occupants: [],
+    discovered,
+  },
   inhabitants: [],
   events: [],
   organisations: [],

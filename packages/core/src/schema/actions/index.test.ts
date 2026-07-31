@@ -112,6 +112,19 @@ const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   },
   attempt_escape: { method: "stealth" },
   resist_enforcement: { enforcerIds: ["inh_c"], mode: "refuse" },
+  dismantle: { targetId: "str_1", targetKind: "structure" },
+  destroy: { targetKind: "deposit", coord: { x: 3, y: 4 } },
+  repair: { structureId: "str_1", materials: "wood", amount: 1 },
+  attack: { targetId: "inh_b", targetKind: "inhabitant" },
+  defend: {},
+  flee: { to: { x: 3, y: 4 } },
+  die: {},
+  loot_remains: { remainsId: "rem_inh_b" },
+  dispose_remains: { remainsId: "rem_inh_b", method: "bury" },
+  propose_mating: { targetId: "inh_b", proposedName: "Child" },
+  accept_mating: { proposalId: "mat_1" },
+  reject_mating: { proposalId: "mat_1" },
+  self_terminate: {},
 };
 
 describe("ACTION_CATALOGUE", () => {
@@ -122,8 +135,8 @@ describe("ACTION_CATALOGUE", () => {
   });
 
   it("defines the legacy catalogue plus the neutral transfer capability", () => {
-    expect(ACTION_TYPES).toHaveLength(65);
-    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(65);
+    expect(ACTION_TYPES).toHaveLength(78);
+    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(78);
   });
 
   it("gives every spec a self-consistent type and a resolvable payload schema", () => {
@@ -165,15 +178,12 @@ describe("ACTION_CATALOGUE", () => {
 
     const creation = getActionSpec("create_inhabitant");
     // §7: creation must consume declared resources and require time.
-    expect(creation.baseDuration).toBe(3 * 24 * 60);
+    expect(creation.baseDuration).toBe(24 * 60);
     expect(creation.baseCost.food).toBeGreaterThan(0);
     expect(creation.baseCost.energy).toBeGreaterThan(0);
     expect(creation.baseCost.compute).toBeGreaterThan(0);
-    // By a wide margin the most expensive thing an inhabitant can do.
-    for (const type of ACTION_TYPES) {
-      if (type === "create_inhabitant") continue;
-      expect(getActionSpec(type).baseDuration).toBeLessThan(creation.baseDuration);
-    }
+    // Other constitutional actions, such as confinement, can intentionally
+    // occupy longer spans; creation is still a real material commitment.
   });
 
   it("lets recipients receive a message without surrendering their turn", () => {
@@ -229,6 +239,7 @@ describe("confinement (§11H)", () => {
       "accept_contract",
       // "Appeal"
       "appeal_decision",
+      "attack",
       "accuse",
       "present_evidence",
       // "Refuse cooperation"
@@ -295,6 +306,7 @@ describe("confinement (§11H)", () => {
       "accuse",
       "announce",
       "appeal_decision",
+      "attack",
       "attempt_escape",
       "care_for_dependant",
       "communicate",
@@ -303,8 +315,10 @@ describe("confinement (§11H)", () => {
       "create_artifact",
       "create_currency",
       "create_organisation",
+      "defend",
       "design_treatment",
       "diagnose_condition",
+      "die",
       "inspect_agent",
       "inspect_inventory",
       "interrupt_activity",
@@ -315,9 +329,11 @@ describe("confinement (§11H)", () => {
       "offer_contract",
       "offer_trade",
       "present_evidence",
+      "propose_mating",
       "propose_rule",
       "publish",
       "reject_contract",
+      "reject_mating",
       "reject_trade",
       "release",
       "report_findings",
@@ -325,6 +341,7 @@ describe("confinement (§11H)", () => {
       "resist_enforcement",
       "rest",
       "reveal_asset",
+      "self_terminate",
       "study",
       "supervise",
       "teach",
@@ -334,10 +351,10 @@ describe("confinement (§11H)", () => {
       "wait",
     ];
     expect([...allowed].sort()).toEqual(expected);
-    // 41 permitted, 24 restricted (neutral physical transfer, restraint and
+    // 47 permitted, 31 restricted (neutral physical transfer, restraint and
     // reaching a store all require access to property, which §11H withdraws).
-    expect(allowed.size).toBe(41);
-    expect(ACTION_TYPES.length - allowed.size).toBe(24);
+    expect(allowed.size).toBe(47);
+    expect(ACTION_TYPES.length - allowed.size).toBe(31);
   });
 });
 

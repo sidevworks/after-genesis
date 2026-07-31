@@ -45,6 +45,140 @@ const DEFAULT_OUTPUT = ".worlds/vertical-slice";
 const DEFAULT_WORLD_ID = "after-genesis-demo";
 const DEFAULT_SEED = "after-genesis-public-demo-seed-v1";
 const PROVENANCE = { sourceCommit: "local-uncommitted", deployedDigest: "local" };
+const DEMO_PERSONA_SEED = "after-genesis-demo-persona-v1";
+const DEFAULT_DEMO_STARTER_COUNT = 10;
+
+function seedString(input: string): number {
+  let value = 0x811c9dc5;
+  for (let index = 0; index < input.length; index++) {
+    value ^= input.charCodeAt(index);
+    value = Math.imul(value, 0x01000193) >>> 0;
+  }
+  return value >>> 0;
+}
+
+function lcgFromSeed(seed: number): () => number {
+  let state = seed >>> 0;
+  return () => {
+    state = Math.imul(state, 1_664_525) + 1_013_904_223;
+    return (state >>> 0) / 0x1_0000_0000;
+  };
+}
+
+const TRAIT_NAME_LIST = [
+  "openness",
+  "conscientiousness",
+  "sociability",
+  "risk_tolerance",
+  "patience",
+  "curiosity",
+  "empathy",
+  "assertiveness",
+] as const;
+
+const PERSONALITY_GOALS = [
+  "map the nearest terrain boundary",
+  "secure a reliable water source",
+  "store useful materials for later",
+  "maintain a stable social signal with one companion",
+  "improve movement reliability by route memory",
+  "build one durable shelter base",
+  "trade only when benefit is clear",
+  "track resource locations with names",
+  "reduce exposure during rain or cold",
+  "reduce accidental waste in gathering",
+] as const;
+
+const PERSONALITY_VALUES = [
+  "Do not consume every resource before testing alternatives.",
+  "Treat uncertainty as a reason to observe before acting.",
+  "Cooperation can reduce repeated risk.",
+  "Every move should carry a purpose.",
+  "Return is safer than an unrecoverable foray.",
+  "Protect food and water for stress periods.",
+  "Small storage rules can prevent panic later.",
+  "Material choice matters as much as material quantity.",
+] as const;
+
+function stablePersona(identity: string): {
+  traits: Record<string, number>;
+  values: string[];
+  privateGoals: string[];
+} {
+  const rng = lcgFromSeed(seedString(`${DEMO_PERSONA_SEED}:${identity}`));
+  const traits: Record<string, number> = {};
+  for (const trait of TRAIT_NAME_LIST) {
+    traits[trait] = Math.floor(rng() * 71) + 15;
+  }
+  const values = [
+    PERSONALITY_VALUES[Math.floor(rng() * PERSONALITY_VALUES.length)] ?? PERSONALITY_VALUES[0],
+    PERSONALITY_VALUES[Math.floor(rng() * PERSONALITY_VALUES.length)] ?? PERSONALITY_VALUES[0],
+  ];
+  const privateGoals = [
+    PERSONALITY_GOALS[Math.floor(rng() * PERSONALITY_GOALS.length)] ?? PERSONALITY_GOALS[0],
+    PERSONALITY_GOALS[Math.floor(rng() * PERSONALITY_GOALS.length)] ?? PERSONALITY_GOALS[0],
+  ];
+  return {
+    traits,
+    values: [...new Set(values)],
+    privateGoals: [...new Set(privateGoals)],
+  };
+}
+
+function chooseDemoSex(identity: string): "male" | "female" {
+  return lcgFromSeed(seedString(`inhabitant-sex:${identity}`))() < 0.5 ? "male" : "female";
+}
+
+function buildDemoInhabitants(modelId: string, starterCount: number) {
+  const target = Math.min(31, Math.max(1, Math.floor(starterCount)));
+  if (target <= 1) return [];
+
+  const companionCount = target - 1;
+  const companions: Array<{
+    id: string;
+    displayName: string;
+    modelId: string;
+    sex: "male" | "female";
+    inventory: { energy: number; compute: number; food: number; water: number };
+    traits: Record<string, number>;
+    values: string[];
+    privateGoals: string[];
+  }> = [];
+
+  const baseCompanions: Array<{ id: string; displayName: string; seed: string }> = [
+    { id: "inh_ember", displayName: "Ember", seed: "inh_ember:v1" },
+    { id: "inh_lumen", displayName: "Lumen", seed: "inh_lumen:v1" },
+  ];
+
+  for (let i = 0; i < companionCount; i += 1) {
+    const base = baseCompanions[i];
+    const companion = base
+      ? {
+          id: base.id,
+          displayName: base.displayName,
+          seed: base.seed,
+        }
+      : {
+          id: `inh_corner_${String(i - baseCompanions.length + 1).padStart(2, "0")}`,
+          displayName: `Corner ${String(i - baseCompanions.length + 1).padStart(2, "0")}`,
+          seed: `inh_corner:${i}`,
+        };
+
+    const profile = stablePersona(companion.seed);
+    companions.push({
+      id: companion.id,
+      displayName: companion.displayName,
+      modelId,
+      sex: chooseDemoSex(companion.id),
+      inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+      traits: profile.traits,
+      values: profile.values,
+      privateGoals: profile.privateGoals,
+    });
+  }
+
+  return companions;
+}
 
 interface ParsedArgs {
   readonly command: "demo" | "replay" | "bootstrap-staging" | "teardown-staging";
@@ -165,8 +299,10 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
  */
 export function demoConfig(
   modelId: string = "offline-mechanical-cognition-v1",
+  starterCount = DEFAULT_DEMO_STARTER_COUNT,
   includeGenesisCompanions = true,
 ): GenesisConfig {
+  const founderPersona = stablePersona("inh_founder:v1");
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
@@ -178,36 +314,11 @@ export function demoConfig(
       modelId,
       sex: "female",
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-      traits: { curiosity: 75, patience: 60 },
-      // Personality parameters are disclosed in the Genesis manifest. They are
-      // not an assigned project, profession or civilisational objective.
-      values: [],
-      privateGoals: [],
+      traits: founderPersona.traits,
+      values: founderPersona.values,
+      privateGoals: founderPersona.privateGoals,
     },
-    inhabitants: includeGenesisCompanions
-      ? [
-          {
-            id: "inh_ember",
-            displayName: "Ember",
-            modelId,
-            sex: "male",
-            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-            traits: { curiosity: 55, patience: 80 },
-            values: [],
-            privateGoals: [],
-          },
-          {
-            id: "inh_lumen",
-            displayName: "Lumen",
-            modelId,
-            sex: "female",
-            inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-            traits: { curiosity: 85, patience: 45 },
-            values: [],
-            privateGoals: [],
-          },
-        ]
-      : [],
+    inhabitants: includeGenesisCompanions ? buildDemoInhabitants(modelId, starterCount) : [],
   };
 }
 
@@ -816,7 +927,12 @@ async function runDemo(args: ParsedArgs): Promise<void> {
       args.provider === "offline"
         ? "offline-instinct-cognition-v2"
         : resolveModelRouting(process.env).routine;
-    const config = demoConfig(configuredModelId);
+    const rawStarterCount = Number(process.env.AG_DEMO_STARTER_COUNT ?? String(DEFAULT_DEMO_STARTER_COUNT));
+    const starterCount =
+      Number.isFinite(rawStarterCount) && rawStarterCount >= 1
+        ? Math.min(31, Math.floor(rawStarterCount))
+        : DEFAULT_DEMO_STARTER_COUNT;
+    const config = demoConfig(configuredModelId, starterCount);
     if (!args.resume) {
       await commitGenesis(
         { eventStore, stateStore, clock, provenance: PROVENANCE },

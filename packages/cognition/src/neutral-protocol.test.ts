@@ -43,7 +43,7 @@ function visibleTargets(...ids: readonly string[]): Set<string> {
 }
 
 function socialState() {
-  return buildGenesis({
+  const state = buildGenesis({
     worldId: "world_neutral_social",
     seed: "neutral-social",
     width: 8,
@@ -71,6 +71,12 @@ function socialState() {
       },
     ],
   }).state;
+  const founder = state.inhabitants.inh_founder!;
+  const other = state.inhabitants.inh_other!;
+  return {
+    ...state,
+    inhabitants: { ...state.inhabitants, [other.id]: { ...other, location: founder.location } },
+  };
 }
 
 describe("neutral inhabitant protocol", () => {
@@ -351,7 +357,7 @@ describe("neutral inhabitant protocol", () => {
     const parsed = parseNeutralModelResponse(
       response("replicate", {
         label: "Second",
-        resources: { food: 200, water: 200, wood: 100, stone: 50 },
+        resources: { food: 30, water: 20, wood: 20, stone: 50 },
       }),
       new Set(),
     );
@@ -578,7 +584,7 @@ describe("neutral inhabitant protocol", () => {
       "replicate",
       {
         label: "Second",
-        resources: { food: 200, water: 200, wood: 100, stone: 50 },
+        resources: { food: 30, water: 20, wood: 20, stone: 50 },
       },
       [],
     ],

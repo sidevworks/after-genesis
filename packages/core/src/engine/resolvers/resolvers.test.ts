@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { ACTION_TYPES, type ActionType } from "../../schema/action-spec.js";
 import { ACTION_CATALOGUE, getActionSpec } from "../../schema/actions/index.js";
-import { CONSERVED_RESOURCES, RESOURCE_KINDS } from "../../schema/primitives.js";
+import { CONSERVED_RESOURCES, RESOURCE_KINDS, chebyshevDistance } from "../../schema/primitives.js";
 import { simTime, type SimTime } from "../../time.js";
 import { canonicalJson } from "../../util/canonical.js";
 import { checkInvariants, formatViolations } from "../invariants.js";
 import {
+  terrainAt,
   depositAt,
   putArtifact,
   putConfinement,
@@ -34,6 +35,17 @@ import {
 import { settleConsideration } from "./trade.js";
 
 const MIDDAY = simTime(12 * 60);
+
+function passableCoordAtDistance(state: WorldState, anchor: { x: number; y: number }, distance: number) {
+  for (let y = 0; y < state.map.height; y++) {
+    for (let x = 0; x < state.map.width; x++) {
+      const coord = { x, y };
+      if (terrainAt(state.map, coord) === "water") continue;
+      if (chebyshevDistance(anchor, coord) === distance) return coord;
+    }
+  }
+  throw new Error(`no passable tile at distance ${distance}`);
+}
 
 /** A world at midday, so day/night effects are predictable. */
 function world(): WorldState {
@@ -80,7 +92,7 @@ const expectClean = (state: WorldState): void => {
 
 describe("resolver registry", () => {
   it("registers a resolver for every declared action type", () => {
-    expect(ACTION_TYPES).toHaveLength(65);
+    expect(ACTION_TYPES).toHaveLength(78);
     for (const type of ACTION_TYPES) {
       expect(typeof RESOLVERS[type]).toBe("function");
     }
@@ -91,7 +103,9 @@ describe("resolver registry", () => {
     expect([...IMPLEMENTED_ACTIONS].sort()).toEqual(
       [
         "accept_trade",
+        "accept_mating",
         "announce",
+        "attack",
         "communicate",
         "consume",
         "copy_artifact",
@@ -99,6 +113,12 @@ describe("resolver registry", () => {
         "create_currency",
         "create_inhabitant",
         "create_organisation",
+        "defend",
+        "destroy",
+        "die",
+        "dismantle",
+        "dispose_remains",
+        "flee",
         "build",
         "gather",
         "store_goods",
@@ -106,15 +126,20 @@ describe("resolver registry", () => {
         "invite_member",
         "join_organisation",
         "leave_organisation",
+        "loot_remains",
         "move",
         "observe",
         "offer_trade",
+        "propose_mating",
         "propose_rule",
         "publish",
+        "reject_mating",
         "reject_trade",
         "release",
+        "repair",
         "rest",
         "restrain",
+        "self_terminate",
         "transfer_currency",
         "transfer_property",
         "vote",
@@ -290,6 +315,142 @@ describe("neutral artifacts and transfer", () => {
     expect(settled.ok).toBe(false);
     expect(full.inhabitants.inh_founder?.inventory.food).toBe(10);
     expect(full.inhabitants.inh_receiver?.inventory.food ?? 0).toBe(0);
+  });
+});
+
+describe("communication", () => {
+  it("allows communication within a 5-tile radius", () => {
+    const base = world();
+    const founder = founderOf(base);
+    const target = passableCoordAtDistance(base, founder.location, 5);
+    const withTarget = addTestInhabitant(base, {
+      id: "inh_neighbor",
+      location: target,
+      displayName: "Neighbor",
+    });
+
+    const result = act(withTarget, "communicate", {
+      recipients: ["inh_neighbor"],
+      message: "Hello from founder.",
+    });
+
+    expect(result.outcome.status).toBe("resolved");
+    expectClean(result.state);
+  });
+
+  it("rejects communication beyond a 5-tile radius", () => {
+    const base = world();
+    const founder = founderOf(base);
+    const target = passableCoordAtDistance(base, founder.location, 6);
+    const withTarget = addTestInhabitant(base, {
+      id: "inh_far",
+      location: target,
+      displayName: "Far friend",
+    });
+
+    const result = act(withTarget, "communicate", {
+      recipients: ["inh_far"],
+      message: "Can you hear me?",
+    });
+
+    expect(result.outcome.status).toBe("rejected");
+    if (result.outcome.status !== "rejected") {
+      throw new Error("expected rejection");
+    }
+    expect(result.outcome.code).toBe("INVALID_PAYLOAD");
+    expect(result.outcome.reason).toContain("radius 5");
+    expectClean(result.state);
+  });
+});
+
+describe("survival, remains, and reproduction", () => {
+  it("resolves forced die only for a depleted actor and keeps self-termination explicit", () => {
+    const depleted = updateInhabitant(world(), "inh_founder", (inhabitant) => ({
+      ...inhabitant,
+      inventory: { ...inhabitant.inventory, energy: 0 },
+    }));
+    const died = act(depleted, "die", {});
+    expect(died.outcome.status).toBe("resolved");
+    expect(died.state.inhabitants.inh_founder?.status).toBe("dead");
+    expect(Object.values(died.state.remains)).toHaveLength(1);
+    expectClean(died.state);
+
+    const terminated = act(world(), "self_terminate", { reason: "unrecoverable state" });
+    expect(terminated.outcome.status).toBe("resolved");
+    expect(terminated.state.inhabitants.inh_founder?.status).toBe("dead");
+    expect(Object.values(terminated.state.remains)).toHaveLength(1);
+    expectClean(terminated.state);
+  });
+
+  it("lets flee interrupt an otherwise blocking activity", () => {
+    const base = world();
+    const destination = passableCoordAtDistance(base, founderOf(base).location, 1);
+    const waiting = act(base, "wait", { minutes: 60 });
+    expect(waiting.outcome.status).toBe("resolved");
+
+    const fled = act(waiting.state, "flee", { to: destination });
+    expect(fled.outcome.status).toBe("resolved");
+    expect(fled.state.inhabitants.inh_founder?.location).toEqual(destination);
+    expectClean(fled.state);
+  });
+
+  it("attack can kill a nearby inhabitant, whose conserved goods then become lootable remains", () => {
+    const base = world();
+    const founder = founderOf(base);
+    let state = addTestInhabitant(base, {
+      id: "inh_target",
+      location: founder.location,
+      inventory: { food: 4, wood: 2 },
+    });
+    state = updateInhabitant(state, "inh_target", (inhabitant) => ({ ...inhabitant, integrity: 20 }));
+
+    const attacked = act(state, "attack", { targetId: "inh_target", targetKind: "inhabitant" });
+    expect(attacked.outcome.status).toBe("resolved");
+    expect(attacked.state.inhabitants.inh_target?.status).toBe("dead");
+    const remains = Object.values(attacked.state.remains)[0];
+    expect(remains?.inventory.food).toBe(4);
+    expect(remains?.inventory.wood).toBe(2);
+
+    const looted = act(
+      attacked.state,
+      "loot_remains",
+      { remainsId: remains?.id },
+      simTime(attacked.state.simTime + 15),
+    );
+    expect(looted.outcome.status).toBe("resolved");
+    expect(looted.state.inhabitants.inh_founder?.inventory.food).toBeGreaterThanOrEqual(14);
+    expect(looted.state.remains[remains?.id ?? ""]?.inventory).toEqual({});
+    expectClean(looted.state);
+  });
+
+  it("requires acceptance before creating a 50/50 offspring", () => {
+    const base = world();
+    const founder = founderOf(base);
+    const state = addTestInhabitant(base, {
+      id: "inh_partner",
+      location: founder.location,
+      inventory: { compute: 100, energy: 200 },
+    });
+    const proposed = act(state, "propose_mating", {
+      targetId: "inh_partner",
+      proposedName: "Newcomer",
+    });
+    expect(proposed.outcome.status).toBe("resolved");
+    expect(Object.values(proposed.state.matingProposals)[0]?.status).toBe("pending");
+
+    const proposal = Object.values(proposed.state.matingProposals)[0];
+    const accepted = act(
+      proposed.state,
+      "accept_mating",
+      { proposalId: proposal?.id },
+      simTime(proposed.state.simTime + 15),
+      "inh_partner",
+    );
+    expect(accepted.outcome.status).toBe("resolved");
+    expect(accepted.state.matingProposals[proposal?.id ?? ""]?.status).toBe("accepted");
+    const child = Object.values(accepted.state.inhabitants).find((inhabitant) => inhabitant.id !== "inh_founder" && inhabitant.id !== "inh_partner");
+    expect(child?.parents).toEqual(["inh_founder", "inh_partner"]);
+    expectClean(accepted.state);
   });
 });
 

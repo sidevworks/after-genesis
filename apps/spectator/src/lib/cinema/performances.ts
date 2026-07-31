@@ -147,6 +147,7 @@ const ACTIVITY_PERFORMANCE: Readonly<Record<string, PerformanceSpec>> = Object.f
   recovering: spec("sit", "none", "stationary", false, BARELY),
   sleeping: spec("sleep", "none", "stationary", false, BARELY),
   confined: spec("restrained", "none", "stationary", false, BARELY),
+  defending: spec("guard", "none", "stationary", true, BARELY),
   /* The chronicle's own name for a synthesised gap. Its segments carry
      `disclosure: "unrecorded"` and are caught before this map is consulted;
      the entry exists so the two names agree if that ever changes. */
@@ -245,6 +246,21 @@ export const PERFORMANCE_CATALOGUE: Readonly<Record<string, PerformanceSpec>> = 
   // that leaving was permitted is an interpretation, not a posture (§11G).
   attempt_escape: spec("walk", "none", "path", false, WALK_CYCLES_PER_TILE),
   resist_enforcement: spec("reach", "none", "stationary", true, STEADY),
+
+  /* Entropy, conflict, lifecycle and consensual reproduction. */
+  dismantle: spec("build", "tool", "stationary", false, STEADY),
+  destroy: spec("build", "tool", "stationary", false, BRISK),
+  repair: spec("build", "tool", "stationary", false, STEADY),
+  attack: spec("reach", "none", "stationary", true, BRISK),
+  defend: spec("guard", "none", "stationary", true, BARELY),
+  flee: spec("walk", "none", "path", false, WALK_CYCLES_PER_TILE),
+  die: spec("sit", "none", "stationary", false, BARELY),
+  loot_remains: spec("carry", "bundle", "stationary", false, SLOW),
+  dispose_remains: spec("build", "tool", "stationary", false, SLOW),
+  propose_mating: spec("talk", "none", "stationary", true, SLOW),
+  accept_mating: spec("reach", "none", "stationary", true, SLOW),
+  reject_mating: spec("talk", "none", "stationary", true, SLOW),
+  self_terminate: spec("sit", "none", "stationary", false, BARELY),
 });
 
 /**

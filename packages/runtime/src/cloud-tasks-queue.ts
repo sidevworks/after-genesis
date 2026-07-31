@@ -9,6 +9,7 @@ interface CloudTasksClientLike {
     parent: string;
     task: {
       name: string;
+      scheduleTime?: { seconds: number; nanos: number };
       httpRequest: {
         httpMethod: "POST";
         url: string;
@@ -55,7 +56,7 @@ export class CloudTasksTurnQueue implements TurnQueue {
     this.#client = options.client ?? (new CloudTasksClient() as CloudTasksClientLike);
   }
 
-  async enqueue(task: TurnTask): Promise<"created" | "already-exists"> {
+  async enqueue(task: TurnTask, options?: { readonly notBeforeRealMs?: number }): Promise<"created" | "already-exists"> {
     const parent = this.#client.queuePath(
       this.#options.projectId,
       this.#options.location,
@@ -85,10 +86,21 @@ export class CloudTasksTurnQueue implements TurnQueue {
           };
 
     try {
+      const notBefore = options?.notBeforeRealMs;
+      const scheduleTime =
+        notBefore === undefined
+          ? {}
+          : {
+              scheduleTime: {
+                seconds: Math.floor(notBefore / 1000),
+                nanos: (notBefore % 1000) * 1_000_000,
+              },
+            };
       await this.#client.createTask({
         parent,
         task: {
           name,
+          ...scheduleTime,
           httpRequest: {
             httpMethod: "POST",
             url: this.#options.workerUrl,

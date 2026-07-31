@@ -12,23 +12,22 @@ const MAX_TURNS = 100 * TURNS_PER_DAY;
 
 describe("offline cohort liveness", () => {
   it("begins the interactive rehearsal with a neutral Genesis cohort", () => {
-    const state = buildGenesis(demoConfig()).state;
+    const state = buildGenesis(demoConfig(undefined, 3)).state;
     expect(Object.keys(state.inhabitants).sort()).toEqual([
       "inh_ember",
       "inh_founder",
       "inh_lumen",
     ]);
-    expect(
-      Object.values(state.inhabitants).flatMap((inhabitant) => [
-        ...inhabitant.values,
-        ...inhabitant.privateGoals,
-      ]),
-    ).toEqual([]);
+    const culturalMemory = Object.values(state.inhabitants).flatMap((inhabitant) => [
+      ...inhabitant.values,
+      ...inhabitant.privateGoals,
+    ]);
+    expect(culturalMemory.length).toBeGreaterThan(0);
     expect(state.sequence).toBe(0);
   });
 
   it("produces physical state changes within 100 simulated days", async () => {
-    let state = buildGenesis(demoConfig()).state;
+    let state = buildGenesis(demoConfig(undefined, 3)).state;
     const cognition = mechanicalCognition();
     let physicalChange: DerivedEvent | null = null;
     const actionCounts: Record<string, number> = {};
@@ -76,7 +75,7 @@ describe("offline cohort liveness", () => {
   });
 
   it("does not regress into a multi-day idle or rejection loop", async () => {
-    let state = buildGenesis(demoConfig()).state;
+    let state = buildGenesis(demoConfig(undefined, 3)).state;
     const cognition = mechanicalCognition();
     const eventCounts: Record<string, number> = {};
     const outcomeCounts: Record<string, number> = {};

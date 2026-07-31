@@ -33,11 +33,13 @@ import { chebyshevDistance } from "../schema/primitives.js";
 import type { ActivityState } from "../schema/action-spec.js";
 import type { SimTime, WorldClock } from "../time.js";
 import { clockOf, isNight } from "../time.js";
+import { ageDaysAt, isElderAt, lifespanDaysOf } from "./aging.js";
 import {
   normaliseBundle,
   sortedIds,
   sortedValues,
   terrainAt,
+  type Sex,
   type Inhabitant,
   type Needs,
   type Relationship,
@@ -75,6 +77,7 @@ export interface ObservedInhabitant {
   readonly location: Coord;
   readonly distance: number;
   readonly status: "alive" | "dead";
+  readonly sex: Sex;
   /** What they are visibly doing (§11E "public activity"). */
   readonly activity: ActivityState;
   /** Openly carried or displayed items only (§11E "carried or exposed physical items"). */
@@ -194,8 +197,12 @@ export interface SelfView {
   readonly id: string;
   readonly displayName: string;
   readonly generation: number;
+  readonly sex: Sex;
   readonly parents: readonly string[];
   readonly birthTime: SimTime;
+  readonly ageDays: number;
+  readonly maxLifespanDays: number;
+  readonly elder: boolean;
   readonly location: Coord;
   readonly status: "alive" | "dead";
   readonly traits: TraitSet;
@@ -380,6 +387,7 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
       location: { x: other.location.x, y: other.location.y },
       distance,
       status: other.status,
+      sex: other.sex,
       activity: other.activity.state,
       // The ONLY holdings visible from outside: what is openly carried.
       exposed: normaliseBundle(other.exposed),
@@ -472,8 +480,12 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
     id: self.id,
     displayName: self.displayName,
     generation: self.generation,
+    sex: self.sex,
     parents: [...self.parents].sort(),
     birthTime: self.birthTime,
+    ageDays: ageDaysAt(self, state.simTime),
+    maxLifespanDays: lifespanDaysOf(self),
+    elder: isElderAt(self, state.simTime),
     location: { x: self.location.x, y: self.location.y },
     status: self.status,
     traits: { ...self.traits },
@@ -491,7 +503,7 @@ export function buildObservation(state: WorldState, inhabitantId: string): Obser
     relationships: { ...self.relationships },
     beliefs: { ...self.beliefs },
     reputation: self.reputation,
-    integrity: Math.max(0, 100 - Math.max(0, ...ownConditions.map((item) => item.severity))),
+    integrity: self.integrity,
     memberships: [...self.memberships].sort(),
     contracts: [...self.contracts].sort(),
     artifacts: sortedValues(state.artifacts)

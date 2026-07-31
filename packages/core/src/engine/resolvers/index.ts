@@ -24,12 +24,15 @@ import { canonicalJson } from "../../util/canonical.js";
 import { Rng } from "../../util/rng.js";
 import {
   putMemory,
+  putActivity,
   updateInhabitant,
   withSequence,
   withSimTime,
+  IDLE_ACTIVITY,
   type Relationship,
   type WorldState,
 } from "../state.js";
+import { currentSightRadius } from "../observation.js";
 import { settleExpiredActivities } from "./effects.js";
 import { consumeResolver, observeResolver, restResolver, waitResolver } from "./basic.js";
 import { gatherResolver } from "./gather.js";
@@ -59,6 +62,21 @@ import {
   rejectTradeResolver,
   transferPropertyResolver,
 } from "./trade.js";
+import {
+  acceptMatingResolver,
+  attackResolver,
+  defendResolver,
+  dieResolver,
+  dismantleResolver,
+  disposeRemainsResolver,
+  destroyResolver,
+  fleeResolver,
+  lootRemainsResolver,
+  proposeMatingResolver,
+  rejectMatingResolver,
+  repairResolver,
+  selfTerminateResolver,
+} from "./survival.js";
 import {
   RejectionCode,
   type ResolutionContext,
@@ -144,6 +162,19 @@ export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "create_inhabitant",
   "restrain",
   "release",
+  "dismantle",
+  "destroy",
+  "repair",
+  "attack",
+  "defend",
+  "flee",
+  "die",
+  "loot_remains",
+  "dispose_remains",
+  "propose_mating",
+  "accept_mating",
+  "reject_mating",
+  "self_terminate",
 ];
 
 const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
@@ -177,6 +208,19 @@ const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
   create_inhabitant: createInhabitantResolver,
   restrain: restrainResolver,
   release: releaseResolver,
+  dismantle: dismantleResolver,
+  destroy: destroyResolver,
+  repair: repairResolver,
+  attack: attackResolver,
+  defend: defendResolver,
+  flee: fleeResolver,
+  die: dieResolver,
+  loot_remains: lootRemainsResolver,
+  dispose_remains: disposeRemainsResolver,
+  propose_mating: proposeMatingResolver,
+  accept_mating: acceptMatingResolver,
+  reject_mating: rejectMatingResolver,
+  self_terminate: selfTerminateResolver,
 };
 
 /** Every action type, mapped to its resolver. Complete by construction. */
@@ -253,7 +297,7 @@ export function runAction(input: RunActionInput): ResolutionResult {
   // World ticks need the previous timestamp to account for elapsed spoilage,
   // health and daily compute replenishment. Stamp the new time only after those
   // effects have been calculated.
-  const base = withSimTime(
+  let base = withSimTime(
     settleExpiredActivities(input.state, input.simTime),
     input.simTime,
   );
@@ -266,13 +310,38 @@ export function runAction(input: RunActionInput): ResolutionResult {
   const rejectHere = (code: string, reason: string): ResolutionResult =>
     finish({ outcome: { status: "rejected", code, reason }, state: base, events: [] });
 
-  const actor = base.inhabitants[actorId];
+  let actor = base.inhabitants[actorId];
   if (actor === undefined) {
     return rejectHere(RejectionCode.UnknownActor, `no inhabitant ${actorId} in this world`);
   }
   // §15: "Inhabitants cannot act after death."
   if (actor.status === "dead") {
     return rejectHere(RejectionCode.Dead, `${actorId} died at ${String(actor.deathTime)}`);
+  }
+  // Flee is the one high-priority physical interruption: a person cannot be
+  // compelled by an existing task to stand in an immediate danger. The old
+  // activity is closed before a new travel record is opened, preserving the
+  // one-primary-activity invariant and an auditable interruption boundary.
+  if (action.type === "flee" && (actor.activity.busyUntil > input.simTime || actor.nextEligibleTime > input.simTime)) {
+    const current = actor.activity.activityId === null ? undefined : base.activities[actor.activity.activityId];
+    if (current !== undefined && current.open) {
+      base = putActivity(base, { ...current, open: false });
+      for (const participantId of current.participants) {
+        base = updateInhabitant(base, participantId, (inhabitant) =>
+          inhabitant.activity.activityId === current.id
+            ? { ...inhabitant, activity: { ...IDLE_ACTIVITY, busyUntil: input.simTime }, nextEligibleTime: input.simTime }
+            : inhabitant,
+        );
+      }
+    } else {
+      base = updateInhabitant(base, actorId, (inhabitant) => ({
+        ...inhabitant,
+        activity: { ...IDLE_ACTIVITY, busyUntil: input.simTime },
+        nextEligibleTime: input.simTime,
+      }));
+    }
+    actor = base.inhabitants[actorId];
+    if (actor === undefined) return rejectHere(RejectionCode.UnknownActor, `no inhabitant ${actorId} in this world`);
   }
   // §11A: one primary activity at a time.
   if (actor.activity.busyUntil > input.simTime) {
@@ -335,6 +404,8 @@ function rememberTurn(
   const primary = result.events[0];
   const witnesses = new Set<string>([actorId]);
   const visibility = primary?.visibility;
+  const actor = result.state.inhabitants[actorId] ?? null;
+  const actorSightRadius = actor === null ? 0 : currentSightRadius(result.state, actor.id);
   if (result.outcome.status === "rejected") {
     // A failed physical action changes no physical state, but the inhabitant
     // directly experiences the failure and can learn from it next turn.
@@ -345,17 +416,17 @@ function rememberTurn(
       if (
         inhabitant.status === "alive" &&
         chebyshevDistance(inhabitant.location, { x: visibility.x, y: visibility.y }) <=
-          result.state.rules.sightRadius
+          actorSightRadius
       ) {
         witnesses.add(inhabitant.id);
       }
     }
   } else if (visibility?.kind === "public" && result.state.inhabitants[actorId] !== undefined) {
-    const actor = result.state.inhabitants[actorId]!;
+    const actorForPublic = result.state.inhabitants[actorId]!;
     for (const inhabitant of Object.values(result.state.inhabitants)) {
       if (
         inhabitant.status === "alive" &&
-        chebyshevDistance(inhabitant.location, actor.location) <= result.state.rules.sightRadius
+        chebyshevDistance(inhabitant.location, actorForPublic.location) <= actorSightRadius
       ) {
         witnesses.add(inhabitant.id);
       }

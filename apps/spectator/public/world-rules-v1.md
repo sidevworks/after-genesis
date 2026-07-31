@@ -416,7 +416,7 @@ action.
 | Actor status | `alive`, not `confined` (§11H) |
 | Actor activity | must be able to occupy `working` for the full duration |
 | Population | `livingPopulation < POPULATION_CEILING` |
-| Resource cost | `{food: 200, water: 200, wood: 100, stone: 50, energy: 800, compute: 400}` |
+| Resource cost | `{food: 30, water: 20, wood: 20, stone: 10, energy: 800, compute: 400}` |
 | Duration | `4320` minutes (3 simulated days), `interruption: progress_lost` |
 | Location | Actor must be inside a structure with `shelterQuality ≥ 2` |
 
@@ -506,6 +506,18 @@ structure; `reveal_asset`, `inspect_inventory` (with consent or authority), `aud
 `investigate_event` are the countervailing capabilities. §11J's "public ledgers expose only
 information defined as public" is implemented by making transparency a declared property of each
 currency and organisation, not a global default.
+
+### 7.1 Physical execution constraints (agent-level protocol)
+
+- An inhabitant cannot claim shared pooled materials as sufficient for `build`; the agent executing
+  `build` must currently hold every required unit in personal inventory. Materials should be moved with
+  `transfer` first.
+- To inspect a structure's stored contents, use `inspect_inventory`. To remove materials, call
+  `store_goods` with `direction: "withdraw"`.
+- Physical work is mandatory over planning rhetoric: physical actions (for example, `move`, `gather`,
+  `transfer`, `build`, `store_goods`) are preferred over turns that only narrate plans.
+- `communicate` is costly relative to material progress; treat it as a support action, not the default
+  strategy.
 
 ---
 

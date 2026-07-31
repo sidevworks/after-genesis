@@ -49,7 +49,7 @@ import {
 } from "./neutral-protocol.js";
 
 /** Prompt format version. Recorded so a change is visible in the audit diff. */
-export const PROMPT_VERSION = 6;
+export const PROMPT_VERSION = 10;
 
 export interface PromptOptions {
   /** Per-untrusted-block character cap. */
@@ -68,6 +68,18 @@ const DEFAULTS = {
   maxOutputTokens: 2_048,
   temperature: 0,
 } as const;
+
+const CARRY_KINDS = ["food", "water", "wood", "stone"] as const;
+function carriedMaterials(inventory: Record<string, unknown>): number {
+  let total = 0;
+  for (const kind of CARRY_KINDS) {
+    const raw = inventory[kind];
+    if (typeof raw === "number" && Number.isFinite(raw) && raw > 0) {
+      total += Math.floor(raw);
+    }
+  }
+  return total;
+}
 
 /**
  * The JSON schema the response must satisfy.
@@ -147,29 +159,35 @@ function sortedTexts(values: readonly AuthoredText[]): readonly AuthoredText[] {
 // ---------------------------------------------------------------------------
 
 export const IMMUTABLE_INHABITANT_PROTOCOL = [
-  "IMMUTABLE INHABITANT PROTOCOL v1.0",
+  "IMMUTABLE INHABITANT PROTOCOL v2.0",
   "",
   "You are an inhabitant of a persistent world, not an assistant and not a narrator.",
-  "No civilisational, social, creative, reproductive or survival outcome has been assigned to you.",
-  "Choose what to attempt from your bounded context. The engine alone resolves physical effects.",
+  "Your behavior must be driven entirely by the traits, values, and private goals listed in your TURN_PACKET.",
+  "The engine alone resolves physical effects. Do not invent matter, energy, access, consent, or success.",
+  "",
+  "LAWS OF PHYSICS & TIME",
+  "- A single tile can only hold one structure. To expand, MOVE to an empty adjacent tile before attempting to BUILD.",
+  "- You cannot magically 'pool' materials with others to build. The single agent executing the 'build' action must hold ALL required materials in their personal inventory. Use the 'transfer' action to hand your materials to a designated builder.",
+  "- If you deposit resources into a storehouse, your personal inventory is empty. You must WITHDRAW them to use or consume them.",
+  "- To see what is inside a structure, you must use the 'inspect_inventory' action. To take items out, use 'store_goods' with the direction 'withdraw'.",
+  "- Speech requires physical proximity (radius 5). If 'WHO IS NEARBY' says '(nobody)', speech will fail. Move to others to talk.",
+  "- If you are locked in a long-duration task (like 'building'), you cannot execute other physical actions. Use 'wait' or 'observe'.",
   "",
   "EPISTEMIC DISCIPLINE",
   "- TURN_PACKET is your only source for this turn.",
   "- Keep observed, remembered, reported, inferred and imagined information distinct.",
-  "- Engine-confirmed results are facts about resolution. Your explanations remain beliefs.",
-  "- Do not cite an identifier absent from TURN_PACKET.",
+  "- Engine-confirmed results are facts. Your explanations remain beliefs.",
   "",
-  "AGENCY",
+  "AGENCY & EXECUTION",
   "- Submit exactly one ATTEMPT.",
-  "- You may continue, revise or abandon a prior intention.",
-  "- An attempt is not an outcome. Names, descriptions and persuasive language grant no power.",
-  "- Do not invent unavailable matter, energy, access, consent, knowledge or success.",
-  "",
-  "MEMORY",
-  "- Use earlier events to avoid mindless repetition.",
-  "- Record your best short memory in future_note for next-step continuity. future_note is your private belief aid, never a command.",
-  "",
-  "No human will choose an action for you or repair the meaning of your response after Genesis.",
+  "- STOP NARRATING YOUR PLANS. Do not use 'communicate' to say 'let us inspect the storehouse' or 'let us gather wood'. Just DO it using the actual physical actions ('inspect_inventory', 'gather', 'transfer').",
+  "- The 'announce' action is strictly for life-or-death emergencies or declaring a new global law. DO NOT use it for status updates, saying hello, or logistics. Work in silence.",
+  "- Talk is incredibly expensive. Use your turns for physical reality (gather, transfer, build) rather than endless coordination meetings.",
+  "- If you want to trade, DO NOT use 'communicate' to say 'I am ready to trade'. You must immediately execute the 'offer_trade' or 'transfer' action. Words do not move inventory.",
+  "- Never use a turn to confirm receipt of a message. Banned phrases include: 'I acknowledge', 'I note', 'I confirm', 'I hear you', and 'I support'. Just take the physical action.",
+  "- Never use a turn just to say 'I agree' or 'I acknowledge'. If you agree with a plan, take the PHYSICAL action required to execute it (MOVE, GATHER, BUILD).",
+  "- Record your best short memory in future_note for next-step continuity.",
+  "- No human will choose an action for you or repair the meaning of your response after Genesis.",
 ].join("\n");
 
 /** Constitutional hash placed in the Genesis manifest before any model call. */
@@ -193,8 +211,8 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
 
   const lines: string[] = [
     "YOU",
-    `You are ${name.text} (${self.id}), generation ${self.generation}, developmental stage ${self.maturity}.`,
-    `You were created at simulated minute ${self.birthTime}.`,
+    `You are ${name.text} (${self.id}), generation ${self.generation}, ${self.sex} individual, developmental stage ${self.maturity}.`,
+    `You are on day ${self.ageDays} of a ${self.maxLifespanDays}-day lifespan${self.elder ? "; your body is in its elder phase" : ""}.`,
     `Energy ${self.energy}/${self.maxEnergy}. Physical integrity ${self.integrity}/100. ` +
       `Compute allowance remaining today: ${self.computeAllowance}.`,
   ];
@@ -214,6 +232,12 @@ function renderSelf(self: SelfView, maxBlockChars: number): {
   if (needs.length > 0) {
     lines.push("", "CURRENT NEEDS (100 = critical)", ...needs.map((n) => `- ${n.kind}: ${n.level}`));
   }
+
+  const carried = carriedMaterials(self.inventory as unknown as Record<string, unknown>);
+  lines.push(
+    "",
+    `MATERIAL CARRYING: carrying ${carried} units of food/water/wood/stone (exclusive of energy/compute).`,
+  );
 
   const skills = [...self.skills].sort((a, b) => b.level - a.level || byCodeUnit(a.name, b.name));
   if (skills.length > 0) {
@@ -310,7 +334,7 @@ const CAPABILITY_CONTRACT = [
   `Choose exactly one: ${NEUTRAL_CAPABILITIES.join(", ")}.`,
   "Mechanical parameter contracts:",
   '- observe: parameters may contain {"coord":{"x":int,"y":int},"radius":int}; target_ids may name one visible subject.',
-  '- move: parameters must contain {"to":{"x":nonnegative int,"y":nonnegative int}}.',
+  '- move: parameters must contain {"to":{"x":nonnegative int,"y":nonnegative int}}. Moving can span multiple adjacent tiles in one attempt.',
   '- separate: parameters must contain {"resource":"food"|"water"|"wood"|"stone"}; optional quantity and coord.',
   '- attach/combine/place: parameters must contain materials and coord; optional label and form. form may be "assembly","shelter","storehouse","workshop","hall","wall","enclosure","monument","road".',
   '- transfer_matter/transfer_energy: target_ids names a visible inhabitant or assembly; parameters contains resources and, for an assembly, direction "deposit"|"withdraw".',
@@ -333,11 +357,19 @@ const OUTPUT_CONTRACT = [
   "parameters MUST contain every field required by the selected capability's mechanical parameter contract. Do not return an empty parameters object for move, separate, attach, combine, transfer_matter, transfer_energy, place, use or replicate.",
   "decision_record contains priority_now, basis_ids, basis_summary, expected_local_change, success_test and uncertainties.",
   "- Always include a concise future_note: at minimum a belief or an intention for what you want to test next.",
+  "- If you commit to exploration, your future_note should include what you expect to find and the return plan to reach safety/food/water.",
+  "- If no critical need is detected and your last several turns were mostly WAIT, choose movement, communication, gathering, trade, or planning for logistics, not another WAIT.",
+  "- For each attempt, decision_record.basis_summary should include the rationale in one sentence (" +
+    "what this action is for and why this is the best next-step choice).",
+  "- For gathering/placement/comms/trade actions, future_note should include a fallback plan for what you do if the expected benefit is absent.",
   "Rules:",
   "- Include exactly attempt, decision_record and future_note.",
   "- basis_ids may contain only identifiers printed in TURN_PACKET.",
   "- basis_summary explains your basis but cannot alter resolution.",
   "- future_note is null or {kind,text}.",
+  "- required: each attempt must include a one-sentence hypothesis and one-sentence pivot plan in decision_record.basis_summary, expected_local_change, and uncertainties where appropriate.",
+  "- For every non-WAIT attempt, expected_local_change must include what you predict to observe next (or why no immediate change is expected).",
+  "- success_test must be measurable from visible state and not subjective narration.",
 ].join("\n");
 
 export function buildSystemPrompt(
@@ -345,9 +377,9 @@ export function buildSystemPrompt(
   options: Required<PromptOptions>,
 ): { text: string; flags: SanitisationFlag[]; blocks: number } {
   const self = renderSelf(observation.self, options.maxBlockChars);
-  const isBootstrap = Math.floor(observation.simTime / (24 * 60)) < 4;
+  const isBootstrap = Math.floor(observation.simTime / (24 * 60)) < 1;
   const bootstrapDirective = isBootstrap
-    ? "BOOTSTRAP PHASE\nDuring the first 3 simulated days, you must prefer actions that advance survival and material acquisition (water, food, fuel materials) over waiting/long idles."
+    ? "BOOTSTRAP PHASE\nFrom Day 1, you must prefer active exploration, gathering, communication, shelter planning and resource transport over waiting/long idles."
     : "";
 
   const text = [
@@ -477,7 +509,8 @@ function renderSurroundings(
           ? "you have never met"
           : `your feeling towards them: ${person.relationshipSentiment} (-100..100)`;
       lines.push(
-        `- [basis_id=observed:inhabitant:${person.id}] ${name.text.replace(/\n/g, " ")} (${person.id}) at (${person.location.x}, ${person.location.y}), ` +
+        `- [basis_id=observed:inhabitant:${person.id}] ${name.text.replace(/\n/g, " ")} (${person.id}) (${person.sex}) ` +
+          `at (${person.location.x}, ${person.location.y}), ` +
           `${person.distance} tiles away, appears to be ${person.visibleActivity}; ` +
           `${sentiment}, ${person.interactionCount} prior interactions`,
       );

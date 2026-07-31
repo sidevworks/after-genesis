@@ -3,8 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import type { SceneDescription, SceneReference } from "@/lib/observatory-types";
+import { resolveArtifactAsset, resolveStructureAsset } from "@/lib/observatory-asset-catalog";
 import { ObservatoryActionEffects } from "@/lib/observatory-action-effects";
 import { createObservatoryBuildingVisual } from "@/lib/observatory-building-visual";
+import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
+import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
+import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
+import { SSAOPass } from "three/examples/jsm/postprocessing/SSAOPass.js";
+import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 type ViewMode = "overview" | "first-person" | "third-person";
 
@@ -18,6 +25,40 @@ const TERRAIN: Record<string, number> = {
   barren: 0x776143,
 };
 
+type AssetLoadResult = {
+  scene: THREE.Object3D;
+};
+
+const modelAssetCache = new Map<string, Promise<AssetLoadResult | null>>();
+
+function loadAssetModel(url: string): Promise<AssetLoadResult | null> {
+  const cached = modelAssetCache.get(url);
+  if (cached !== undefined) return cached;
+
+  const loader = new GLTFLoader();
+  const loading = new Promise<AssetLoadResult | null>((resolve) => {
+    loader.load(
+      encodeURI(url),
+      (gltf) => resolve({ scene: gltf.scene }),
+      undefined,
+      () => resolve(null),
+    );
+  });
+
+  modelAssetCache.set(url, loading);
+  return loading;
+}
+
+function disposeRenderedObject(object: THREE.Object3D): void {
+  object.traverse((node) => {
+    if (node instanceof THREE.Mesh) {
+      node.geometry?.dispose?.();
+      const materials = Array.isArray(node.material) ? node.material : [node.material];
+      materials.forEach((material) => material?.dispose?.());
+    }
+  });
+}
+
 function isEntity(reference: SceneReference): boolean {
   return reference.representation.kind === "articulated_entity";
 }
@@ -29,43 +70,65 @@ function isStructure(reference: SceneReference): boolean {
   );
 }
 
+function referenceClassFromRefId(refId: string): string {
+  return refId.split(":")[2] ?? "";
+}
+
+function isArtifact(reference: SceneReference): boolean {
+  return reference.representation.kind === "reference_marker" && referenceClassFromRefId(reference.refId) === "ASM";
+}
+
 function colourFor(seed: string): THREE.Color {
   let hash = 0;
   for (const char of seed) hash = Math.imul(hash ^ char.charCodeAt(0), 0x45d9f3b);
   return new THREE.Color().setHSL(((hash >>> 0) % 360) / 360, 0.58, 0.58);
 }
 
+
 function addPerson(reference: SceneReference): THREE.Group {
   const group = new THREE.Group();
   const colour = colourFor(reference.representation.visualSeed);
-  const clothes = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.76 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a178, roughness: 0.82 });
+
+  // Use flatShading to make the blocky characters look intentional and stylized
+  const clothes = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.9, flatShading: true });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a178, roughness: 0.8, flatShading: true });
   const dark = new THREE.MeshStandardMaterial({
-    color: colour.clone().multiplyScalar(0.45),
-    roughness: 0.9,
+    color: colour.clone().multiplyScalar(0.3),
+    roughness: 1.0,
+    flatShading: true,
   });
-  const add = (geometry: THREE.BufferGeometry, material: THREE.Material, x: number, y: number) => {
+
+  const add = (geometry: THREE.BufferGeometry, material: THREE.Material, x: number, y: number, zOff = 0) => {
     const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(x, y, 0);
+    mesh.position.set(x, y, zOff);
     mesh.castShadow = true;
+    mesh.receiveShadow = true; // Make sure their arms/head cast shadows on their own body
     mesh.userData.refId = reference.refId;
     group.add(mesh);
   };
-  add(new THREE.BoxGeometry(0.66, 0.68, 0.62), skin, 0, 2.25);
-  add(new THREE.BoxGeometry(0.78, 1.05, 0.48), clothes, 0, 1.38);
-  add(new THREE.BoxGeometry(0.22, 0.9, 0.25), clothes, -0.51, 1.4);
-  add(new THREE.BoxGeometry(0.22, 0.9, 0.25), clothes, 0.51, 1.4);
-  add(new THREE.BoxGeometry(0.28, 0.88, 0.3), dark, -0.22, 0.46);
-  add(new THREE.BoxGeometry(0.28, 0.88, 0.3), dark, 0.22, 0.46);
-  group.scale.setScalar(0.68);
+
+  // Adjusted proportions for a slightly cuter, sturdier voxel look
+  add(new THREE.BoxGeometry(0.7, 0.7, 0.7), skin, 0, 2.1); // Head
+  add(new THREE.BoxGeometry(0.85, 1.1, 0.5), clothes, 0, 1.2); // Torso
+  add(new THREE.BoxGeometry(0.3, 0.9, 0.3), clothes, -0.6, 1.3); // Arm L
+  add(new THREE.BoxGeometry(0.3, 0.9, 0.3), clothes, 0.6, 1.3); // Arm R
+  add(new THREE.BoxGeometry(0.35, 0.9, 0.35), dark, -0.25, 0.45); // Leg L
+  add(new THREE.BoxGeometry(0.35, 0.9, 0.35), dark, 0.25, 0.45); // Leg R
+
+  // Add a tiny shadow-caster "base" so they feel grounded
+  add(new THREE.BoxGeometry(0.9, 0.05, 0.6), dark, 0, 0.02);
+
+  group.scale.setScalar(0.65);
   group.userData.refId = reference.refId;
   return group;
 }
+
 
 function ObservatoryThreeViewport({
   scene,
   showTerrain,
   showStructures,
+  showArtifacts,
   showEntities,
   viewMode,
   selectedRef,
@@ -74,6 +137,7 @@ function ObservatoryThreeViewport({
   scene: SceneDescription;
   showTerrain: boolean;
   showStructures: boolean;
+  showArtifacts: boolean;
   showEntities: boolean;
   viewMode: ViewMode;
   selectedRef: string | null;
@@ -85,8 +149,8 @@ function ObservatoryThreeViewport({
     const mount = mountRef.current;
     if (!mount) return;
     const world = new THREE.Scene();
-    world.background = new THREE.Color(0x08131c);
-    world.fog = new THREE.FogExp2(0x08131c, 0.018);
+    world.background = new THREE.Color(0x1a1e24);
+    world.fog = new THREE.FogExp2(0x1a1e24, 0.018);
     const camera = new THREE.PerspectiveCamera(47, 1, 0.08, 350);
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
@@ -97,53 +161,252 @@ function ObservatoryThreeViewport({
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     mount.appendChild(renderer.domElement);
 
-    world.add(new THREE.HemisphereLight(0xaed9ff, 0x26311e, 1.65));
-    const sun = new THREE.DirectionalLight(0xffd49a, 2.8);
-    sun.position.set(-18, 28, 14);
+    // Upgraded Lighting: "Studio" / "Golden Hour" Setup
+    // Warmer, angled sun to create long, dramatic shadows across the voxels
+    const sun = new THREE.DirectionalLight(0xffecd4, 3.5);
+    sun.position.set(40, 45, 20); // Angled more to the side
     sun.castShadow = true;
     sun.shadow.mapSize.set(2048, 2048);
-    sun.shadow.camera.left = sun.shadow.camera.bottom = -24;
-    sun.shadow.camera.right = sun.shadow.camera.top = 24;
+    // Expand shadow camera bounds so it covers the whole 32x32 grid
+    sun.shadow.camera.left = sun.shadow.camera.bottom = -40;
+    sun.shadow.camera.right = sun.shadow.camera.top = 40;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 150;
+    sun.shadow.bias = -0.0005; // Prevents "shadow acne" on flat blocks
+
+    // Richer ambient light to brighten the shadows
+    const ambient = new THREE.HemisphereLight(0xcde1ff, 0x2b323c, 1.8);
+
+    // Stronger warm bounce light to give faces dimensionality
+    const warmFill = new THREE.DirectionalLight(0xff9a55, 1.2);
+    warmFill.position.set(-30, -10, -30);
+    warmFill.castShadow = false;
+
+    world.add(ambient);
+    world.add(warmFill);
     world.add(sun);
+
+
+    const composer = new EffectComposer(renderer);
+    const renderPass = new RenderPass(world, camera);
+
+    const ssaoPass = new SSAOPass(
+      world,
+      camera,
+      Math.max(mount.clientWidth, 1),
+      Math.max(mount.clientHeight, 1),
+    );
+    ssaoPass.output = SSAOPass.OUTPUT.Default;
+    ssaoPass.kernelRadius = 0.15; // Increased radius for softer, wider corner shadows
+    ssaoPass.minDistance = 0.0005;
+    ssaoPass.maxDistance = 0.1; // Brings the darkening in tighter to the geometry intersections
+
+    const bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(Math.max(mount.clientWidth, 1), Math.max(mount.clientHeight, 1)),
+      0.35, // Slightly stronger bloom
+      0.4,
+      0.85, // Lower threshold so bright daytime colors "bleed" nicely
+    );
+
+    const outputPass = new OutputPass();
+
+    composer.addPass(renderPass);
+    composer.addPass(ssaoPass);
+    composer.addPass(bloomPass);
+    composer.addPass(outputPass);
 
     const selectable: THREE.Object3D[] = [];
     const entities = new Map<string, THREE.Group>();
     const buildingVisuals: ReturnType<typeof createObservatoryBuildingVisual>[] = [];
+    const artifactVisuals: THREE.Object3D[] = [];
+    const structureModels: THREE.Object3D[] = [];
+    const artifactModels: THREE.Object3D[] = [];
+    const structureLoadJobs: Promise<unknown>[] = [];
+    const artifactLoadJobs: Promise<unknown>[] = [];
+    let cancelled = false;
+
+    const addStructureFallback = (reference: SceneReference) => {
+      const fallback = createObservatoryBuildingVisual(reference, scene.references);
+      const { x, y, z } = reference.transform.position;
+      fallback.group.position.set(x, Math.max(y, 0.35), z);
+      fallback.group.userData.refId = reference.refId;
+      world.add(fallback.group);
+      buildingVisuals.push(fallback);
+      selectable.push(fallback.group);
+    };
+
+    const addArtifactFallback = (reference: SceneReference) => {
+      const group = new THREE.Group();
+      const baseMaterial = new THREE.MeshStandardMaterial({
+        color: 0x7aa2f7,
+        roughness: 0.5,
+        metalness: 0.2,
+      });
+      const accentMaterial = new THREE.MeshStandardMaterial({
+        color: 0xe8dd86,
+        roughness: 0.2,
+        metalness: 0.6,
+      });
+      const box = new THREE.Mesh(new THREE.BoxGeometry(0.54, 0.5, 0.18), baseMaterial);
+      box.position.set(0, 0.25, 0);
+      const tab = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.12, 16), accentMaterial);
+      tab.position.set(0, 0.62, 0);
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(0.18, 0.04, 8, 20),
+        accentMaterial,
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.position.set(0, 0.68, 0);
+      group.add(box, tab, ring);
+      box.castShadow = true;
+      box.receiveShadow = true;
+      tab.castShadow = true;
+      tab.receiveShadow = true;
+      ring.castShadow = true;
+      ring.receiveShadow = true;
+      group.position.set(reference.transform.position.x, Math.max(reference.transform.position.y, 0.35), reference.transform.position.z);
+      group.scale.setScalar(0.9);
+      group.userData.refId = reference.refId;
+      world.add(group);
+      artifactVisuals.push(group);
+      selectable.push(group);
+    };
+
+    const placeModel = (object: THREE.Object3D, reference: SceneReference) => {
+      if (cancelled) {
+        disposeRenderedObject(object);
+        return;
+      }
+
+      const { x, y, z } = reference.transform.position;
+      const bounds = new THREE.Box3().setFromObject(object);
+      if (!bounds.isEmpty()) {
+        const center = new THREE.Vector3();
+        bounds.getCenter(center);
+        object.position.set(x - center.x, Math.max(y, 0.35) - bounds.min.y, z - center.z);
+      } else {
+        object.position.set(x, Math.max(y, 0.35), z);
+      }
+      object.userData.refId = reference.refId;
+      object.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+      structureModels.push(object);
+      world.add(object);
+      selectable.push(object);
+    };
+
+    const placeArtifactModel = (object: THREE.Object3D, reference: SceneReference) => {
+      if (cancelled) {
+        disposeRenderedObject(object);
+        return;
+      }
+
+      const { x, y, z } = reference.transform.position;
+      const bounds = new THREE.Box3().setFromObject(object);
+      if (!bounds.isEmpty()) {
+        const center = new THREE.Vector3();
+        bounds.getCenter(center);
+        object.position.set(x - center.x, Math.max(y, 0.24) - bounds.min.y, z - center.z);
+      } else {
+        object.position.set(x, Math.max(y, 0.24), z);
+      }
+      object.scale.multiplyScalar(0.9);
+      object.userData.refId = reference.refId;
+      object.traverse((node) => {
+        if (node instanceof THREE.Mesh) {
+          node.castShadow = true;
+          node.receiveShadow = true;
+        }
+      });
+      artifactModels.push(object);
+      world.add(object);
+      selectable.push(object);
+    };
+
+    const spawnStructure = (reference: SceneReference) => {
+      const descriptor = resolveStructureAsset(reference.representation.material);
+      const job = loadAssetModel(descriptor.modelUrl)
+        .then((result) => {
+          if (cancelled) return;
+          if (result === null) {
+            addStructureFallback(reference);
+            return;
+          }
+          const clone = result.scene.clone(true);
+          clone.scale.set(...descriptor.scale);
+          placeModel(clone, reference);
+        })
+        .catch(() => {
+          if (!cancelled) addStructureFallback(reference);
+        });
+      structureLoadJobs.push(job);
+    };
+
+    const spawnArtifact = (reference: SceneReference) => {
+      const descriptor = resolveArtifactAsset(reference.representation.material);
+      const job = loadAssetModel(descriptor.modelUrl)
+        .then((result) => {
+          if (cancelled) return;
+      if (result === null) {
+        addArtifactFallback(reference);
+        return;
+      }
+      const clone = result.scene.clone(true);
+      clone.scale.set(...descriptor.scale);
+      placeArtifactModel(clone, reference);
+        })
+        .catch(() => {
+          if (!cancelled) addArtifactFallback(reference);
+        });
+      artifactLoadJobs.push(job);
+    };
+
     for (const reference of scene.references) {
       const { x, y, z } = reference.transform.position;
-      let object: THREE.Object3D | null = null;
       if (reference.representation.kind === "surface" && showTerrain) {
         const material = reference.representation.material ?? "plains";
         const water = material === "water";
-        object = new THREE.Mesh(
-          new THREE.BoxGeometry(0.98, water ? 0.22 : 0.65, 0.98),
+
+        // Shrink footprint from 0.98 to 0.96 to create pronounced grid gaps for SSAO
+        const object = new THREE.Mesh(
+          new THREE.BoxGeometry(0.96, water ? 0.22 : 0.65, 0.96),
           new THREE.MeshStandardMaterial({
             color: TERRAIN[material] ?? 0x566450,
-            roughness: water ? 0.22 : 0.93,
-            metalness: water ? 0.12 : 0,
+            // Adjust roughness and metalness to make land matte and water glassy
+            roughness: water ? 0.15 : 0.85,
+            metalness: water ? 0.4 : 0.05,
             transparent: water,
-            opacity: water ? 0.82 : 1,
+            opacity: water ? 0.85 : 1,
+            // Add flatShading for the crisp voxel/low-poly aesthetic
+            flatShading: true,
           }),
         );
-        object.position.set(x, water ? -0.1 : 0, z);
+        object.position.set(x, water ? -0.15 : 0, z);
         object.receiveShadow = true;
-      } else if (isStructure(reference) && showStructures) {
-        const visual = createObservatoryBuildingVisual(reference, scene.references);
-        buildingVisuals.push(visual);
-        object = visual.group;
-        object.position.set(x, Math.max(y, 0.35), z);
-      } else if (isEntity(reference) && showEntities) {
-        const person = addPerson(reference);
-        person.position.set(x, Math.max(y, 0.35), z);
-        object = person;
-        entities.set(reference.refId, person);
-      }
-      if (object) {
+        // Ensure land casts shadows, but water does not
+        object.castShadow = !water;
         object.userData.refId = reference.refId;
         world.add(object);
         selectable.push(object);
+      } else if (isStructure(reference) && showStructures) {
+        spawnStructure(reference);
+      } else if (isArtifact(reference) && showArtifacts) {
+        spawnArtifact(reference);
+      } else if (isEntity(reference) && showEntities) {
+        const person = addPerson(reference);
+        person.position.set(x, Math.max(y, 0.35), z);
+        person.userData.refId = reference.refId;
+        world.add(person);
+        entities.set(reference.refId, person);
+        selectable.push(person);
       }
     }
+    void Promise.allSettled(structureLoadJobs);
+    void Promise.allSettled(artifactLoadJobs);
     const actionEffects = new ObservatoryActionEffects(world);
 
     const selectedEntity =
@@ -253,6 +516,9 @@ function ObservatoryThreeViewport({
       renderer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1), false);
       camera.aspect = mount.clientWidth / Math.max(mount.clientHeight, 1);
       camera.updateProjectionMatrix();
+      composer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1));
+      ssaoPass.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1));
+      bloomPass.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1));
     };
     const observer = new ResizeObserver(resize);
     observer.observe(mount);
@@ -265,9 +531,14 @@ function ObservatoryThreeViewport({
       pitch = THREE.MathUtils.lerp(pitch, desiredPitch, 0.14);
       distance = THREE.MathUtils.lerp(distance, desiredDistance, 0.12);
       buildingVisuals.forEach((visual) => visual.update(elapsedSeconds));
+      artifactVisuals.forEach((artifact) => {
+        const intensity = 0.9 + Math.sin(elapsedSeconds * 3) * 0.08;
+        artifact.rotation.y = elapsedSeconds * 0.2;
+        artifact.scale.setScalar(0.9 * intensity);
+      });
       actionEffects.update(scene.references, elapsedSeconds);
       updateCamera();
-      renderer.render(world, camera);
+      composer.render();
       raf = requestAnimationFrame(render);
     };
     render();
@@ -275,6 +546,7 @@ function ObservatoryThreeViewport({
     return () => {
       cancelAnimationFrame(raf);
       observer.disconnect();
+      cancelled = true;
       canvas.removeEventListener("pointerdown", down);
       canvas.removeEventListener("pointermove", move);
       canvas.removeEventListener("pointerup", up);
@@ -282,17 +554,38 @@ function ObservatoryThreeViewport({
       canvas.removeEventListener("wheel", wheel);
       actionEffects.dispose();
       buildingVisuals.forEach((visual) => visual.dispose());
+      structureModels.forEach((structure) => disposeRenderedObject(structure));
+      artifactVisuals.forEach((artifact) => {
+        artifact.traverse((node) => {
+          if (node instanceof THREE.Mesh) {
+            node.geometry?.dispose?.();
+            const materials = Array.isArray(node.material) ? node.material : [node.material];
+            materials.forEach((material) => material?.dispose?.());
+          }
+        });
+      });
+      artifactModels.forEach((model) => disposeRenderedObject(model));
       world.traverse((object) => {
         if (object instanceof THREE.Mesh) {
-          object.geometry.dispose();
+          object.geometry?.dispose?.();
           const materials = Array.isArray(object.material) ? object.material : [object.material];
-          materials.forEach((material) => material.dispose());
+          materials.forEach((material) => material?.dispose?.());
         }
       });
+      composer.dispose();
       renderer.dispose();
       canvas.remove();
     };
-  }, [onSelect, scene, selectedRef, showEntities, showStructures, showTerrain, viewMode]);
+  }, [
+    onSelect,
+    scene,
+    selectedRef,
+    showArtifacts,
+    showEntities,
+    showStructures,
+    showTerrain,
+    viewMode,
+  ]);
 
   return (
     <div
@@ -308,10 +601,12 @@ export function ObservatoryScene({ scene }: { scene: SceneDescription }) {
   const [showTerrain, setShowTerrain] = useState(true);
   const [showStructures, setShowStructures] = useState(true);
   const [showEntities, setShowEntities] = useState(true);
+  const [showArtifacts, setShowArtifacts] = useState(true);
   const [selectedRef, setSelectedRef] = useState<string | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("overview");
   const entities = scene.references.filter(isEntity);
   const structures = scene.references.filter(isStructure);
+  const artifacts = scene.references.filter(isArtifact);
   const activeRecord = scene.references.find((reference) => reference.refId === selectedRef);
   const select = useCallback((refId: string) => setSelectedRef(refId), []);
   const chooseView = (mode: ViewMode) => {
@@ -341,13 +636,22 @@ export function ObservatoryScene({ scene }: { scene: SceneDescription }) {
           <div className="flex rounded-md border border-line bg-panel/90 p-1 text-xs">
             <button type="button" aria-pressed={showTerrain} onClick={() => setShowTerrain((value) => !value)} className={`mono rounded px-2 py-1 ${showTerrain ? "text-amber" : "text-dim"}`}>Terrain</button>
             <button type="button" aria-pressed={showStructures} onClick={() => setShowStructures((value) => !value)} className={`mono rounded px-2 py-1 ${showStructures ? "text-amber" : "text-dim"}`}>Buildings ({structures.length})</button>
+            <button type="button" aria-pressed={showArtifacts} onClick={() => setShowArtifacts((value) => !value)} className={`mono rounded px-2 py-1 ${showArtifacts ? "text-amber" : "text-dim"}`}>Artifacts ({artifacts.length})</button>
             <button type="button" aria-pressed={showEntities} onClick={() => setShowEntities((value) => !value)} className={`mono rounded px-2 py-1 ${showEntities ? "text-amber" : "text-dim"}`}>Agents ({entities.length})</button>
           </div>
         </div>
       </div>
 
-      <ObservatoryThreeViewport scene={scene} showTerrain={showTerrain} showStructures={showStructures}
-        showEntities={showEntities} viewMode={viewMode} selectedRef={selectedRef} onSelect={select} />
+      <ObservatoryThreeViewport
+        scene={scene}
+        showTerrain={showTerrain}
+        showStructures={showStructures}
+        showArtifacts={showArtifacts}
+        showEntities={showEntities}
+        viewMode={viewMode}
+        selectedRef={selectedRef}
+        onSelect={select}
+      />
 
       <div className="absolute inset-x-4 bottom-4 z-20 flex flex-wrap items-center justify-between gap-3 rounded-md border border-line bg-panel/90 p-3 backdrop-blur-md">
         {activeRecord ? (

@@ -16,6 +16,7 @@ import { deriveActivityId } from "../../ids.js";
 import { addDuration, duration, isNight, MINUTES_PER_DAY, type SimTime } from "../../time.js";
 import type { Rng } from "../../util/rng.js";
 import { advanceHealth } from "../health.js";
+import { advanceAging, normaliseLifespans } from "../aging.js";
 import type { DerivedEvent } from "./types.js";
 import {
   IDLE_ACTIVITY,
@@ -439,7 +440,7 @@ export function worldTick(
   // population growth becomes impossible even in a resource-rich world.
   const crossedDay =
     idiv(now, MINUTES_PER_DAY) > idiv(state.simTime, MINUTES_PER_DAY);
-  let replenished = state;
+  let replenished = normaliseLifespans(state);
   if (crossedDay) {
     for (const inhabitant of sortedValues(state.inhabitants)) {
       if (inhabitant.status !== "alive") continue;
@@ -455,7 +456,9 @@ export function worldTick(
   const matured = advanceMaturity(replenished, now);
   const settled = closeExpiredActivities(matured, now);
   const spoiled = spoilCarriedFood(settled, state.simTime, now);
-  return advanceHealth(spoiled.state, now, sequence);
+  const health = advanceHealth(spoiled.state, now, sequence);
+  const aging = advanceAging(health.state, now, sequence);
+  return { state: aging.state, events: [...health.events, ...aging.events] };
 }
 
 /**

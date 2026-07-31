@@ -19,7 +19,9 @@ import { checkInvariants, formatViolations } from "../invariants.js";
 import {
   TRAIT_KINDS,
   livingInhabitants,
+  makeInhabitant,
   putStructure,
+  putInhabitant,
   recordCreated,
   recordDestroyed,
   totalHeldResources,
@@ -48,7 +50,7 @@ const MIDDAY = simTime(12 * 60);
 /**
  * What the creator carries. Bounded by `rules.carryCapacity` like anyone's.
  *
- * The creation cost is 200 food, 200 water, 100 wood and 50 stone — still more
+ * The creation cost is 60 food, 60 water, 20 wood and 10 stone — still more
  * what a body can carry. That is deliberate (§7: creation must consume declared
  * resources), and it means a creator cannot hold the price of a child. The
  * materials have to be somewhere, and the only somewhere is a structure, so
@@ -155,6 +157,45 @@ function create(state: WorldState, extra: Record<string, unknown> = {}): Resolut
   return createInhabitantResolver(creationContext(state), payload(state, extra));
 }
 
+function withCompanion(state: WorldState, id: string, overrides: Partial<Inhabitant> = {}): WorldState {
+  const founder = founderOf(state);
+  const companion = makeInhabitant({
+    id,
+    displayName: id,
+    location: founder.location,
+    birthTime: state.simTime,
+    creationSequence: state.sequence,
+    generation: 0,
+    sex: overrides.sex === "female" ? "female" : "male",
+    traits: { ...founder.traits },
+    values: [],
+    privateGoals: [],
+  });
+  return putInhabitant({ ...state }, { ...companion, ...overrides });
+}
+
+function withFamiliarCompanionship(state: WorldState): WorldState {
+  let next = withCompanion(state, "inh_ember", {
+    sex: "male",
+    traits: { ...founderOf(state).traits },
+  });
+  next = updateInhabitant(next, "inh_founder", (founder) => ({
+    ...founder,
+    relationships: {
+      ...founder.relationships,
+      inh_ember: { other: "inh_ember", familiarity: 5, trust: 10, lastInteraction: next.simTime },
+    },
+  }));
+  next = updateInhabitant(next, "inh_ember", (inhabitant) => ({
+    ...inhabitant,
+    relationships: {
+      ...inhabitant.relationships,
+      inh_founder: { other: "inh_founder", familiarity: 5, trust: 10, lastInteraction: next.simTime },
+    },
+  }));
+  return next;
+}
+
 /** The one inhabitant that was not there before. */
 function newborn(before: WorldState, after: WorldState): Inhabitant {
   const added = Object.keys(after.inhabitants).filter((id) => before.inhabitants[id] === undefined);
@@ -247,12 +288,12 @@ describe("create_inhabitant", () => {
     expectClean(result.state, before.sequence + 1);
   });
 
-  it("occupies the creator for the declared three simulated days (§11A)", () => {
+  it("occupies the creator for the declared simulated duration (§11A)", () => {
     const before = world();
     const result = create(before);
     const creator = result.state.inhabitants["inh_founder"] as Inhabitant;
 
-    expect(CREATE.baseDuration).toBe(3 * 24 * 60);
+    expect(CREATE.baseDuration).toBe(24 * 60);
     expect(creator.activity.busyUntil).toBe(before.simTime + CREATE.baseDuration);
     expect(creator.activity.state).toBe("working");
   });
@@ -478,14 +519,49 @@ describe("creator control", () => {
     expect(stripped(creator)).toBe(stripped(wasFounder));
   });
 
-  it("ignores claimed co-creators rather than writing them into lineage", () => {
-    const before = world();
-    const result = create(before, { coCreatorIds: ["inh_founder", "inh_absent"] });
-    const child = newborn(before, result.state);
-    expect(child.parents).toEqual(["inh_founder"]);
+  it("accepts one valid co-creator with opposite sex, relationship and shared presence", () => {
+    const base = withFamiliarCompanionship(world());
+    const result = create(base, { coCreatorIds: ["inh_ember"] });
+    expect(result.outcome.status).toBe("resolved");
+    const child = newborn(base, result.state);
+    expect(child.parents).toEqual(["inh_ember", "inh_founder"].sort());
     const detail = result.events[0]!.resolution as Record<string, unknown>;
-    expect(detail["coCreatorsClaimed"]).toEqual(["inh_absent", "inh_founder"]);
-    expectClean(result.state, before.sequence + 1);
+    expect(detail["coCreatorsClaimed"]).toEqual(["inh_ember"]);
+    expectClean(result.state, base.sequence + 1);
+  });
+
+  it("rejects co-creation without a valid opposite-sex co-creator", () => {
+    const same = withFamiliarCompanionship(world());
+    const sameAttempt = payload(same) as {
+      resourcesCommitted: ResourceBundle;
+      coCreatorIds?: readonly string[];
+    };
+    const result = createInhabitantResolver(creationContext(withFamiliarCompanionship(same)), {
+      proposedName: "Second",
+      resourcesCommitted: sameAttempt.resourcesCommitted,
+      coCreatorIds: ["inh_founder"],
+    });
+    expect(result.outcome.status).toBe("rejected");
+    if (result.outcome.status === "rejected") {
+      expect(result.outcome.code).toBe(LineageRejection.InvalidCoCreators);
+    }
+  });
+
+  it("rejects co-creation with more than one claimed co-creator", () => {
+    const base = withFamiliarCompanionship(world());
+    let next = withCompanion(base, "inh_lumen", { sex: "female" });
+    next = withCompanion(next, "inh_sky", { sex: "male" });
+    const result = createInhabitantResolver(
+      creationContext(next),
+      {
+        ...(payload(next) as Record<string, unknown>),
+        coCreatorIds: ["inh_ember", "inh_lumen"],
+      },
+    );
+    expect(result.outcome.status).toBe("rejected");
+    if (result.outcome.status === "rejected") {
+      expect(result.outcome.code).toBe(LineageRejection.InvalidCoCreators);
+    }
   });
 });
 

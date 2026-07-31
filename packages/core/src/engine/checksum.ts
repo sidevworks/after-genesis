@@ -36,9 +36,11 @@ import type {
   Contract,
   Currency,
   Inhabitant,
+  MatingProposal,
   MemoryRecord,
   Organisation,
   ResourceLedger,
+  Remains,
   Structure,
   WorldState,
 } from "./state.js";
@@ -106,6 +108,14 @@ function inhabitant(i: Inhabitant): Normal {
     concealed: bundle(i.concealed),
     maxEnergy: i.maxEnergy,
     maxCompute: i.maxCompute,
+    lifecycle: {
+      birthTick: i.lifecycle?.birthTick ?? i.birthTime,
+      maxLifespanTicks: i.lifecycle?.maxLifespanTicks ?? 44 * 24 * 60,
+      isElder: i.lifecycle?.isElder ?? false,
+    },
+    maxLifespanDays: Number.isSafeInteger(i.maxLifespanDays) ? i.maxLifespanDays : 44,
+    integrity: i.integrity,
+    defendingUntil: i.defendingUntil,
     skills: numberRecord(i.skills as Readonly<Record<string, number>>),
     relationships: record(i.relationships, (r) => ({
       other: r.other,
@@ -335,6 +345,32 @@ function confinement(c: Confinement): Normal {
   };
 }
 
+function remains(r: Remains): Normal {
+  return {
+    id: r.id,
+    deceasedId: r.deceasedId,
+    location: { x: r.location.x, y: r.location.y },
+    inventory: bundle(r.inventory),
+    createdAt: r.createdAt,
+    createdSequence: r.createdSequence,
+    disposedAt: r.disposedAt,
+    disposalMethod: r.disposalMethod,
+  };
+}
+
+function matingProposal(p: MatingProposal): Normal {
+  return {
+    id: p.id,
+    proposerId: p.proposerId,
+    recipientId: p.recipientId,
+    proposedName: p.proposedName,
+    createdAt: p.createdAt,
+    createdSequence: p.createdSequence,
+    status: p.status,
+    resolvedAt: p.resolvedAt,
+  };
+}
+
 function ledger(l: ResourceLedger): Normal {
   return {
     genesisTotal: bundle(l.genesisTotal),
@@ -373,6 +409,8 @@ export function normaliseState(state: WorldState): Normal {
     activities: record(state.activities, activity),
     memories: record(state.memories, memory),
     confinements: record(state.confinements, confinement),
+    remains: record(state.remains, remains),
+    matingProposals: record(state.matingProposals, matingProposal),
     publicRecords: {
       // Announcements are a chronological record; order is history.
       announcements: state.publicRecords.announcements.map((a) => ({

@@ -3,7 +3,6 @@ import { computeStateChecksum } from "./engine/checksum.js";
 import {
   DEFAULT_MAP_HEIGHT,
   DEFAULT_MAP_WIDTH,
-  firstPassableTile,
   generateWorldTerrain,
 } from "./engine/mapgen.js";
 import {
@@ -14,6 +13,8 @@ import {
   type WorldState,
 } from "./engine/state.js";
 import { voiceAt } from "./engine/voice.js";
+import { lifespanForBirth } from "./engine/aging.js";
+import type { Coord } from "./schema/primitives.js";
 import { ResourceBundleSchema } from "./schema/primitives.js";
 import { GENESIS_TIME } from "./time.js";
 import type { Sha256Hex } from "./util/hash.js";
@@ -61,6 +62,27 @@ export interface BuiltGenesis {
   readonly stateChecksum: Sha256Hex;
 }
 
+function chooseSpawnLocations(map: {
+  readonly width: number;
+  readonly height: number;
+  readonly terrain: readonly string[];
+}, count: number): readonly Coord[] {
+  const passable: Coord[] = [];
+  for (let y = 0; y < map.height; y++) {
+    for (let x = 0; x < map.width; x++) {
+      if (map.terrain[y * map.width + x] !== "water") passable.push({ x, y });
+    }
+  }
+  if (passable.length === 0) throw new Error("Genesis map has no passable tile");
+
+  const safeCount = Math.max(1, Math.min(count, passable.length));
+  const stride = Math.max(1, Math.floor(passable.length / safeCount));
+  return Array.from({ length: safeCount }, (_, index) => {
+    const slot = (index * stride) % passable.length;
+    return passable[slot]!;
+  });
+}
+
 /** Pure Genesis construction shared by the live command and public replay. */
 export function buildGenesis(raw: GenesisConfig): BuiltGenesis {
   const config = GenesisConfigSchema.parse(raw);
@@ -71,8 +93,7 @@ export function buildGenesis(raw: GenesisConfig): BuiltGenesis {
     map: generated.map,
     deposits: generated.deposits,
   });
-  const location = firstPassableTile(generated.map);
-  if (location === null) throw new Error("Genesis map has no passable founder tile");
+  const spawnLocations = chooseSpawnLocations(generated.map, 1 + (config.inhabitants?.length ?? 0));
 
   let populated = empty;
   const roster = [config.founder, ...(config.inhabitants ?? [])];
@@ -86,7 +107,7 @@ export function buildGenesis(raw: GenesisConfig): BuiltGenesis {
         displayName: inhabitant.displayName,
         sex: inhabitant.sex,
         voiceId: voiceAt(inhabitant.sex, index),
-        location,
+        location: spawnLocations[index] ?? spawnLocations[0] ?? { x: 0, y: 0 },
         birthTime: GENESIS_TIME,
         creationSequence: 0,
         generation: 0,
@@ -96,6 +117,7 @@ export function buildGenesis(raw: GenesisConfig): BuiltGenesis {
         privateGoals: inhabitant.privateGoals,
         maturity: 3,
         modelId: inhabitant.modelId,
+        maxLifespanDays: lifespanForBirth(config.seed, inhabitant.id, 0),
       }),
     );
   }

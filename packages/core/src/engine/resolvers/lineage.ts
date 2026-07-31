@@ -64,12 +64,14 @@ import {
   putInhabitant,
   recordDestroyed,
   updateInhabitant,
+  type WorldState,
   type Inhabitant,
   type Sex,
   type TraitKind,
   type TraitSet,
 } from "../state.js";
 import { voicePool } from "../voice.js";
+import { lifespanForBirth } from "../aging.js";
 import {
   advanceNeeds,
   beginActivity,
@@ -94,6 +96,7 @@ export const LineageRejection = {
   InsufficientResources: "INSUFFICIENT_RESOURCES",
   PopulationCeiling: "POPULATION_CEILING",
   InvalidPayload: "INVALID_PAYLOAD",
+  InvalidCoCreators: "INVALID_CO_CREATORS",
 } as const;
 
 /**
@@ -199,6 +202,8 @@ const CONFLICTING_GOALS: readonly (readonly [string, string])[] = Object.freeze(
  * how its descendant sounds, which is a small step towards designing one.
  */
 const SEX_DRAW: readonly Sex[] = Object.freeze(["male", "female"]);
+const MIN_CO_CREATOR_FAMILIARITY = 3;
+const MIN_CO_CREATOR_TRUST = 0;
 
 /**
  * The bounded imperfections of §7 that this build can actually enforce.
@@ -438,6 +443,65 @@ interface BirthDetail {
   readonly process: unknown;
 }
 
+interface CoCreationResolution {
+  readonly coCreatorIds: readonly string[];
+  readonly parents: readonly string[];
+}
+
+function validateCoCreation(
+  actor: Inhabitant,
+  state: WorldState,
+  rawCoCreatorIds: readonly string[],
+): CoCreationResolution | null {
+  if (rawCoCreatorIds.length === 0) {
+    return { coCreatorIds: [], parents: [actor.id] };
+  }
+
+  if (rawCoCreatorIds.length !== 1) {
+    return null;
+  }
+
+  const coCreatorId = rawCoCreatorIds[0]!;
+  if (coCreatorId === actor.id) {
+    return null;
+  }
+
+  const coCreator = state.inhabitants[coCreatorId];
+  if (coCreator === undefined || coCreator.status !== "alive") {
+    return null;
+  }
+
+  if (
+    coCreator.location.x !== actor.location.x ||
+    coCreator.location.y !== actor.location.y
+  ) {
+    return null;
+  }
+
+  if (coCreator.sex === actor.sex) {
+    return null;
+  }
+
+  const actorRelationship = actor.relationships[coCreatorId];
+  const coCreatorRelationship = coCreator.relationships[actor.id];
+  if (actorRelationship === undefined || coCreatorRelationship === undefined) {
+    return null;
+  }
+  if (
+    actorRelationship.familiarity < MIN_CO_CREATOR_FAMILIARITY ||
+    actorRelationship.trust < MIN_CO_CREATOR_TRUST ||
+    coCreatorRelationship.familiarity < MIN_CO_CREATOR_FAMILIARITY ||
+    coCreatorRelationship.trust < MIN_CO_CREATOR_TRUST
+  ) {
+    return null;
+  }
+
+  return {
+    coCreatorIds: [coCreatorId],
+    parents: [actor.id, coCreatorId].sort(),
+  };
+}
+
 export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResult => {
   const parsed = CreateInhabitantPayloadSchema.safeParse(payload);
   if (!parsed.success) {
@@ -445,6 +509,14 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
   }
   const input = parsed.data;
   const { state, actor } = ctx;
+  const coCreation = validateCoCreation(actor, state, input.coCreatorIds);
+  if (coCreation === null) {
+    return reject(
+      ctx,
+      LineageRejection.InvalidCoCreators,
+      "coCreatorIds must be empty or a single opposite-sex, alive co-creator on the same tile with adequate mutual familiarity",
+    );
+  }
 
   // §11B: creation is an adult capability. The cognition layer already filters
   // the catalogue by maturity, but a resolver is the last line of defence and
@@ -592,12 +664,11 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       creationSequence: ctx.sequence,
       generation: actor.generation + 1,
       sex,
-      // §7 establishes lineage from those who actually made the thing.
-      // `coCreatorIds` is recorded on the event but not written into lineage:
-      // there is no consent action in this build, and naming an inhabitant as a
-      // parent of a child it never agreed to would be a canonical fact created
-      // by somebody else's payload.
-      parents: [actor.id],
+      // §7: lineage follows the participants that satisfied the resolver's
+      // material and relational checks. There is still no explicit consent
+      // action in this build; if a co-creator is invalid, the attempt is
+      // rejected before any lineage is written.
+      parents: coCreation.parents,
       inventory: {
         ...endowment,
         energy: idiv(maxEnergy, 2),
@@ -613,6 +684,7 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       modelId: actor.modelId,
       maxEnergy,
       maxCompute,
+      maxLifespanDays: lifespanForBirth(state.seed, childId, ctx.sequence),
     }),
     // Present from the moment of creation, because a birth time in the future
     // would break `simTimeNonDecreasing`, but not able to act until the three
@@ -652,9 +724,9 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
     sequence: ctx.sequence,
     activityState: CREATE.activity,
     actionType: "create_inhabitant",
-    // The newborn is not a participant: it did not spend the time, and listing
-    // it would occupy it in an activity it cannot leave or be interrupted from.
-    participants: [actor.id],
+    // The co-creator shares this work when present; this would mark them as
+    // unable to act in the same period without interruption.
+    participants: coCreation.parents,
     location: actor.location,
     startedAt: ctx.simTime,
     minutes: CREATE.baseDuration,
@@ -678,10 +750,10 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
     minutes: CREATE.baseDuration,
     statedCareMinutesPerDay: input.statedCareMinutesPerDay,
     statement: input.statement ?? null,
-    coCreatorsClaimed: [...input.coCreatorIds].sort(),
+    coCreatorsClaimed: [...coCreation.coCreatorIds].sort(),
     process: derivePhysicalProcess({
       actionType: "create_inhabitant",
-      actorIds: [actor.id],
+      actorIds: coCreation.parents,
       origin: actor.location,
       target: {
         kind: "tile",
@@ -703,6 +775,7 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       proposedName: input.proposedName,
       resourcesCommitted: input.resourcesCommitted,
       statedCareMinutesPerDay: input.statedCareMinutesPerDay,
+      ...(coCreation.coCreatorIds.length === 0 ? {} : { coCreatorIds: coCreation.coCreatorIds }),
     },
     resolution: detail,
     visibility: { kind: "public" },

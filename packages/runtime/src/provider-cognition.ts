@@ -7,6 +7,7 @@ import {
   type ModelAuditStore,
   type ModelProvider,
   type ResourceKind,
+  type WorldRules,
   type SpendReservationStore,
 } from "@after-genesis/core";
 import {
@@ -212,7 +213,12 @@ export class ProviderCognitionService implements CognitionService {
 
   async propose(input: CognitionInput): Promise<CognitionOutcome> {
     const coreObservation = buildObservation(input.state, input.actorId);
-    const observation = projectObservation(coreObservation, input.sequence, input.state.sequence + 1);
+    const observation = projectObservation(
+      coreObservation,
+      input.sequence,
+      input.state.sequence + 1,
+      input.state.rules,
+    );
     const memories = projectMemories(coreObservation);
     const modelId = this.#modelFor(observation.cognitionLevel);
 
@@ -341,7 +347,7 @@ const PAYLOAD_HINTS: Partial<Record<string, string>> = {
   vote:
     '{ "organisationId": <organisation id>, "proposalId": <proposal id>, "choice": "for"|"against"|"abstain", "weightClaimed": 1, "statement": <optional words> }',
   create_inhabitant:
-    '{ "proposedName": <text>, "resourcesCommitted": {"food": <integer>, "water": <integer>, "wood": <integer>, "stone": <integer>}, "traitHints": [], "valueHints": [], "statedCareMinutesPerDay": <integer>, "statement": <optional words> }',
+    '{ "proposedName": <text>, "resourcesCommitted": {"food": <integer>, "water": <integer>, "wood": <integer>, "stone": <integer>}, "traitHints": [], "valueHints": [], "statedCareMinutesPerDay": <integer>, "coCreatorIds": ["inhabitant-id"], "statement": <optional words> }',
   store_goods:
     '{ "structureId": <a structure on your tile>, "direction": "deposit" or "withdraw", "resources": {"food": <integer>, "water": <integer>, "wood": <integer>, "stone": <integer>}, "note": <optional words> }',
   build:
@@ -398,6 +404,7 @@ function projectObservation(
   source: CoreObservation,
   sequence: number,
   turnNumber: number,
+  rules: WorldRules,
 ): Observation {
   const tileAtSelf = source.tiles.find(
     (tile) => tile.x === source.self.location.x && tile.y === source.self.location.y,
@@ -414,8 +421,12 @@ function projectObservation(
       id: source.self.id,
       displayName: source.self.displayName,
       generation: source.self.generation,
+      sex: source.self.sex,
       maturity: source.self.maturity,
       birthTime: source.self.birthTime,
+      ageDays: source.self.ageDays,
+      maxLifespanDays: source.self.maxLifespanDays,
+      elder: source.self.elder,
       location: source.self.location,
       terrain: tileAtSelf?.terrain ?? "unknown",
       activity: source.self.activity,
@@ -467,6 +478,7 @@ function projectObservation(
         displayName: inhabitant.displayName,
         distance: inhabitant.distance,
         location: inhabitant.location,
+        sex: inhabitant.sex,
         visibleActivity: inhabitant.activity,
         relationshipSentiment: relationship?.trust ?? null,
         interactionCount: relationship?.familiarity ?? 0,
@@ -521,10 +533,7 @@ function projectObservation(
           artifact.content,
       })),
     ],
-    worldNotices:
-      source.self.confinement === null
-        ? []
-        : [`You are confined in structure ${source.self.confinement.structureId}.`],
+    worldNotices: buildWorldNotices(source, rules),
     availableActions: IMPLEMENTED_ACTIONS.filter((type) => {
       const spec = getActionSpec(type);
       return (
@@ -547,6 +556,151 @@ function projectObservation(
       };
     }),
   };
+}
+
+function buildWorldNotices(source: CoreObservation, rules: WorldRules): readonly string[] {
+  const atShelter = source.structures.some(
+    (structure) =>
+      structure.location.x === source.self.location.x &&
+      structure.location.y === source.self.location.y &&
+      structure.kind === "shelter",
+  );
+  const carried = carriedMaterialUnits(source.self.inventory);
+  const carryPressure = rules.carryCapacity <= 0 ? 0 : carried / rules.carryCapacity;
+  const carryingNotice = `You can carry at most ${rules.carryCapacity} units of food/water/wood/stone in your open load. ` +
+    `You currently carry ${carried} units. ` +
+    (carryPressure >= 0.7
+      ? `Carry is high; you should not collect further materials without a deliberate storage or return plan. `
+      : `You still have headroom to collect a few useful materials.`);
+
+  const needNotice = needUrgencyNotice(source.self.needs);
+
+  const nearestResources = topResourceSpots(source, rules);
+  const nearestResourceNotice = nearestResources.length
+    ? `Nearest visible resource sources: ${nearestResources.join("; ")}.`
+    : "No visible food/water/wood/stone in your current view.";
+
+  const mobilityNotice =
+    `One move can go at most ${rules.maxMoveDistance} tiles in one attempt. ` +
+    `Travel is not free: each action must keep enough energy for a safe return path to food or water, because hunger/thirst do not pause while exploring.`;
+
+  const shelterPressureNotice =
+    source.self.confinement === null && source.night
+      ? atShelter
+        ? "You are sheltered now; shelter also improves recovery. Decide whether this shelter should be used for rest, storage, or a temporary camp base."
+        : "Night is active and movement/exposure are harder than day. If your current activity is water/food/safety-sensitive, consider a nearby shelter first before long forays."
+      : "No immediate night-penalty exposure pressure detected; weigh weather-like exposure only if you are far from shelter and planning long travel."
+
+  const weatherProxyNotice =
+    source.self.needs.fatigue >= 35 && source.self.needs.hunger >= 35
+      ? "If there is a reason to assume rain/cold exposure on an open tile, expect reduced effective recovery and plan for shelter use before heavy movement."
+      : "Expose yourself only as long as needed for scouting; return to a safer base when your fatigue or food/water plans are uncertain.";
+
+  const energyNotice =
+    `Rest and recovery are physical tools. You can rest now if needed; resting is your primary way to restore energy. ` +
+    `If night is in effect, the terrain is harder to travel and you should bias for shorter forays.`;
+
+  const confinementNotice =
+    source.self.confinement === null
+      ? null
+      : `You are confined in structure ${source.self.confinement.structureId}.`;
+
+  const socialNotice =
+    source.inhabitants.length === 0
+      ? "No one else is visible right now. If you need help, movement and communication should help you build contact later when others are reachable."
+      : "Others are visible; consider communication, exchange, or coordination before or after exploration. It can reduce repeated risk.";
+
+  const pressureNotice =
+    source.self.maturity >= 2
+      ? "Your long-run objective should include what is now useful, what is worth carrying, and what should be stored before moving on."
+      : "You are very early in your life; prioritize mapping and practical learning over delayed construction.";
+
+  return [
+    carryingNotice,
+    needNotice,
+    nearestResourceNotice,
+    mobilityNotice,
+    weatherProxyNotice,
+    shelterPressureNotice,
+    energyNotice,
+    socialNotice,
+    pressureNotice,
+    ...(confinementNotice === null ? [] : [confinementNotice]),
+  ];
+}
+
+function needUrgencyNotice(needs: CoreObservation["self"]["needs"]): string {
+  const ranked = [
+    { kind: "hunger", level: needs.hunger },
+    { kind: "thirst", level: needs.thirst },
+    { kind: "fatigue", level: needs.fatigue },
+    { kind: "social", level: needs.social },
+  ].sort((a, b) => b.level - a.level);
+  const top = ranked[0];
+  if (top === undefined) return "No urgent physiological/social pressure is currently detected.";
+
+  if (top.level >= 60) {
+    return `Priority check: ${top.kind} is elevated (${top.level}); your immediate action should reduce that first or create a safe stop with an explicit return path.`;
+  }
+
+  if (top.level <= 30) {
+    return "No critical need is pressing; this turn should generally be for mapping, scouting, communication, logistics planning, and selective resource acquisition.";
+  }
+
+  return `Need map: ${ranked.map((item) => `${item.kind}=${item.level}`).join(", ")}. Prefer actions that improve multiple needs or reduce future risk.`;
+}
+
+const PLAN_RESOURCE_KINDS: readonly ResourceKind[] = [
+  "food",
+  "water",
+  "wood",
+  "stone",
+] as const;
+
+function carriedMaterialUnits(inventory: CoreObservation["self"]["inventory"]): number {
+  let carried = 0;
+  for (const kind of PLAN_RESOURCE_KINDS) {
+    const amount = inventory[kind];
+    if (typeof amount === "number" && Number.isFinite(amount) && amount > 0) carried += amount;
+  }
+  return carried;
+}
+
+function visibleResourceRecord(
+  tiles: CoreObservation["tiles"],
+  kind: ResourceKind,
+): string | null {
+  let best: { distance: number; x: number; y: number; amount: number } | null = null;
+  for (const tile of tiles) {
+    const raw = tile.deposit[kind] ?? 0;
+    const amount = Math.floor(raw);
+    if (!Number.isFinite(amount) || amount <= 0) continue;
+    if (best === null || tile.distance < best.distance ||
+      (tile.distance === best.distance && amount > best.amount) ) {
+      best = {
+        distance: tile.distance,
+        x: tile.x,
+        y: tile.y,
+        amount,
+      };
+    }
+  }
+
+  if (best === null) return null;
+  return `${kind} at (${best.x}, ${best.y}) distance ${best.distance} tiles, amount ${best.amount}`;
+}
+
+function topResourceSpots(source: CoreObservation, rules: WorldRules): readonly string[] {
+  const records = PLAN_RESOURCE_KINDS
+    .map((kind) => visibleResourceRecord(source.tiles, kind))
+    .filter((item): item is string => item !== null);
+
+  const carryBudgetHint = carriedMaterialUnits(source.self.inventory) + 1 > rules.carryCapacity;
+  if (carryBudgetHint) {
+    return records.slice(0, 1);
+  }
+
+  return records;
 }
 
 /**

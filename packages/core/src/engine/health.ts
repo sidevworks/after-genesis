@@ -89,16 +89,14 @@
  * abandoned property to the survivors, and an engine that swept a corpse's food
  * into a communal pile would be deciding that question for them.
  */
-import type { Coord } from "../schema/primitives.js";
 import { addDuration, duration, type SimTime } from "../time.js";
 import { deriveConditionId } from "../ids.js";
 import type { DerivedEvent } from "./resolvers/types.js";
+import { terminateInhabitant } from "./lifecycle.js";
 import {
-  IDLE_ACTIVITY,
   NEED_CEILING,
   idiv,
   insertSorted,
-  putActivity,
   putCondition,
   putInhabitant,
   sortedValues,
@@ -165,7 +163,8 @@ export const AILMENTS: readonly Ailment[] = Object.freeze([
     reliefThreshold: 80,
     // ≈3 simulated days from onset to death: 4320 minutes / 100 points.
     minutesPerSeverityPoint: 43,
-    terminal: true,
+    // Keep tracked for narrative/decision pressure, but disable fatality.
+    terminal: false,
     symptom: "cracked lips and a stumbling gait",
   },
   {
@@ -175,7 +174,8 @@ export const AILMENTS: readonly Ailment[] = Object.freeze([
     reliefThreshold: 80,
     // ≈21 simulated days, seven times the dehydration fuse: 30000 / 100.
     minutesPerSeverityPoint: 300,
-    terminal: true,
+    // Keep tracked for narrative/decision pressure, but disable fatality.
+    terminal: false,
     symptom: "wasted frame and slow, clumsy movement",
   },
   {
@@ -496,47 +496,11 @@ function killInhabitant(
   now: SimTime,
   sequence: number,
 ): { readonly state: WorldState; readonly events: readonly DerivedEvent[] } {
-  const subject = state.inhabitants[subjectId];
-  /* c8 ignore next */
-  if (subject === undefined) return { state, events: [] };
-
-  // Any activity the dying inhabitant was mid-way through ends now. Survivors in
-  // the same activity still lose the time they had committed — their `busyUntil`
-  // keeps the original end — but they stop holding a handle to an activity that
-  // can no longer complete.
-  let next = state;
-  let location: Coord = subject.location;
-  for (const activity of sortedValues(state.activities)) {
-    if (!activity.open || !activity.participants.includes(subjectId)) continue;
-    next = putActivity(next, { ...activity, open: false });
-    for (const participant of [...activity.participants].sort()) {
-      const other = next.inhabitants[participant];
-      if (other === undefined) continue;
-      if (other.activity.activityId !== activity.id) continue;
-      next = putInhabitant(next, {
-        ...other,
-        activity: { ...IDLE_ACTIVITY, busyUntil: activity.endsAt },
-      });
-    }
-    location = activity.location;
-  }
-
-  const dying = next.inhabitants[subjectId] as Inhabitant;
-  next = putInhabitant(next, {
-    ...dying,
-    status: "dead",
-    deathTime: now,
-    deathSequence: sequence,
-    // `deadInhabitantsCannotAct` requires the dead to hold no activity and to be
-    // scheduled for nothing after their death time. Both are asserted here
-    // rather than left to the scheduler, so a scheduler bug cannot resurrect
-    // anyone by handing them a turn.
-    activity: { ...IDLE_ACTIVITY, busyUntil: now },
-    nextEligibleTime: now,
-  });
+  const terminated = terminateInhabitant(state, subjectId, now, sequence);
+  if (terminated === null) return { state, events: [] };
 
   return {
-    state: next,
+    state: terminated.state,
     events: [
       {
         type: "inhabitant.died",
@@ -556,9 +520,10 @@ function killInhabitant(
           minutesIll: now - cause.onsetAt,
           deathTime: now,
           deathSequence: sequence,
-          location: { x: location.x, y: location.y },
+          remainsId: terminated.remainsId,
+          location: terminated.location,
         },
-        visibility: { kind: "local", x: location.x, y: location.y },
+        visibility: { kind: "local", x: terminated.location.x, y: terminated.location.y },
       },
     ],
   };
