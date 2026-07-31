@@ -784,20 +784,25 @@ function firstTarget(attempt: NeutralModelResponse["attempt"]): string | null {
 
 function structureKindParameter(
   parameters: Record<string, unknown>,
-): "assembly" | "shelter" | "storehouse" | "workshop" | "smelter" | "hall" | "wall" | "enclosure" | "monument" | "road" | "reinforced_vault" {
+): "storehouse" | "shelter" | "workshop" | "smelter" | "reinforced_vault" | null {
   const value = parameters["form"];
-  return value === "shelter" ||
-    value === "storehouse" ||
+  return value === "storehouse" ||
+    value === "shelter" ||
     value === "workshop" ||
     value === "smelter" ||
-    value === "hall" ||
-    value === "wall" ||
-    value === "enclosure" ||
-    value === "monument" ||
-    value === "road" ||
     value === "reinforced_vault"
     ? value
-    : "assembly";
+    : null;
+}
+
+const BUILD_FORM_ERROR =
+  "Build action failed: You must provide a valid form (storehouse, shelter, workshop, smelter, reinforced_vault) and a descriptive label.";
+
+function buildParameterProblem(parameters: Record<string, unknown>): string | null {
+  if (structureKindParameter(parameters) === null || stringParameter(parameters, "label") === null) {
+    return BUILD_FORM_ERROR;
+  }
+  return null;
 }
 
 function requiredParameterProblem(
@@ -834,6 +839,10 @@ function requiredParameterProblem(
     }
     case "attach":
     case "combine":
+      {
+        const problem = buildParameterProblem(parameters);
+        if (problem !== null) return problem;
+      }
       if (objectParameter(parameters, "materials") === null) {
         return `${attempt.capability} requires parameters.materials.`;
       }
@@ -856,6 +865,10 @@ function requiredParameterProblem(
         ? "force_open requires a target reinforced vault and parameters.tool_artifact_id."
         : null;
     case "place":
+      {
+        const problem = buildParameterProblem(parameters);
+        if (problem !== null) return problem;
+      }
       if (objectParameter(parameters, "materials") === null) {
         return "place requires parameters.materials.";
       }
@@ -1008,13 +1021,15 @@ export function translateNeutralResponse(
     case "combine": {
       const materials = objectParameter(parameters, "materials");
       const coord = objectParameter(parameters, "coord");
-      if (materials === null || coord === null) return null;
+      const structureKind = structureKindParameter(parameters);
+      const label = stringParameter(parameters, "label");
+      if (materials === null || coord === null || structureKind === null || label === null) return null;
       return {
         type: "build",
         payload: {
-          structureKind: structureKindParameter(parameters),
+          structureKind,
           coord,
-          name: stringParameter(parameters, "label") ?? "Unlabelled assembly",
+          name: label,
           materials,
           collaboratorIds: [],
           continuesStructureId: null,
@@ -1057,13 +1072,15 @@ export function translateNeutralResponse(
     case "place": {
       const materials = objectParameter(parameters, "materials");
       const coord = objectParameter(parameters, "coord");
-      if (materials === null || coord === null) return null;
+      const structureKind = structureKindParameter(parameters);
+      const label = stringParameter(parameters, "label");
+      if (materials === null || coord === null || structureKind === null || label === null) return null;
       return {
         type: "build",
         payload: {
-          structureKind: structureKindParameter(parameters),
+          structureKind,
           coord,
-          name: stringParameter(parameters, "label") ?? "Unlabelled assembly",
+          name: label,
           materials,
           collaboratorIds: [],
           continuesStructureId: null,

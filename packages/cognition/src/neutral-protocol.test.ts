@@ -308,6 +308,24 @@ describe("neutral inhabitant protocol", () => {
     });
   });
 
+  it("rejects a build without both an approved form and descriptive label", () => {
+    const missingLabel = parseNeutralModelResponse(
+      response("combine", { coord: { x: 2, y: 3 }, materials: { wood: 2 }, form: "smelter" }),
+      new Set(),
+    );
+    const invalidForm = parseNeutralModelResponse(
+      response("place", { coord: { x: 2, y: 3 }, materials: { wood: 2 }, form: "assembly", label: "Loose test" }),
+      new Set(),
+    );
+    for (const parsed of [missingLabel, invalidForm]) {
+      expect(parsed).toMatchObject({
+        ok: false,
+        code: "invalid_shape",
+        reason: expect.stringContaining("Build action failed"),
+      });
+    }
+  });
+
   it("feeds a declared physical form into the real engine resolver", () => {
     const state = buildGenesis({
       worldId: "world_neutral_acceptance",
@@ -557,17 +575,17 @@ describe("neutral inhabitant protocol", () => {
     ["separate", { resource: "wood", quantity: 1 }, []],
     [
       "attach",
-      { coord: { x: 2, y: 3 }, materials: { wood: 1 }, label: "joined pieces" },
+      { coord: { x: 2, y: 3 }, materials: { wood: 1 }, form: "workshop", label: "joined pieces" },
       [],
     ],
     [
       "combine",
-      { coord: { x: 2, y: 3 }, materials: { wood: 1 }, label: "combined pieces" },
+      { coord: { x: 2, y: 3 }, materials: { wood: 1 }, form: "smelter", label: "combined pieces" },
       [],
     ],
     [
       "place",
-      { coord: { x: 2, y: 3 }, materials: { stone: 1 }, label: "placed pieces" },
+      { coord: { x: 2, y: 3 }, materials: { stone: 1 }, form: "shelter", label: "placed pieces" },
       [],
     ],
     ["transfer_matter", { resources: { food: 1 } }, ["inh_other"]],
