@@ -111,7 +111,11 @@ export function clampExposed(inventory: ResourceBundle, exposed: ResourceBundle)
  * Energy and compute are deliberately absent: they are capacities of a body,
  * not things carried in it, and they have their own ceilings.
  */
-export const CARRIED_KINDS: readonly (keyof ResourceBundle)[] = ["food", "water", "wood", "stone"];
+export const CARRIED_KINDS: readonly (keyof ResourceBundle)[] = [
+  "food", "water", "wood", "stone",
+  "iron_ore", "titanium_ore", "copper_ore", "molybdenum_ore",
+  "iron_ingot", "titanium_ingot", "copper_ingot", "molybdenum_ingot",
+];
 
 /** Total material an inhabitant is carrying, against `rules.carryCapacity`. */
 export function carriedTotal(inventory: ResourceBundle): number {

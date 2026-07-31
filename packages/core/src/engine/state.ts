@@ -312,6 +312,10 @@ export interface Structure {
   readonly storagePublic: boolean;
   /** Secured storage raises the cost of unauthorised transfer (§11F). */
   readonly secured: boolean;
+  /** Access is normally open; reinforced vaults are owner-only until breached. */
+  readonly accessPolicy?: "open" | "owner_only";
+  /** Portable artifacts physically placed in this structure. */
+  readonly storedArtifactIds?: readonly string[];
   /** Inhabitants currently held here under a confinement (§11H). Sorted. */
   readonly occupants: readonly string[];
   readonly createdSequence: number;
@@ -336,6 +340,12 @@ export interface Artifact {
   readonly location: Coord | null;
   readonly createdSequence: number;
   readonly createdAt: SimTime;
+  /** Engine-assigned physical affordance. Never derived from the title. */
+  readonly mechanicalKind?: "titanium_prybar";
+  /** Physical tool durability; zero means unusable. */
+  readonly integrity?: number;
+  /** Null when carried or on the ground; otherwise this container holds it. */
+  readonly storageStructureId?: string | null;
 }
 
 /** Conserved holdings left at a location after an inhabitant dies. */

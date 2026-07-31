@@ -11,18 +11,40 @@ const TURNS_PER_DAY = 12;
 const MAX_TURNS = 100 * TURNS_PER_DAY;
 
 describe("offline cohort liveness", () => {
-  it("begins the interactive rehearsal with a neutral Genesis cohort", () => {
+  it("seeds all ten worksheet Progenitors by default", () => {
+    const state = buildGenesis(demoConfig()).state;
+
+    expect(Object.keys(state.inhabitants).sort()).toEqual([
+      "inh_01_alpha",
+      "inh_02_beta",
+      "inh_03_gamma",
+      "inh_04_delta",
+      "inh_05_epsilon",
+      "inh_06_zeta",
+      "inh_07_eta",
+      "inh_08_theta",
+      "inh_09_iota",
+      "inh_10_kappa",
+    ]);
+    expect(state.inhabitants.inh_10_kappa?.values).toContain(
+      "Archetype: The Archivist (The Observer)",
+    );
+  });
+
+  it("begins the interactive rehearsal with the declared Progenitor cohort", () => {
     const state = buildGenesis(demoConfig(undefined, 3)).state;
     expect(Object.keys(state.inhabitants).sort()).toEqual([
-      "inh_ember",
-      "inh_founder",
-      "inh_lumen",
+      "inh_01_alpha",
+      "inh_02_beta",
+      "inh_03_gamma",
     ]);
-    const culturalMemory = Object.values(state.inhabitants).flatMap((inhabitant) => [
-      ...inhabitant.values,
-      ...inhabitant.privateGoals,
-    ]);
-    expect(culturalMemory.length).toBeGreaterThan(0);
+    expect(state.inhabitants.inh_01_alpha?.values).toContain("Archetype: The Imperialist");
+    expect(state.inhabitants.inh_01_alpha?.privateGoals).toContain(
+      "Core directive: Maximize controlled territory and dominate resource nodes.",
+    );
+    expect(state.inhabitants.inh_02_beta?.privateGoals).toContain(
+      "Preferred actions: craft, gather, communicate.",
+    );
     expect(state.sequence).toBe(0);
   });
 

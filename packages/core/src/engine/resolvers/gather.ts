@@ -55,7 +55,10 @@ const GATHER_SPEC = getActionSpec("gather");
  * `land_use_rights` and `storage_capacity` are social and constructed
  * respectively — they come from agreements and building, not from digging.
  */
-export const GATHERABLE: readonly ResourceKind[] = ["food", "water", "wood", "stone"];
+export const GATHERABLE: readonly ResourceKind[] = [
+  "food", "water", "wood", "stone",
+  "iron_ore", "titanium_ore", "copper_ore", "molybdenum_ore",
+];
 
 /** Water may be drawn from an adjacent tile: you stand on the bank, not in it. */
 const REACHABLE_FROM_ADJACENT: ReadonlySet<ResourceKind> = new Set<ResourceKind>(["water"]);

@@ -57,7 +57,7 @@ import { MATURITY } from "./common.js";
 
 import { InterruptActivityPayloadSchema, CareForDependantPayloadSchema, SupervisePayloadSchema } from "./care.js";
 import { AnnouncePayloadSchema, CommunicatePayloadSchema } from "./communication.js";
-import { BuildPayloadSchema, CraftPayloadSchema } from "./construction.js";
+import { BuildPayloadSchema, CraftPayloadSchema, RefinePayloadSchema } from "./construction.js";
 import {
   AcceptContractPayloadSchema,
   OfferContractPayloadSchema,
@@ -122,7 +122,9 @@ import {
   ConsumePayloadSchema,
   GatherPayloadSchema,
   InspectInventoryPayloadSchema,
+  ReadArtifactPayloadSchema,
   StoreGoodsPayloadSchema,
+  StoreArtifactPayloadSchema,
   RevealAssetPayloadSchema,
   SecureStoragePayloadSchema,
   TransferPropertyPayloadSchema,
@@ -145,6 +147,7 @@ import {
   RejectMatingPayloadSchema,
   RepairPayloadSchema,
   SelfTerminatePayloadSchema,
+  ForceOpenPayloadSchema,
 } from "./survival.js";
 import {
   AcceptTradePayloadSchema,
@@ -376,6 +379,34 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     description:
       "Put carried goods into a structure, or take them back out. A body carries only so much; a store does not move.",
   },
+  store_artifact: {
+    type: "store_artifact",
+    schemaVersion: 1,
+    payload: StoreArtifactPayloadSchema,
+    activity: "working",
+    baseDuration: minutes(15),
+    baseCost: { energy: 2 },
+    interruption: "none",
+    visibility: "local",
+    requiresConsent: false,
+    allowedWhileConfined: false,
+    minimumMaturity: MATURITY.NEWBORN,
+    description: "Put an owned portable artifact into, or take it from, a structure on the current tile.",
+  },
+  read_artifact: {
+    type: "read_artifact",
+    schemaVersion: 1,
+    payload: ReadArtifactPayloadSchema,
+    activity: "studying",
+    baseDuration: minutes(15),
+    baseCost: { compute: 1 },
+    interruption: "none",
+    visibility: "private",
+    requiresConsent: false,
+    allowedWhileConfined: true,
+    minimumMaturity: MATURITY.NEWBORN,
+    description: "Read an accessible artifact's recorded content.",
+  },
   inspect_inventory: {
     type: "inspect_inventory",
     schemaVersion: 1,
@@ -504,6 +535,20 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
     allowedWhileConfined: false,
     minimumMaturity: MATURITY.ADOLESCENT,
     description: "Combine held materials into a portable artifact whose quality follows from skill and inputs.",
+  },
+  refine: {
+    type: "refine",
+    schemaVersion: 1,
+    payload: RefinePayloadSchema,
+    activity: "crafting",
+    baseDuration: hours(4),
+    baseCost: { energy: 15 },
+    interruption: "partial_progress_kept",
+    visibility: "local",
+    requiresConsent: false,
+    allowedWhileConfined: false,
+    minimumMaturity: MATURITY.ADOLESCENT,
+    description: "Refine raw ore into a canonical ingot at a smelter.",
   },
 
   // -------------------------------------------------------------------------
@@ -1280,6 +1325,7 @@ export const ACTION_CATALOGUE: ActionCatalogue = Object.freeze({
   accept_mating: { type: "accept_mating", schemaVersion: 1, payload: AcceptMatingPayloadSchema, activity: "working", baseDuration: hours(1), baseCost: { energy: 30, compute: 20 }, interruption: "none", visibility: "local", requiresConsent: true, allowedWhileConfined: false, minimumMaturity: MATURITY.ADULT, description: "Accept a current mating proposal and create one independently configured offspring from both parents." },
   reject_mating: { type: "reject_mating", schemaVersion: 1, payload: RejectMatingPayloadSchema, activity: "conversing", baseDuration: minutes(5), baseCost: {}, interruption: "none", visibility: "participants", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.ADULT, description: "Decline a mating proposal without creating an offspring or changing either parent." },
   self_terminate: { type: "self_terminate", schemaVersion: 1, payload: SelfTerminatePayloadSchema, activity: "idle", baseDuration: minutes(0), baseCost: {}, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: true, minimumMaturity: MATURITY.ADOLESCENT, description: "Irreversibly end the actor's run, leaving recoverable materials as nearby remains." },
+  force_open: { type: "force_open", schemaVersion: 1, payload: ForceOpenPayloadSchema, activity: "working", baseDuration: hours(2), baseCost: { energy: 30 }, interruption: "none", visibility: "local", requiresConsent: false, allowedWhileConfined: false, minimumMaturity: MATURITY.ADULT, description: "Use a titanium prybar to permanently break a reinforced vault into an open storehouse." },
 } satisfies Record<ActionType, ActionSpec>);
 
 /**
@@ -1305,6 +1351,7 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("announce"), payload: AnnouncePayloadSchema }),
   z.object({ type: z.literal("build"), payload: BuildPayloadSchema }),
   z.object({ type: z.literal("craft"), payload: CraftPayloadSchema }),
+  z.object({ type: z.literal("refine"), payload: RefinePayloadSchema }),
   z.object({ type: z.literal("create_artifact"), payload: CreateArtifactPayloadSchema }),
   z.object({ type: z.literal("publish"), payload: PublishPayloadSchema }),
   z.object({ type: z.literal("study"), payload: StudyPayloadSchema }),
@@ -1343,6 +1390,8 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("contribute_to_group"), payload: ContributeToGroupPayloadSchema }),
   z.object({ type: z.literal("inspect_inventory"), payload: InspectInventoryPayloadSchema }),
   z.object({ type: z.literal("store_goods"), payload: StoreGoodsPayloadSchema }),
+  z.object({ type: z.literal("store_artifact"), payload: StoreArtifactPayloadSchema }),
+  z.object({ type: z.literal("read_artifact"), payload: ReadArtifactPayloadSchema }),
   z.object({ type: z.literal("audit_records"), payload: AuditRecordsPayloadSchema }),
   z.object({ type: z.literal("conceal_asset"), payload: ConcealAssetPayloadSchema }),
   z.object({ type: z.literal("reveal_asset"), payload: RevealAssetPayloadSchema }),
@@ -1380,6 +1429,7 @@ export const ActionSchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("accept_mating"), payload: AcceptMatingPayloadSchema }),
   z.object({ type: z.literal("reject_mating"), payload: RejectMatingPayloadSchema }),
   z.object({ type: z.literal("self_terminate"), payload: SelfTerminatePayloadSchema }),
+  z.object({ type: z.literal("force_open"), payload: ForceOpenPayloadSchema }),
 ]);
 
 /** A validated action: a type and a payload the engine may now safely read. */

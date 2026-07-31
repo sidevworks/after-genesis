@@ -11,7 +11,7 @@ import {
   PublishPayloadSchema,
 } from "../../schema/actions/knowledge.js";
 import { CopyArtifactPayloadSchema } from "../../schema/actions/neutral.js";
-import { TransferPropertyPayloadSchema } from "../../schema/actions/resources.js";
+import { ReadArtifactPayloadSchema, TransferPropertyPayloadSchema } from "../../schema/actions/resources.js";
 import { chebyshevDistance } from "../../schema/primitives.js";
 import { derivePhysicalProcess } from "../../schema/physical-process.js";
 import { getActionSpec } from "../../schema/actions/index.js";
@@ -27,6 +27,26 @@ const CREATE = getActionSpec("create_artifact");
 const COPY = getActionSpec("copy_artifact");
 const PUBLISH = getActionSpec("publish");
 const TRANSFER = getActionSpec("transfer");
+const READ = getActionSpec("read_artifact");
+
+const readableBy = (state: Parameters<Resolver>[0]["state"], actorId: string, artifact: { owner: string | null; published: boolean; storageStructureId?: string | null }): boolean => {
+  const container = artifact.storageStructureId == null ? null : state.structures[artifact.storageStructureId];
+  if (container?.accessPolicy === "owner_only" && container.owner !== actorId) return false;
+  return artifact.published || artifact.owner === actorId;
+};
+
+export const readArtifactResolver: Resolver = (ctx, payload): ResolutionResult => {
+  const parsed = ReadArtifactPayloadSchema.safeParse(payload);
+  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "read_artifact payload is malformed");
+  const artifact = ctx.state.artifacts[parsed.data.artifactId];
+  if (artifact === undefined || !readableBy(ctx.state, ctx.actor.id, artifact)) return reject(ctx, RejectionCode.InvalidPayload, "artifact is not readable by the actor");
+  const paid = spend(ctx.actor, READ.baseCost);
+  if (paid === null) return reject(ctx, RejectionCode.InsufficientResources, "insufficient compute");
+  let next = updateInhabitant(ctx.state, ctx.actor.id, () => ({ ...paid, needs: advanceNeeds(paid.needs, READ.baseDuration, ctx.state.rules) }));
+  next = beginActivity({ state: next, sequence: ctx.sequence, activityState: READ.activity, actionType: "read_artifact", participants: [ctx.actor.id], location: ctx.actor.location, startedAt: ctx.simTime, minutes: READ.baseDuration, interruption: READ.interruption, resourceCost: READ.baseCost }).state;
+  const detail = { artifactId: artifact.id, title: artifact.title, content: artifact.content, mechanicalKind: artifact.mechanicalKind ?? null };
+  return { outcome: { status: "resolved", detail }, state: next, events: [{ type: "action.read_artifact", actor: ctx.actor.id, simTime: ctx.simTime, inputs: { artifactId: artifact.id }, resolution: detail, visibility: { kind: "private", owner: ctx.actor.id } }] };
+};
 
 export const createArtifactResolver: Resolver = (ctx, payload): ResolutionResult => {
   const parsed = CreateArtifactPayloadSchema.safeParse(payload);
@@ -130,7 +150,7 @@ export const copyArtifactResolver: Resolver = (ctx, payload): ResolutionResult =
   const source = ctx.state.artifacts[parsed.data.sourceArtifactId];
   if (
     source === undefined ||
-    (!source.published && source.owner !== ctx.actor.id) ||
+    !readableBy(ctx.state, ctx.actor.id, source) ||
     source.content.length === 0
   ) {
     return reject(ctx, RejectionCode.InvalidPayload, "source artifact is not readable by the actor");

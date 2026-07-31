@@ -63,6 +63,16 @@ export const ResourceKindSchema = z.enum([
   "titanium",
   "vanadium",
   "zinc",
+  // Canonical industrial materials. The older mineral names above remain valid
+  // world resources; these explicit ore/ingot forms are what recipe resolution
+  // consumes and produces.
+  "copper_ore",
+  "titanium_ore",
+  "molybdenum_ore",
+  "iron_ingot",
+  "titanium_ingot",
+  "copper_ingot",
+  "molybdenum_ingot",
 ]);
 export type ResourceKind = z.infer<typeof ResourceKindSchema>;
 
@@ -108,6 +118,13 @@ export const CONSERVED_RESOURCES: ReadonlySet<ResourceKind> = new Set([
   "titanium",
   "vanadium",
   "zinc",
+  "copper_ore",
+  "titanium_ore",
+  "molybdenum_ore",
+  "iron_ingot",
+  "titanium_ingot",
+  "copper_ingot",
+  "molybdenum_ingot",
 ]);
 
 /** A bundle of resources. Absent keys mean zero. */

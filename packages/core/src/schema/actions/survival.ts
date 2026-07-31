@@ -67,3 +67,8 @@ export const RejectMatingPayloadSchema = z.object({
 export const SelfTerminatePayloadSchema = z.object({
   reason: optionalText(NOTE_MAX),
 });
+
+export const ForceOpenPayloadSchema = z.object({
+  structureId: IdSchema,
+  toolArtifactId: IdSchema,
+});

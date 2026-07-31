@@ -28,7 +28,12 @@ export const NEUTRAL_CAPABILITIES = [
   "separate",
   "attach",
   "combine",
+  "refine",
+  "fabricate",
   "transfer_matter",
+  "store_artifact",
+  "read_artifact",
+  "force_open",
   "transfer_energy",
   "place",
   "use",
@@ -55,6 +60,8 @@ function normalizeTargetId(raw: string): string {
     "inhabitant:",
     "observed:structure:",
     "structure:",
+    "observed:artifact:",
+    "artifact:",
   ] as const;
 
   for (const prefix of prefixes) {
@@ -777,16 +784,18 @@ function firstTarget(attempt: NeutralModelResponse["attempt"]): string | null {
 
 function structureKindParameter(
   parameters: Record<string, unknown>,
-): "assembly" | "shelter" | "storehouse" | "workshop" | "hall" | "wall" | "enclosure" | "monument" | "road" {
+): "assembly" | "shelter" | "storehouse" | "workshop" | "smelter" | "hall" | "wall" | "enclosure" | "monument" | "road" | "reinforced_vault" {
   const value = parameters["form"];
   return value === "shelter" ||
     value === "storehouse" ||
     value === "workshop" ||
+    value === "smelter" ||
     value === "hall" ||
     value === "wall" ||
     value === "enclosure" ||
     value === "monument" ||
-    value === "road"
+    value === "road" ||
+    value === "reinforced_vault"
     ? value
     : "assembly";
 }
@@ -813,10 +822,10 @@ function requiredParameterProblem(
     case "separate": {
       const validResources = [
         "food", "water", "wood", "stone", "aluminum", "antimony", "barite",
-        "beryllium", "coal", "cobalt", "copper", "gypsum", "halite", "iron_ore",
+        "beryllium", "coal", "cobalt", "copper", "copper_ore", "gypsum", "halite", "iron_ore",
         "kaolin", "lead", "limestone", "lithium", "manganese", "molybdenum",
         "nickel", "quartz", "rare_earth_elements", "silver", "sulfur",
-        "tantalum", "titanium", "vanadium", "zinc"
+        "tantalum", "titanium", "titanium_ore", "molybdenum_ore", "vanadium", "zinc"
       ];
       const res = stringParameter(parameters, "resource");
       return res === null || !validResources.includes(res)
@@ -830,6 +839,21 @@ function requiredParameterProblem(
       }
       return objectParameter(parameters, "coord") === null
         ? `${attempt.capability} requires parameters.coord with integer fields x and y.`
+        : null;
+    case "refine":
+    case "fabricate":
+      return stringParameter(parameters, "recipe_id") === null || firstTarget(attempt) === null
+        ? `${attempt.capability} requires parameters.recipe_id and one visible structure id in target_ids.`
+        : null;
+    case "store_artifact":
+      return firstTarget(attempt) === null || stringParameter(parameters, "artifact_id") === null || (parameters["direction"] !== "deposit" && parameters["direction"] !== "withdraw")
+        ? "store_artifact requires a target structure, parameters.artifact_id and direction deposit or withdraw."
+        : null;
+    case "read_artifact":
+      return firstTarget(attempt) === null ? "read_artifact requires one visible artifact id in target_ids." : null;
+    case "force_open":
+      return firstTarget(attempt) === null || stringParameter(parameters, "tool_artifact_id") === null
+        ? "force_open requires a target reinforced vault and parameters.tool_artifact_id."
         : null;
     case "place":
       if (objectParameter(parameters, "materials") === null) {
@@ -899,6 +923,9 @@ function allowedTargetIds(allowedBasisIds: ReadonlySet<string>): ReadonlySet<str
     }
     if (basisId.startsWith("observed:structure:")) {
       out.add(basisId.slice("observed:structure:".length));
+    }
+    if (basisId.startsWith("observed:artifact:")) {
+      out.add(basisId.slice("observed:artifact:".length));
     }
   }
   return out;
@@ -996,6 +1023,36 @@ export function translateNeutralResponse(
         },
         ...audit,
       };
+    }
+    case "refine": {
+      const target = firstTarget(attempt);
+      const recipeId = stringParameter(parameters, "recipe_id");
+      if (target === null || recipeId === null) return null;
+      return { type: "refine", payload: { recipeId, structureId: target }, ...audit };
+    }
+    case "fabricate": {
+      const target = firstTarget(attempt);
+      const recipeId = stringParameter(parameters, "recipe_id");
+      if (target === null || recipeId === null) return null;
+      return { type: "craft", payload: { recipeId, itemName: recipeId, description: null, materials: {}, quantity: 1, intendedUse: "tool", structureId: target, fromArtifactId: null, collaboratorIds: [] }, ...audit };
+    }
+    case "store_artifact": {
+      const target = firstTarget(attempt);
+      const artifactId = stringParameter(parameters, "artifact_id");
+      const direction = parameters["direction"];
+      if (target === null || artifactId === null || (direction !== "deposit" && direction !== "withdraw")) return null;
+      return { type: "store_artifact", payload: { structureId: target, artifactId, direction }, ...audit };
+    }
+    case "read_artifact": {
+      const artifactId = firstTarget(attempt);
+      if (artifactId === null) return null;
+      return { type: "read_artifact", payload: { artifactId }, ...audit };
+    }
+    case "force_open": {
+      const structureId = firstTarget(attempt);
+      const toolArtifactId = stringParameter(parameters, "tool_artifact_id");
+      if (structureId === null || toolArtifactId === null) return null;
+      return { type: "force_open", payload: { structureId, toolArtifactId }, ...audit };
     }
     case "place": {
       const materials = objectParameter(parameters, "materials");

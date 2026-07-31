@@ -85,6 +85,18 @@ export const StoreGoodsPayloadSchema = z.object({
   note: optionalText(500),
 });
 
+/** Move a portable artifact into or out of a physical container. */
+export const StoreArtifactPayloadSchema = z.object({
+  structureId: IdSchema,
+  artifactId: IdSchema,
+  direction: z.enum(["deposit", "withdraw"]),
+});
+
+/** Read an artifact's recorded content, subject to its container's access policy. */
+export const ReadArtifactPayloadSchema = z.object({
+  artifactId: IdSchema,
+});
+
 /**
  * Hand property to another holder, with the owner's consent by construction.
  *

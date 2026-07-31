@@ -37,6 +37,41 @@ function build(observation: Observation) {
 }
 
 describe("prompt determinism", () => {
+  it("carries a declared Genesis character profile into cognition", () => {
+    const base = makeObservation();
+    const built = build(
+      makeObservation({
+        self: {
+          ...base.self,
+          displayName: "ALPHA",
+          values: [
+            { id: "archetype", statement: "Archetype: The Imperialist", weight: 50 },
+            { id: "dialogue", statement: "Dialogue style: Authoritative, issuing demands.", weight: 50 },
+          ],
+          privateGoals: [
+            {
+              id: "directive",
+              statement: "Core directive: Maximize controlled territory and dominate resource nodes.",
+              priority: 50,
+              tags: ["territory"],
+            },
+            {
+              id: "actions",
+              statement: "Preferred actions: move, gather, communicate.",
+              priority: 50,
+              tags: ["move"],
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(built.systemPrompt).toContain("You are ALPHA");
+    expect(built.systemPrompt).toContain("Archetype: The Imperialist");
+    expect(built.systemPrompt).toContain("Core directive: Maximize controlled territory");
+    expect(built.systemPrompt).toContain("Preferred actions: move, gather, communicate.");
+  });
+
   it("produces identical bytes across 100 runs with shuffled input ordering", () => {
     const canonical = build(makeObservation());
     const next = lcg(0xc0ffee);
@@ -258,6 +293,13 @@ describe("prompt-level containment", () => {
   it("labels reflections as beliefs rather than facts (§19)", () => {
     const built = build(makeObservation());
     expect(built.userPrompt).toContain("belief you formed (may be wrong)");
+  });
+
+  it("requires explicit physical terms for a trade offer", () => {
+    const built = build(makeObservation());
+    expect(built.systemPrompt).toContain("CRITICAL RULE FOR TRADING");
+    expect(built.systemPrompt).toContain("an offer must propose that something move");
+    expect(built.systemPrompt).toContain('"give":{"resources":{"food":2}}');
   });
 });
 

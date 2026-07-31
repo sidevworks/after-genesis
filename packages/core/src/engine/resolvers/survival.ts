@@ -13,6 +13,7 @@ import {
   DisposeRemainsPayloadSchema,
   DestroyPayloadSchema,
   FleePayloadSchema,
+  ForceOpenPayloadSchema,
   LootRemainsPayloadSchema,
   ProposeMatingPayloadSchema,
   RejectMatingPayloadSchema,
@@ -57,6 +58,32 @@ const DISPOSE = getActionSpec("dispose_remains");
 const PROPOSE = getActionSpec("propose_mating");
 const ACCEPT = getActionSpec("accept_mating");
 const REJECT = getActionSpec("reject_mating");
+const FORCE_OPEN = getActionSpec("force_open");
+
+export const forceOpenResolver: Resolver = (ctx, payload) => {
+  const parsed = ForceOpenPayloadSchema.safeParse(payload);
+  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "force_open payload is malformed");
+  const vault = ctx.state.structures[parsed.data.structureId];
+  if (vault === undefined || vault.kind !== "reinforced_vault") {
+    return reject(ctx, RejectionCode.InvalidPayload, "force_open requires a reinforced_vault");
+  }
+  if (vault.accessPolicy !== "owner_only") {
+    return reject(ctx, RejectionCode.InvalidPayload, "force_open requires a still-secured reinforced vault");
+  }
+  if (!sameTile(ctx.actor, vault)) return reject(ctx, RejectionCode.InvalidPayload, "force_open requires standing on the vault tile");
+  const tool = ctx.state.artifacts[parsed.data.toolArtifactId];
+  if (tool === undefined || tool.owner !== ctx.actor.id || tool.mechanicalKind !== "titanium_prybar" || (tool.integrity ?? 0) <= 0) {
+    return reject(ctx, RejectionCode.InvalidPayload, "force_open requires a held titanium_prybar");
+  }
+  const paid = spend(ctx.actor, FORCE_OPEN.baseCost);
+  if (paid === null) return reject(ctx, RejectionCode.InsufficientEnergy, "insufficient energy");
+  let next = updateInhabitant(ctx.state, ctx.actor.id, () => paid);
+  next = removeArtifact(next, tool.id);
+  next = { ...next, structures: { ...next.structures, [vault.id]: { ...vault, accessPolicy: "open", storagePublic: true, secured: false } } };
+  next = begin(next, ctx, FORCE_OPEN, "force_open", vault.location);
+  const detail = { structureId: vault.id, consumedToolArtifactId: tool.id, result: "open_storehouse" };
+  return { outcome: { status: "resolved", detail }, state: next, events: [event("action.force_open", ctx.actor.id, ctx.simTime, vault.location, detail)] };
+};
 
 const sameTile = (a: { location: { x: number; y: number } }, b: { location: { x: number; y: number } }) =>
   a.location.x === b.location.x && a.location.y === b.location.y;

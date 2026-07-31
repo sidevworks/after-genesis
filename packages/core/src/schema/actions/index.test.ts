@@ -35,6 +35,7 @@ const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   announce: { message: "There is stone on the eastern slope." },
   build: { structureKind: "shelter", coord: { x: 3, y: 4 }, name: "First Hut" },
   craft: { itemName: "hand axe", materials: { wood: 3, stone: 2 } },
+  refine: { recipeId: "recipe_refine_iron", structureId: "str_1" },
   create_artifact: {
     kind: "written_work",
     title: "On the Eastern Slope",
@@ -52,6 +53,8 @@ const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   reject_trade: { offerId: "off_1" },
   transfer_property: { toInhabitantId: "inh_b", resources: { food: 1 } },
   store_goods: { structureId: "str_1", direction: "deposit", resources: { food: 1 } },
+  store_artifact: { structureId: "str_1", artifactId: "art_1", direction: "deposit" },
+  read_artifact: { artifactId: "art_1" },
   transfer: { toInhabitantId: "inh_b", resources: { food: 1 } },
   copy_artifact: { sourceArtifactId: "art_1" },
   restrain: { targetId: "inh_b", structureId: "str_1", durationMinutes: 60 },
@@ -125,6 +128,7 @@ const SAMPLE_PAYLOADS: Record<ActionType, unknown> = {
   accept_mating: { proposalId: "mat_1" },
   reject_mating: { proposalId: "mat_1" },
   self_terminate: {},
+  force_open: { structureId: "str_1", toolArtifactId: "art_1" },
 };
 
 describe("ACTION_CATALOGUE", () => {
@@ -135,8 +139,8 @@ describe("ACTION_CATALOGUE", () => {
   });
 
   it("defines the legacy catalogue plus the neutral transfer capability", () => {
-    expect(ACTION_TYPES).toHaveLength(78);
-    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(78);
+    expect(ACTION_TYPES).toHaveLength(82);
+    expect(Object.keys(ACTION_CATALOGUE)).toHaveLength(82);
   });
 
   it("gives every spec a self-consistent type and a resolvable payload schema", () => {
@@ -332,6 +336,7 @@ describe("confinement (§11H)", () => {
       "propose_mating",
       "propose_rule",
       "publish",
+      "read_artifact",
       "reject_contract",
       "reject_mating",
       "reject_trade",
@@ -351,10 +356,10 @@ describe("confinement (§11H)", () => {
       "wait",
     ];
     expect([...allowed].sort()).toEqual(expected);
-    // 47 permitted, 31 restricted (neutral physical transfer, restraint and
+    // 48 permitted, 34 restricted (neutral physical transfer, restraint and
     // reaching a store all require access to property, which §11H withdraws).
-    expect(allowed.size).toBe(47);
-    expect(ACTION_TYPES.length - allowed.size).toBe(31);
+    expect(allowed.size).toBe(48);
+    expect(ACTION_TYPES.length - allowed.size).toBe(34);
   });
 });
 

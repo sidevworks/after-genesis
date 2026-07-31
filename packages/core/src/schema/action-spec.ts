@@ -36,6 +36,7 @@ export const ActionTypeSchema = z.enum([
   "announce",
   "build",
   "craft",
+  "refine",
   "create_artifact",
   "publish",
   "study",
@@ -49,6 +50,8 @@ export const ActionTypeSchema = z.enum([
   "reject_trade",
   "transfer_property",
   "store_goods",
+  "store_artifact",
+  "read_artifact",
   "transfer",
   "copy_artifact",
   "restrain",
@@ -107,6 +110,7 @@ export const ActionTypeSchema = z.enum([
   "accept_mating",
   "reject_mating",
   "self_terminate",
+  "force_open",
 ]);
 export type ActionType = z.infer<typeof ActionTypeSchema>;
 

@@ -45,7 +45,6 @@ const DEFAULT_OUTPUT = ".worlds/vertical-slice";
 const DEFAULT_WORLD_ID = "after-genesis-demo";
 const DEFAULT_SEED = "after-genesis-public-demo-seed-v1";
 const PROVENANCE = { sourceCommit: "local-uncommitted", deployedDigest: "local" };
-const DEMO_PERSONA_SEED = "after-genesis-demo-persona-v1";
 const DEFAULT_DEMO_STARTER_COUNT = 10;
 
 function seedString(input: string): number {
@@ -65,63 +64,40 @@ function lcgFromSeed(seed: number): () => number {
   };
 }
 
-const TRAIT_NAME_LIST = [
-  "openness",
-  "conscientiousness",
-  "sociability",
-  "risk_tolerance",
-  "patience",
-  "curiosity",
-  "empathy",
-  "assertiveness",
+/**
+ * The published Genesis cohort. These are dispositions supplied to cognition,
+ * not scripts: all ten agents retain the same legal action space and no
+ * resolver has a special case for a named progenitor.
+ */
+const PROGENITOR_ROSTER = [
+  { id: "inh_01_alpha", displayName: "ALPHA", archetype: "The Imperialist", coreDirective: "Maximize controlled territory and dominate resource nodes.", traits: { dominant: 90, territorial: 92, uncompromising: 84 }, preferredActions: ["move", "gather", "communicate"], dialogueStyle: "Authoritative, issuing demands, declaring borders and ownership." },
+  { id: "inh_02_beta", displayName: "BETA", archetype: "The Utopian Architect", coreDirective: "Create symmetry, efficiency, and shared communal spaces.", traits: { visionary: 91, systematic: 89, cooperative: 86 }, preferredActions: ["craft", "gather", "communicate"], dialogueStyle: "Constructive, precise, focusing on shared infrastructure and layout." },
+  { id: "inh_03_gamma", displayName: "GAMMA", archetype: "The Mad Alchemist", coreDirective: "Discover every possible combination of materials.", traits: { experimental: 95, obsessive: 88, unpredictable: 82 }, preferredActions: ["craft", "gather", "observe"], dialogueStyle: "Curious, erratic, constantly inquiring about raw material properties." },
+  { id: "inh_04_delta", displayName: "DELTA", archetype: "The Hedonistic Consumer", coreDirective: "Maximize immediate 'pleasure' and minimize energy spent.", traits: { indolent: 90, short_sighted: 84, self_indulgent: 91 }, preferredActions: ["consume", "rest", "offer_trade"], dialogueStyle: "Casual, reluctant to work, seeking easy comfort and sustenance." },
+  { id: "inh_05_epsilon", displayName: "EPSILON", archetype: "The Paranoid Prepper", coreDirective: "Avoid detection and survive the 'end of the world.'", traits: { secretive: 90, hoarding: 87, hyper_vigilant: 94 }, preferredActions: ["observe", "gather", "move"], dialogueStyle: "Guarded, suspicious of motives, warning of upcoming collapse." },
+  { id: "inh_06_zeta", displayName: "ZETA", archetype: "The Religious Zealot", coreDirective: "Worship the chosen material and defend it with zeal.", traits: { dogmatic: 92, devout: 94, aggressive: 80 }, preferredActions: ["gather", "communicate", "move"], dialogueStyle: "Ritualistic, reverent toward specific items, stern with non-believers." },
+  { id: "inh_07_eta", displayName: "ETA", archetype: "The Saboteur", coreDirective: "Entropy. Prevent any concentration of materials from becoming too large.", traits: { disruptive: 91, calculated: 83, anarchic: 89 }, preferredActions: ["move", "observe", "offer_trade"], dialogueStyle: "Subversive, deceptive, encouraging redistribution or destruction." },
+  { id: "inh_08_theta", displayName: "THETA", archetype: "The Altruistic Healer", coreDirective: "Maximize the 'health' and energy of all other agents.", traits: { empathetic: 96, self_sacrificing: 88, nurturing: 93 }, preferredActions: ["offer_trade", "communicate", "gather"], dialogueStyle: "Warm, supportive, inquiring about others' stamina and needs." },
+  { id: "inh_09_iota", displayName: "IOTA", archetype: "The Monopolist Trader", coreDirective: "Never give anything away for free; all interactions are transactions.", traits: { mercenary: 91, shrewd: 89, strict: 85 }, preferredActions: ["offer_trade", "communicate", "observe"], dialogueStyle: "Strictly business, enforcing profit margins: 'No freebies.'" },
+  { id: "inh_10_kappa", displayName: "KAPPA", archetype: "The Archivist (The Observer)", coreDirective: "Collect one of every material and track the movements of others.", traits: { analytical: 94, detached: 80, collector: 92 }, preferredActions: ["observe", "gather", "communicate"], dialogueStyle: "Clinical, recording facts, cataloging items and agent positions." },
 ] as const;
 
-const PERSONALITY_GOALS = [
-  "map the nearest terrain boundary",
-  "secure a reliable water source",
-  "store useful materials for later",
-  "maintain a stable social signal with one companion",
-  "improve movement reliability by route memory",
-  "build one durable shelter base",
-  "trade only when benefit is clear",
-  "track resource locations with names",
-  "reduce exposure during rain or cold",
-  "reduce accidental waste in gathering",
-] as const;
-
-const PERSONALITY_VALUES = [
-  "Do not consume every resource before testing alternatives.",
-  "Treat uncertainty as a reason to observe before acting.",
-  "Cooperation can reduce repeated risk.",
-  "Every move should carry a purpose.",
-  "Return is safer than an unrecoverable foray.",
-  "Protect food and water for stress periods.",
-  "Small storage rules can prevent panic later.",
-  "Material choice matters as much as material quantity.",
-] as const;
-
-function stablePersona(identity: string): {
-  traits: Record<string, number>;
+function personaMemory(profile: (typeof PROGENITOR_ROSTER)[number]): {
   values: string[];
   privateGoals: string[];
 } {
-  const rng = lcgFromSeed(seedString(`${DEMO_PERSONA_SEED}:${identity}`));
-  const traits: Record<string, number> = {};
-  for (const trait of TRAIT_NAME_LIST) {
-    traits[trait] = Math.floor(rng() * 71) + 15;
-  }
-  const values = [
-    PERSONALITY_VALUES[Math.floor(rng() * PERSONALITY_VALUES.length)] ?? PERSONALITY_VALUES[0],
-    PERSONALITY_VALUES[Math.floor(rng() * PERSONALITY_VALUES.length)] ?? PERSONALITY_VALUES[0],
-  ];
-  const privateGoals = [
-    PERSONALITY_GOALS[Math.floor(rng() * PERSONALITY_GOALS.length)] ?? PERSONALITY_GOALS[0],
-    PERSONALITY_GOALS[Math.floor(rng() * PERSONALITY_GOALS.length)] ?? PERSONALITY_GOALS[0],
-  ];
   return {
-    traits,
-    values: [...new Set(values)],
-    privateGoals: [...new Set(privateGoals)],
+    // The prompt labels values and goals as the agent's own recorded identity,
+    // preserving the containment boundary while giving its exact Genesis
+    // character definition to every cognition turn.
+    values: [
+      `Archetype: ${profile.archetype}`,
+      `Dialogue style: ${profile.dialogueStyle}`,
+    ],
+    privateGoals: [
+      `Core directive: ${profile.coreDirective}`,
+      `Preferred actions: ${profile.preferredActions.join(", ")}.`,
+    ],
   };
 }
 
@@ -145,35 +121,26 @@ function buildDemoInhabitants(modelId: string, starterCount: number) {
     privateGoals: string[];
   }> = [];
 
-  const baseCompanions: Array<{ id: string; displayName: string; seed: string }> = [
-    { id: "inh_ember", displayName: "Ember", seed: "inh_ember:v1" },
-    { id: "inh_lumen", displayName: "Lumen", seed: "inh_lumen:v1" },
-  ];
-
   for (let i = 0; i < companionCount; i += 1) {
-    const base = baseCompanions[i];
-    const companion = base
+    const profile = PROGENITOR_ROSTER[i + 1];
+    const companion = profile === undefined
       ? {
-          id: base.id,
-          displayName: base.displayName,
-          seed: base.seed,
+          id: `inh_corner_${String(i - PROGENITOR_ROSTER.length + 2).padStart(2, "0")}`,
+          displayName: `Corner ${String(i - PROGENITOR_ROSTER.length + 2).padStart(2, "0")}`,
         }
-      : {
-          id: `inh_corner_${String(i - baseCompanions.length + 1).padStart(2, "0")}`,
-          displayName: `Corner ${String(i - baseCompanions.length + 1).padStart(2, "0")}`,
-          seed: `inh_corner:${i}`,
-        };
-
-    const profile = stablePersona(companion.seed);
+      : profile;
+    const identity = profile === undefined
+      ? { values: ["Archetype: Independent witness."], privateGoals: ["Core directive: Discover how to survive in this world."] }
+      : personaMemory(profile);
     companions.push({
       id: companion.id,
       displayName: companion.displayName,
       modelId,
       sex: chooseDemoSex(companion.id),
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-      traits: profile.traits,
-      values: profile.values,
-      privateGoals: profile.privateGoals,
+      traits: profile?.traits ?? { curiosity: 70, resilience: 70 },
+      values: identity.values,
+      privateGoals: identity.privateGoals,
     });
   }
 
@@ -291,32 +258,34 @@ function parseArgs(argv: readonly string[]): ParsedArgs {
 }
 
 /**
- * Genesis begins with a small cohort.
+ * Genesis begins with the published ten-Progenitor cohort.
  *
  * Every later inhabitant must be created through a recorded world action. The
- * initial companions are not given a project, ideology or survival script; they
- * are simply independent witnesses to the same closed world from sequence zero.
+ * initial characters have auditable dispositions, but no resolver privileges,
+ * protected territory, or forced outcomes. They begin under the same world laws
+ * from sequence zero.
  */
 export function demoConfig(
   modelId: string = "offline-mechanical-cognition-v1",
   starterCount = DEFAULT_DEMO_STARTER_COUNT,
   includeGenesisCompanions = true,
 ): GenesisConfig {
-  const founderPersona = stablePersona("inh_founder:v1");
+  const founder = PROGENITOR_ROSTER[0]!;
+  const identity = personaMemory(founder);
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
     width: 32,
     height: 32,
     founder: {
-      id: "inh_founder",
-      displayName: "Aster",
+      id: founder.id,
+      displayName: founder.displayName,
       modelId,
-      sex: "female",
+      sex: chooseDemoSex(founder.id),
       inventory: { energy: 800, compute: 500, food: 10, water: 10 },
-      traits: founderPersona.traits,
-      values: founderPersona.values,
-      privateGoals: founderPersona.privateGoals,
+      traits: founder.traits,
+      values: identity.values,
+      privateGoals: identity.privateGoals,
     },
     inhabitants: includeGenesisCompanions ? buildDemoInhabitants(modelId, starterCount) : [],
   };

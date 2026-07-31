@@ -158,6 +158,8 @@ function structure(s: Structure): Normal {
     ownershipPublic: s.ownershipPublic,
     storagePublic: s.storagePublic,
     secured: s.secured,
+    accessPolicy: s.accessPolicy ?? "open",
+    storedArtifactIds: sortedCopy(s.storedArtifactIds ?? []),
     occupants: sortedCopy(s.occupants),
     createdSequence: s.createdSequence,
     createdAt: s.createdAt,
@@ -181,6 +183,9 @@ function artifact(a: Artifact): Normal {
     location: a.location === null ? null : { x: a.location.x, y: a.location.y },
     createdSequence: a.createdSequence,
     createdAt: a.createdAt,
+    mechanicalKind: a.mechanicalKind ?? null,
+    integrity: a.integrity ?? 100,
+    storageStructureId: a.storageStructureId ?? null,
   };
 }
 

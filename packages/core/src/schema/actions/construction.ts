@@ -41,6 +41,8 @@ export const BuildPayloadSchema = z.object({
     "enclosure",
     "monument",
     "road",
+    "smelter",
+    "reinforced_vault",
   ]),
   coord: CoordSchema,
   name: requiredText(NAME_MAX),
@@ -65,6 +67,8 @@ export const BuildPayloadSchema = z.object({
  * controlled probability, not on persuasive naming).
  */
 export const CraftPayloadSchema = z.object({
+  /** A canonical recipe. Omit only for non-mechanical expressive artifacts. */
+  recipeId: z.string().max(NAME_MAX).nullable().default(null),
   itemName: requiredText(NAME_MAX),
   description: optionalText(STATEMENT_MAX),
   materials: PayloadBundleSchema,
@@ -77,4 +81,15 @@ export const CraftPayloadSchema = z.object({
   /** A design or research note being followed, which may raise the ceiling on quality. */
   fromArtifactId: OptionalIdSchema,
   collaboratorIds: idList(MAX_SMALL_LIST),
+});
+
+/** Convert a declared raw ore into an ingot at an existing smelter. */
+export const RefinePayloadSchema = z.object({
+  recipeId: z.enum([
+    "recipe_refine_iron",
+    "recipe_refine_titanium",
+    "recipe_refine_copper",
+    "recipe_refine_molybdenum",
+  ]),
+  structureId: OptionalIdSchema,
 });

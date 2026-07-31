@@ -80,6 +80,8 @@ export const StructureSchema = z.object({
   storedArtifactIds: z.array(EntityIdSchema).max(256).default([]),
   /** Whether the stored contents are observable from outside (§11E). */
   contentsObservable: z.boolean().default(true),
+  /** A reinforced vault starts owner-only until a force-open event breaks it. */
+  accessPolicy: z.enum(["open", "owner_only"]).default("open"),
 
   /** How many inhabitants can shelter or work here at once. */
   occupantCapacity: z.number().int().nonnegative().max(256).default(0),

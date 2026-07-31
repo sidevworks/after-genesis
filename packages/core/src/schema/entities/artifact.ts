@@ -111,6 +111,7 @@ export const ArtifactSchema = z.object({
   /** §12: provenance. */
   derivedFromArtifactIds: z.array(EntityIdSchema).max(16).default([]),
   producedByStructureId: EntityIdSchema.nullable().default(null),
+  storageStructureId: EntityIdSchema.nullable().default(null),
   organisationId: EntityIdSchema.nullable().default(null),
 
   /** §12: revision history. */
@@ -130,6 +131,8 @@ export const ArtifactSchema = z.object({
   quality: z.number().int().min(0).max(100).default(0),
   /** Wear. A tool at 0 integrity no longer functions but still exists as a record. */
   integrity: z.number().int().min(0).max(100).default(100),
+  /** Engine-assigned mechanical affordance; descriptions cannot create one. */
+  mechanicalKind: z.enum(["titanium_prybar"]).nullable().default(null),
 
   /**
    * Preserved after its creators die (§8: "Death must never delete history").

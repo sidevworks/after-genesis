@@ -92,7 +92,7 @@ const expectClean = (state: WorldState): void => {
 
 describe("resolver registry", () => {
   it("registers a resolver for every declared action type", () => {
-    expect(ACTION_TYPES).toHaveLength(78);
+    expect(ACTION_TYPES).toHaveLength(82);
     for (const type of ACTION_TYPES) {
       expect(typeof RESOLVERS[type]).toBe("function");
     }
@@ -119,9 +119,12 @@ describe("resolver registry", () => {
         "dismantle",
         "dispose_remains",
         "flee",
+        "force_open",
         "build",
+        "craft",
         "gather",
         "store_goods",
+        "store_artifact",
         "guard_location",
         "invite_member",
         "join_organisation",
@@ -133,10 +136,12 @@ describe("resolver registry", () => {
         "propose_mating",
         "propose_rule",
         "publish",
+        "refine",
         "reject_mating",
         "reject_trade",
         "release",
         "repair",
+        "read_artifact",
         "rest",
         "restrain",
         "self_terminate",
@@ -160,7 +165,7 @@ describe("resolver registry", () => {
     const unimplemented = ACTION_TYPES.filter(
       (t) => !IMPLEMENTED_ACTIONS.includes(t) && t !== "transfer",
     );
-    expect(unimplemented).toHaveLength(35);
+    expect(unimplemented).toHaveLength(34);
 
     for (const type of unimplemented) {
       expect(RESOLVERS[type]).toBe(notYetImplemented);
@@ -216,6 +221,121 @@ describe("resolver registry", () => {
     const { memories: _beforeMemories, sequence: _beforeSequence, ...physicalBefore } = before;
     expect(canonicalJson(physicalAfter)).toBe(canonicalJson(physicalBefore));
     expect(Object.values(memories)[0]?.summary).toContain("build payload is malformed");
+  });
+});
+
+describe("canonical industrial recipes and vault security", () => {
+  const structure = (id: string, kind: string, location: { x: number; y: number }, owner: string | null = "inh_founder") => ({
+    id,
+    kind,
+    location,
+    owner,
+    ownerOrganisation: null,
+    integrity: 100,
+    capacity: 100,
+    storage: {},
+    ownershipPublic: true,
+    storagePublic: false,
+    secured: kind === "reinforced_vault",
+    accessPolicy: kind === "reinforced_vault" ? "owner_only" as const : "open" as const,
+    occupants: [],
+    createdSequence: 0,
+    createdAt: simTime(0),
+  });
+
+  it("smelts only the registry input bundle at a same-tile smelter", () => {
+    let state = world();
+    const founder = founderOf(state);
+    state = putStructure(state, structure("str_smelter", "smelter", founder.location));
+    state = updateInhabitant(state, founder.id, (inhabitant) => ({
+      ...inhabitant,
+      inventory: { ...inhabitant.inventory, iron_ore: 2, wood: 1 },
+    }));
+
+    const result = act(state, "refine", { recipeId: "recipe_refine_iron", structureId: "str_smelter" });
+    expect(result.outcome.status).toBe("resolved");
+    expect(result.state.inhabitants[founder.id]?.inventory.iron_ingot).toBe(1);
+    expect(result.state.inhabitants[founder.id]?.inventory.iron_ore ?? 0).toBe(0);
+  });
+
+  it("allows an agent to mine a declared raw ore from a finite deposit", () => {
+    let state = world();
+    const founder = founderOf(state);
+    state = setDeposit(state, founder.location, { iron_ore: 8 });
+    const result = act(state, "gather", { resource: "iron_ore" });
+    expect(result.outcome.status).toBe("resolved");
+    expect(result.state.inhabitants[founder.id]?.inventory.iron_ore).toBeGreaterThan(0);
+    expect(result.state.deposits[`${founder.location.x},${founder.location.y}`]?.iron_ore).toBeLessThan(8);
+  });
+
+  it("creates a prybar only through its canonical workshop recipe", () => {
+    let state = world();
+    const founder = founderOf(state);
+    state = putStructure(state, structure("str_workshop", "workshop", founder.location));
+    state = updateInhabitant(state, founder.id, (inhabitant) => ({
+      ...inhabitant,
+      inventory: { ...inhabitant.inventory, titanium_ingot: 2, wood: 1 },
+    }));
+    const result = act(state, "craft", {
+      recipeId: "recipe_craft_prybar",
+      itemName: "ignored-by-engine",
+      materials: {},
+      structureId: "str_workshop",
+    });
+    expect(result.outcome.status).toBe("resolved");
+    const created = Object.values(result.state.artifacts).find((artifact) => artifact.mechanicalKind === "titanium_prybar");
+    expect(created?.integrity).toBe(100);
+  });
+
+  it("requires a real mechanical prybar to open a vault and consumes it", () => {
+    let state = world();
+    const founder = founderOf(state);
+    state = putStructure(state, structure("str_vault", "reinforced_vault", founder.location, "inh_other"));
+    state = putArtifact(state, {
+      id: "art_fake",
+      title: "titanium_prybar",
+      kind: "tool",
+      creators: [founder.id],
+      owner: founder.id,
+      ownerOrganisation: null,
+      contentRef: "",
+      content: "",
+      published: false,
+      provenance: [founder.id],
+      revision: 0,
+      location: founder.location,
+      createdSequence: 0,
+      createdAt: simTime(0),
+    });
+    expect(act(state, "force_open", { structureId: "str_vault", toolArtifactId: "art_fake" }).outcome.status).toBe("rejected");
+
+    state = putArtifact(state, {
+      ...state.artifacts.art_fake!,
+      id: "art_prybar",
+      mechanicalKind: "titanium_prybar",
+      integrity: 100,
+    });
+    const result = act(state, "force_open", { structureId: "str_vault", toolArtifactId: "art_prybar" });
+    expect(result.outcome.status).toBe("resolved");
+    expect(result.state.artifacts.art_prybar).toBeUndefined();
+    expect(result.state.structures.str_vault?.accessPolicy).toBe("open");
+    expect(result.state.structures.str_vault?.owner).toBe("inh_other");
+  });
+
+  it("enforces owner-only vault storage and reading before a breach", () => {
+    let state = world();
+    const founder = founderOf(state);
+    state = putStructure(state, structure("str_vault", "reinforced_vault", founder.location, "inh_other"));
+    expect(act(state, "store_goods", { structureId: "str_vault", direction: "deposit", resources: { food: 1 } }).outcome.status).toBe("rejected");
+    state = putArtifact(state, {
+      id: "art_private",
+      title: "Private record",
+      kind: "written_work",
+      creators: [founder.id], owner: founder.id, ownerOrganisation: null,
+      contentRef: "", content: "secret", published: false, provenance: [founder.id], revision: 0,
+      location: null, storageStructureId: "str_vault", createdSequence: 0, createdAt: simTime(0),
+    });
+    expect(act(state, "read_artifact", { artifactId: "art_private" }).outcome.status).toBe("rejected");
   });
 });
 

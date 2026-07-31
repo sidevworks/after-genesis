@@ -1,9 +1,11 @@
 /** Neutral construction and guarding. */
-import { deriveStructureId } from "../../ids.js";
+import { deriveArtifactId, deriveStructureId } from "../../ids.js";
 import { BuildPayloadSchema } from "../../schema/actions/construction.js";
-import { StoreGoodsPayloadSchema } from "../../schema/actions/resources.js";
+import { CraftPayloadSchema, RefinePayloadSchema } from "../../schema/actions/construction.js";
+import { StoreArtifactPayloadSchema, StoreGoodsPayloadSchema } from "../../schema/actions/resources.js";
 import { GuardLocationPayloadSchema } from "../../schema/actions/security.js";
 import { getActionSpec } from "../../schema/actions/index.js";
+import { recipeById } from "../../schema/recipes.js";
 import { addBundles, bundleTotal, chebyshevDistance, subtractBundles } from "../../schema/primitives.js";
 import type { ResourceBundle } from "../../schema/primitives.js";
 import { derivePhysicalProcess } from "../../schema/physical-process.js";
@@ -11,6 +13,8 @@ import {
   normaliseBundle,
   putStructure,
   recordDestroyed,
+  putArtifact,
+  recordCreated,
   terrainAt,
   updateInhabitant,
   type Inhabitant,
@@ -26,6 +30,9 @@ import {
 import { RejectionCode, reject, type ResolutionResult, type Resolver } from "./types.js";
 
 const BUILD = getActionSpec("build");
+const CRAFT = getActionSpec("craft");
+const REFINE = getActionSpec("refine");
+const STORE_ARTIFACT = getActionSpec("store_artifact");
 const GUARD = getActionSpec("guard_location");
 
 /**
@@ -49,6 +56,8 @@ const STORAGE_PER_MATERIAL: Readonly<Record<string, number>> = {
   monument: 0,
   wall: 0,
   road: 0,
+  smelter: 4,
+  reinforced_vault: 60,
 };
 
 const MAX_STRUCTURE_CAPACITY = 4000;
@@ -65,6 +74,7 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     return reject(ctx, RejectionCode.InvalidPayload, "build payload is malformed");
   }
   const input = parsed.data;
+  const vaultRecipe = input.structureKind === "reinforced_vault" ? recipeById("recipe_build_vault") : null;
   if (
     input.collaboratorIds.length > 0 ||
     input.organisationId != null ||
@@ -93,6 +103,12 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     return reject(ctx, RejectionCode.InvalidPayload, "a structure already occupies that location");
   }
   const afterEffort = spend(ctx.actor, BUILD.baseCost);
+  if (vaultRecipe !== null && !sameBundle(input.materials, vaultRecipe.inputs)) {
+    return reject(ctx, RejectionCode.InvalidPayload, "a reinforced vault must use the canonical recipe_build_vault materials");
+  }
+  if (vaultRecipe !== null && !hasRequiredStructure(ctx.state, ctx.actor.id, "workshop")) {
+    return reject(ctx, RejectionCode.InvalidPayload, "a reinforced vault requires access to a workshop on the actor's tile");
+  }
   const paid = afterEffort === null ? null : spend(afterEffort, input.materials);
   if (paid === null || bundleTotal(input.materials) < 1) {
     return reject(ctx, RejectionCode.InsufficientResources, "building requires held materials");
@@ -120,9 +136,10 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     // which made every structure in the world too small to be worth walking to.
     capacity: storageCapacityFor(input.structureKind, bundleTotal(input.materials)),
     storage: {},
-    ownershipPublic: true,
+    ownershipPublic: input.structureKind !== "reinforced_vault",
     storagePublic: false,
-    secured: input.structureKind === "enclosure" || input.structureKind === "wall",
+    secured: input.structureKind === "enclosure" || input.structureKind === "wall" || input.structureKind === "reinforced_vault",
+    accessPolicy: input.structureKind === "reinforced_vault" ? "owner_only" : "open",
     occupants: [],
     createdSequence: ctx.sequence,
     createdAt: ctx.simTime,
@@ -176,6 +193,71 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     }],
   };
 };
+
+/** Resolve a canonical recipe, never a model-supplied materials list. */
+export const refineResolver: Resolver = (ctx, payload): ResolutionResult => {
+  const parsed = RefinePayloadSchema.safeParse(payload);
+  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "refine payload is malformed");
+  const recipe = recipeById(parsed.data.recipeId);
+  if (recipe === null || recipe.action !== "refine" || recipe.output.kind !== "resource") {
+    return reject(ctx, RejectionCode.InvalidPayload, "unknown refining recipe");
+  }
+  const smelter = ctx.state.structures[parsed.data.structureId ?? ""];
+  if (smelter === undefined || smelter.kind !== recipe.requiredStructure || !sameTile(ctx.actor, smelter)) {
+    return reject(ctx, RejectionCode.InvalidPayload, "refining requires standing on a smelter");
+  }
+  const afterEffort = spend(ctx.actor, REFINE.baseCost);
+  const paid = afterEffort === null ? null : spend(afterEffort, recipe.inputs);
+  if (paid === null) return reject(ctx, RejectionCode.InsufficientResources, "insufficient energy or recipe materials");
+  const gained = receive(paid, { [recipe.output.item]: recipe.output.quantity });
+  if (carriedTotal(gained.inventory) > ctx.state.rules.carryCapacity) {
+    return reject(ctx, RejectionCode.InsufficientResources, "the refined ingot will not fit in the actor's pack");
+  }
+  let next = updateInhabitant(ctx.state, ctx.actor.id, () => ({ ...gained, needs: advanceNeeds(gained.needs, REFINE.baseDuration, ctx.state.rules) }));
+  next = recordDestroyed(next, recipe.inputs);
+  next = recordCreated(next, { [recipe.output.item]: recipe.output.quantity });
+  next = beginActivity({ state: next, sequence: ctx.sequence, activityState: REFINE.activity, actionType: "refine", participants: [ctx.actor.id], location: smelter.location, startedAt: ctx.simTime, minutes: REFINE.baseDuration, interruption: REFINE.interruption, resourceCost: { ...REFINE.baseCost, ...recipe.inputs } }).state;
+  const detail = { recipeId: recipe.id, structureId: smelter.id, output: recipe.output };
+  return { outcome: { status: "resolved", detail }, state: next, events: [{ type: "action.refine", actor: ctx.actor.id, simTime: ctx.simTime, inputs: { recipeId: recipe.id, structureId: smelter.id }, resolution: detail, visibility: { kind: "local", x: smelter.location.x, y: smelter.location.y } }] };
+};
+
+export const craftResolver: Resolver = (ctx, payload): ResolutionResult => {
+  const parsed = CraftPayloadSchema.safeParse(payload);
+  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "craft payload is malformed");
+  const input = parsed.data;
+  const recipe = input.recipeId === null ? null : recipeById(input.recipeId);
+  if (recipe === null || recipe.action !== "craft" || recipe.output.kind !== "artifact") {
+    return reject(ctx, RejectionCode.InvalidPayload, "crafting a mechanical item requires a canonical recipe");
+  }
+  const workshop = ctx.state.structures[input.structureId ?? ""];
+  if (workshop === undefined || workshop.kind !== recipe.requiredStructure || !sameTile(ctx.actor, workshop)) {
+    return reject(ctx, RejectionCode.InvalidPayload, "this recipe requires standing on a workshop");
+  }
+  const afterEffort = spend(ctx.actor, CRAFT.baseCost);
+  const paid = afterEffort === null ? null : spend(afterEffort, recipe.inputs);
+  if (paid === null) return reject(ctx, RejectionCode.InsufficientResources, "insufficient energy or recipe materials");
+  const id = deriveArtifactId(ctx.state.worldId, ctx.sequence);
+  let next = updateInhabitant(ctx.state, ctx.actor.id, () => ({ ...paid, needs: advanceNeeds(paid.needs, CRAFT.baseDuration, ctx.state.rules) }));
+  next = recordDestroyed(next, recipe.inputs);
+  next = putArtifact(next, { id, title: recipe.output.mechanicalKind, kind: "tool", creators: [ctx.actor.id], owner: ctx.actor.id, ownerOrganisation: null, contentRef: "", content: "", published: false, provenance: [ctx.actor.id], revision: 0, location: { ...ctx.actor.location }, createdSequence: ctx.sequence, createdAt: ctx.simTime, mechanicalKind: recipe.output.mechanicalKind, integrity: recipe.output.durability });
+  next = beginActivity({ state: next, sequence: ctx.sequence, activityState: CRAFT.activity, actionType: "craft", participants: [ctx.actor.id], location: workshop.location, startedAt: ctx.simTime, minutes: CRAFT.baseDuration, interruption: CRAFT.interruption, resourceCost: { ...CRAFT.baseCost, ...recipe.inputs } }).state;
+  const detail = { recipeId: recipe.id, artifactId: id, mechanicalKind: recipe.output.mechanicalKind, durability: recipe.output.durability };
+  return { outcome: { status: "resolved", detail }, state: next, events: [{ type: "action.craft", actor: ctx.actor.id, simTime: ctx.simTime, inputs: { recipeId: recipe.id, structureId: workshop.id }, resolution: detail, visibility: { kind: "local", x: workshop.location.x, y: workshop.location.y } }] };
+};
+
+function sameBundle(a: ResourceBundle, b: ResourceBundle): boolean {
+  const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+  return [...keys].every((key) => (a[key as keyof ResourceBundle] ?? 0) === (b[key as keyof ResourceBundle] ?? 0));
+}
+
+function sameTile(a: { location: { x: number; y: number } }, b: { location: { x: number; y: number } }): boolean {
+  return a.location.x === b.location.x && a.location.y === b.location.y;
+}
+
+function hasRequiredStructure(state: Parameters<Resolver>[0]["state"], actorId: string, kind: string): boolean {
+  const actor = state.inhabitants[actorId];
+  return actor !== undefined && Object.values(state.structures).some((structure) => structure.kind === kind && sameTile(actor, structure));
+}
 
 export const guardLocationResolver: Resolver = (ctx, payload): ResolutionResult => {
   const parsed = GuardLocationPayloadSchema.safeParse(payload);
@@ -278,6 +360,9 @@ export const storeGoodsResolver: Resolver = (ctx, payload): ResolutionResult => 
   if (structure.integrity <= 0) {
     return reject(ctx, RejectionCode.InvalidPayload, "the structure is ruined and holds nothing");
   }
+  if (structure.accessPolicy === "owner_only" && structure.owner !== actor.id) {
+    return reject(ctx, RejectionCode.InvalidPayload, "only the reinforced vault's builder may access its storage");
+  }
 
   // Only conserved goods. Energy and compute are capacities of a body and
   // cannot be poured into a building.
@@ -373,4 +458,28 @@ export const storeGoodsResolver: Resolver = (ctx, payload): ResolutionResult => 
       },
     ],
   };
+};
+
+export const storeArtifactResolver: Resolver = (ctx, payload): ResolutionResult => {
+  const parsed = StoreArtifactPayloadSchema.safeParse(payload);
+  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "store_artifact payload is malformed");
+  const input = parsed.data;
+  const structure = ctx.state.structures[input.structureId];
+  const artifact = ctx.state.artifacts[input.artifactId];
+  if (structure === undefined || artifact === undefined) return reject(ctx, RejectionCode.InvalidPayload, "the named structure or artifact does not exist");
+  if (!sameTile(ctx.actor, structure)) return reject(ctx, RejectionCode.InvalidPayload, "a container can only be reached from its tile");
+  if (structure.accessPolicy === "owner_only" && structure.owner !== ctx.actor.id) return reject(ctx, RejectionCode.InvalidPayload, "only the vault builder may access this container");
+  if (artifact.owner !== ctx.actor.id) return reject(ctx, RejectionCode.InvalidPayload, "only the artifact owner may store or withdraw it");
+  if (input.direction === "deposit" && artifact.storageStructureId != null) return reject(ctx, RejectionCode.InvalidPayload, "the artifact is already stored elsewhere");
+  if (input.direction === "withdraw" && artifact.storageStructureId !== structure.id) return reject(ctx, RejectionCode.InvalidPayload, "the artifact is not stored in this structure");
+  const paid = spend(ctx.actor, STORE_ARTIFACT.baseCost);
+  if (paid === null) return reject(ctx, RejectionCode.InsufficientEnergy, "insufficient energy");
+  const stored = new Set(structure.storedArtifactIds ?? []);
+  if (input.direction === "deposit") stored.add(artifact.id); else stored.delete(artifact.id);
+  let next = updateInhabitant(ctx.state, ctx.actor.id, () => ({ ...paid, needs: advanceNeeds(paid.needs, STORE_ARTIFACT.baseDuration, ctx.state.rules) }));
+  next = putStructure(next, { ...structure, storedArtifactIds: [...stored].sort() });
+  next = putArtifact(next, { ...artifact, storageStructureId: input.direction === "deposit" ? structure.id : null, location: input.direction === "deposit" ? null : { ...ctx.actor.location } });
+  next = beginActivity({ state: next, sequence: ctx.sequence, activityState: STORE_ARTIFACT.activity, actionType: "store_artifact", participants: [ctx.actor.id], location: structure.location, startedAt: ctx.simTime, minutes: STORE_ARTIFACT.baseDuration, interruption: STORE_ARTIFACT.interruption, resourceCost: STORE_ARTIFACT.baseCost }).state;
+  const detail = { structureId: structure.id, artifactId: artifact.id, direction: input.direction };
+  return { outcome: { status: "resolved", detail }, state: next, events: [{ type: "action.store_artifact", actor: ctx.actor.id, simTime: ctx.simTime, inputs: detail, resolution: detail, visibility: { kind: "local", x: structure.location.x, y: structure.location.y } }] };
 };

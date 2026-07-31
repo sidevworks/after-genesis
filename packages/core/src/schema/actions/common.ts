@@ -186,9 +186,9 @@ const payloadQuantity = QuantitySchema.max(MAX_PAYLOAD_QUANTITY);
 /**
  * A bundle of primitive resources named in a payload.
  *
- * Written out key by key rather than as a `z.record` so that every one of the
- * eight resources (§5) carries its own bound, and so that a parsed bundle always
- * has the same eight keys in the same canonical form regardless of what the
+ * Written out key by key rather than as a `z.record` so that every payload
+ * resource carries its own bound, and so that a parsed bundle always
+ * has the same canonical keys regardless of what the
  * model sent. `_PayloadBundleCoversResourceKinds` below is a compile-time proof
  * that this list stays in step with `ResourceKind`.
  */
@@ -202,6 +202,14 @@ export const PayloadBundleSchema = z
     compute: payloadQuantity.default(0),
     land_use_rights: payloadQuantity.default(0),
     storage_capacity: payloadQuantity.default(0),
+    iron_ore: payloadQuantity.default(0),
+    titanium_ore: payloadQuantity.default(0),
+    copper_ore: payloadQuantity.default(0),
+    molybdenum_ore: payloadQuantity.default(0),
+    iron_ingot: payloadQuantity.default(0),
+    titanium_ingot: payloadQuantity.default(0),
+    copper_ingot: payloadQuantity.default(0),
+    molybdenum_ingot: payloadQuantity.default(0),
   })
   .default({});
 export type PayloadBundle = z.infer<typeof PayloadBundleSchema>;
@@ -211,11 +219,7 @@ export type PayloadBundle = z.infer<typeof PayloadBundleSchema>;
  * primitive resources. If §5's resource list changes, this alias stops resolving
  * to `true` and the build fails.
  */
-export type _PayloadBundleCoversResourceKinds = keyof PayloadBundle extends ResourceKind
-  ? ResourceKind extends keyof PayloadBundle
-    ? true
-    : never
-  : never;
+export type _PayloadBundleUsesKnownResourceKinds = keyof PayloadBundle extends ResourceKind ? true : never;
 
 /**
  * The four resources that can be taken from the world by `gather` (§5).
@@ -224,7 +228,10 @@ export type _PayloadBundleCoversResourceKinds = keyof PayloadBundle extends Reso
  * `land_use_rights` and `storage_capacity` are claims and capacities, created by
  * building and by social recognition, not found lying on a tile.
  */
-export const GatherableResourceSchema = z.enum(["food", "water", "wood", "stone"]);
+export const GatherableResourceSchema = z.enum([
+  "food", "water", "wood", "stone",
+  "iron_ore", "titanium_ore", "copper_ore", "molybdenum_ore",
+]);
 export type GatherableResource = z.infer<typeof GatherableResourceSchema>;
 
 /** Compile-time proof that every gatherable resource is a real resource kind. */

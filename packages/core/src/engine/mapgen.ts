@@ -290,7 +290,17 @@ export function generateDeposits(map: WorldMap, seed: string): DepositMap {
       if (entry.kind === null) continue;
       const amount = entry.base + roll;
       if (amount <= 0) continue;
-      out[coordKey({ x, y })] = { [entry.kind]: amount };
+      if (terrain === "stone_deposit") {
+        // Mineral seams are finite and co-located with stone. The second draw
+        // is intentionally taken only for this terrain; map generation is
+        // versioned with the world, so a new constitutional world gets a new
+        // deterministic material distribution.
+        const ores = ["iron_ore", "titanium_ore", "copper_ore", "molybdenum_ore"] as const;
+        const ore = ores[rng.nextBelow(ores.length)] ?? "iron_ore";
+        out[coordKey({ x, y })] = { stone: amount, [ore]: Math.max(4, Math.floor(amount / 4)) };
+      } else {
+        out[coordKey({ x, y })] = { [entry.kind]: amount };
+      }
     }
   }
   return out;

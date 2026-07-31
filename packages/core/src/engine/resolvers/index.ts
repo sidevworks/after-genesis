@@ -42,9 +42,10 @@ import {
   createArtifactResolver,
   copyArtifactResolver,
   publishArtifactResolver,
+  readArtifactResolver,
   transferResolver,
 } from "./artifacts.js";
-import { buildResolver, guardLocationResolver, storeGoodsResolver } from "./physical.js";
+import { buildResolver, craftResolver, guardLocationResolver, refineResolver, storeArtifactResolver, storeGoodsResolver } from "./physical.js";
 import { releaseResolver, restrainResolver } from "./restraint.js";
 import { createInhabitantResolver } from "./lineage.js";
 import { createCurrencyResolver, transferCurrencyResolver } from "./currency.js";
@@ -71,6 +72,7 @@ import {
   disposeRemainsResolver,
   destroyResolver,
   fleeResolver,
+  forceOpenResolver,
   lootRemainsResolver,
   proposeMatingResolver,
   rejectMatingResolver,
@@ -142,6 +144,8 @@ export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "announce",
   "communicate",
   "build",
+  "craft",
+  "refine",
   "store_goods",
   "guard_location",
   "create_artifact",
@@ -175,6 +179,9 @@ export const IMPLEMENTED_ACTIONS: readonly ActionType[] = [
   "accept_mating",
   "reject_mating",
   "self_terminate",
+  "force_open",
+  "store_artifact",
+  "read_artifact",
 ];
 
 const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
@@ -187,7 +194,11 @@ const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
   announce: announceResolver,
   communicate: communicateResolver,
   build: buildResolver,
+  craft: craftResolver,
+  refine: refineResolver,
   store_goods: storeGoodsResolver,
+  store_artifact: storeArtifactResolver,
+  read_artifact: readArtifactResolver,
   guard_location: guardLocationResolver,
   create_artifact: createArtifactResolver,
   copy_artifact: copyArtifactResolver,
@@ -221,6 +232,7 @@ const IMPLEMENTED: Partial<Record<ActionType, Resolver>> = {
   accept_mating: acceptMatingResolver,
   reject_mating: rejectMatingResolver,
   self_terminate: selfTerminateResolver,
+  force_open: forceOpenResolver,
 };
 
 /** Every action type, mapped to its resolver. Complete by construction. */
