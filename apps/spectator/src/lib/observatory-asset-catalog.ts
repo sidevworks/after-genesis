@@ -70,54 +70,6 @@ const STRUCTURE_MATCHES: ReadonlyArray<MatchRule> = [
   },
 ];
 
-const ARTIFACT_MATCHES: ReadonlyArray<MatchRule> = [
-  {
-    match: [
-      "note",
-      "research_note",
-      "research_notes",
-      "research-note",
-      "research-notes",
-      "record",
-      "journal",
-      "diary",
-      "log",
-    ],
-    descriptor: {
-      modelUrl: "/asset-library/artifacts/research-note.glb",
-      scale: [0.52, 0.52, 0.52],
-      yOffset: 0.26,
-    },
-  },
-  {
-    match: ["design", "blueprint", "plan", "map", "map-sketch", "site_map", "site-map"],
-    descriptor: {
-      modelUrl: "/asset-library/artifacts/design.glb",
-      scale: [0.52, 0.52, 0.52],
-      yOffset: 0.26,
-    },
-  },
-  {
-    match: [
-      "written",
-      "writing",
-      "book",
-      "scroll",
-      "text",
-      "letter",
-      "news_report",
-      "news-report",
-      "newsreport",
-      "publication",
-    ],
-    descriptor: {
-      modelUrl: "/asset-library/artifacts/written-work.glb",
-      scale: [0.52, 0.52, 0.52],
-      yOffset: 0.26,
-    },
-  },
-];
-
 function findMatch(rules: readonly MatchRule[], normalised: string): ObservatoryAssetDescriptor | null {
   const exact = rules.find((entry) =>
     entry.match.some(
