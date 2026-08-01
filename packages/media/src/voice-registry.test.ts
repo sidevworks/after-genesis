@@ -9,6 +9,7 @@
 import { VOICES_PER_SEX, voicePool } from "@after-genesis/core";
 import { describe, expect, it } from "vitest";
 import {
+  GENESIS_ELEVENLABS_VOICE_IDS,
   VoiceConfigError,
   buildVoiceRegistry,
   resolveVoiceId,
@@ -97,6 +98,20 @@ describe("resolveVoiceId", () => {
   it("uses the speaker's assigned voice for dialogue", () => {
     expect(resolveVoiceId(registry, "dialogue", adult("voice_f07", "female"))).toBe(female[6]);
     expect(resolveVoiceId(registry, "dialogue", adult("voice_m02", "male"))).toBe(male[1]);
+  });
+
+  it("uses the commissioned ElevenLabs voice for every Genesis character, never the environment pool", () => {
+    for (const [id, providerVoiceId] of Object.entries(GENESIS_ELEVENLABS_VOICE_IDS)) {
+      expect(
+        resolveVoiceId(registry, "dialogue", {
+          id,
+          voiceHandle: "voice_m01",
+          sex: "male",
+          // The direct Genesis map must also win over the generic child path.
+          maturity: 0,
+        }),
+      ).toBe(providerVoiceId);
+    }
   });
 
   it("renders an immature inhabitant with the child voice of its sex (§11B)", () => {

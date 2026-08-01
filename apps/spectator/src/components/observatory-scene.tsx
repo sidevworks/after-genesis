@@ -6,6 +6,7 @@ import type { SceneDescription, SceneReference } from "@/lib/observatory-types";
 import { resolveArtifactAsset, resolveStructureAsset } from "@/lib/observatory-asset-catalog";
 import { ObservatoryActionEffects } from "@/lib/observatory-action-effects";
 import { createObservatoryBuildingVisual } from "@/lib/observatory-building-visual";
+import { createObservatoryCharacter, type ObservatoryCharacterModel } from "@/lib/observatory-character-model";
 import { EffectComposer } from "three/examples/jsm/postprocessing/EffectComposer.js";
 import { OutputPass } from "three/examples/jsm/postprocessing/OutputPass.js";
 import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
@@ -77,52 +78,6 @@ function referenceClassFromRefId(refId: string): string {
 function isArtifact(reference: SceneReference): boolean {
   return reference.representation.kind === "reference_marker" && referenceClassFromRefId(reference.refId) === "ASM";
 }
-
-function colourFor(seed: string): THREE.Color {
-  let hash = 0;
-  for (const char of seed) hash = Math.imul(hash ^ char.charCodeAt(0), 0x45d9f3b);
-  return new THREE.Color().setHSL(((hash >>> 0) % 360) / 360, 0.58, 0.58);
-}
-
-
-function addPerson(reference: SceneReference): THREE.Group {
-  const group = new THREE.Group();
-  const colour = colourFor(reference.representation.visualSeed);
-
-  // Use flatShading to make the blocky characters look intentional and stylized
-  const clothes = new THREE.MeshStandardMaterial({ color: colour, roughness: 0.9, flatShading: true });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a178, roughness: 0.8, flatShading: true });
-  const dark = new THREE.MeshStandardMaterial({
-    color: colour.clone().multiplyScalar(0.3),
-    roughness: 1.0,
-    flatShading: true,
-  });
-
-  const add = (geometry: THREE.BufferGeometry, material: THREE.Material, x: number, y: number, zOff = 0) => {
-    const mesh = new THREE.Mesh(geometry, material);
-    mesh.position.set(x, y, zOff);
-    mesh.castShadow = true;
-    mesh.receiveShadow = true; // Make sure their arms/head cast shadows on their own body
-    mesh.userData.refId = reference.refId;
-    group.add(mesh);
-  };
-
-  // Adjusted proportions for a slightly cuter, sturdier voxel look
-  add(new THREE.BoxGeometry(0.7, 0.7, 0.7), skin, 0, 2.1); // Head
-  add(new THREE.BoxGeometry(0.85, 1.1, 0.5), clothes, 0, 1.2); // Torso
-  add(new THREE.BoxGeometry(0.3, 0.9, 0.3), clothes, -0.6, 1.3); // Arm L
-  add(new THREE.BoxGeometry(0.3, 0.9, 0.3), clothes, 0.6, 1.3); // Arm R
-  add(new THREE.BoxGeometry(0.35, 0.9, 0.35), dark, -0.25, 0.45); // Leg L
-  add(new THREE.BoxGeometry(0.35, 0.9, 0.35), dark, 0.25, 0.45); // Leg R
-
-  // Add a tiny shadow-caster "base" so they feel grounded
-  add(new THREE.BoxGeometry(0.9, 0.05, 0.6), dark, 0, 0.02);
-
-  group.scale.setScalar(0.65);
-  group.userData.refId = reference.refId;
-  return group;
-}
-
 
 function ObservatoryThreeViewport({
   scene,
@@ -216,7 +171,7 @@ function ObservatoryThreeViewport({
     composer.addPass(outputPass);
 
     const selectable: THREE.Object3D[] = [];
-    const entities = new Map<string, THREE.Group>();
+    const entities = new Map<string, ObservatoryCharacterModel>();
     const buildingVisuals: ReturnType<typeof createObservatoryBuildingVisual>[] = [];
     const artifactVisuals: THREE.Object3D[] = [];
     const structureModels: THREE.Object3D[] = [];
@@ -397,20 +352,20 @@ function ObservatoryThreeViewport({
       } else if (isArtifact(reference) && showArtifacts) {
         spawnArtifact(reference);
       } else if (isEntity(reference) && showEntities) {
-        const person = addPerson(reference);
-        person.position.set(x, Math.max(y, 0.35), z);
-        person.userData.refId = reference.refId;
-        world.add(person);
-        entities.set(reference.refId, person);
-        selectable.push(person);
+        const character = createObservatoryCharacter(reference);
+        character.group.position.set(x, Math.max(y, 0.35), z);
+        world.add(character.group);
+        entities.set(reference.refId, character);
+        selectable.push(character.group);
       }
     }
     void Promise.allSettled(structureLoadJobs);
     void Promise.allSettled(artifactLoadJobs);
     const actionEffects = new ObservatoryActionEffects(world);
 
-    const selectedEntity =
+    const selectedCharacter =
       (selectedRef === null ? undefined : entities.get(selectedRef)) ?? entities.values().next().value;
+    const selectedEntity = selectedCharacter?.group as THREE.Group | undefined;
     const center = new THREE.Vector3(scene.bounds.width / 2, 0, scene.bounds.height / 2);
     const anchor = selectedEntity?.position.clone() ?? center;
     if (selectedEntity && viewMode === "first-person") selectedEntity.visible = false;
@@ -513,12 +468,17 @@ function ObservatoryThreeViewport({
     canvas.addEventListener("wheel", wheel, { passive: false });
 
     const resize = () => {
-      renderer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1), false);
-      camera.aspect = mount.clientWidth / Math.max(mount.clientHeight, 1);
+      const width = Math.max(mount.clientWidth, 1);
+      const height = Math.max(mount.clientHeight, 1);
+      // Keep the drawing buffer at device-pixel resolution but the canvas at
+      // the mount's CSS size. Without this, high-DPI displays clipped the
+      // centred camera to a corner of the oversized canvas.
+      renderer.setSize(width, height);
+      camera.aspect = width / height;
       camera.updateProjectionMatrix();
-      composer.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1));
-      ssaoPass.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1));
-      bloomPass.setSize(mount.clientWidth, Math.max(mount.clientHeight, 1));
+      composer.setSize(width, height);
+      ssaoPass.setSize(width, height);
+      bloomPass.setSize(width, height);
     };
     const observer = new ResizeObserver(resize);
     observer.observe(mount);
@@ -536,6 +496,7 @@ function ObservatoryThreeViewport({
         artifact.rotation.y = elapsedSeconds * 0.2;
         artifact.scale.setScalar(0.9 * intensity);
       });
+      entities.forEach((character) => character.update(elapsedSeconds));
       actionEffects.update(scene.references, elapsedSeconds);
       updateCamera();
       composer.render();

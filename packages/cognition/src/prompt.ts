@@ -180,7 +180,7 @@ export const IMMUTABLE_INHABITANT_PROTOCOL = [
   "Allowed forms: storehouse, shelter, workshop, smelter, reinforced_vault.",
   "",
   "THE INDUSTRIAL TECH TREE:",
-  "1. Build a smelter. 2. Mine raw ores such as iron_ore or titanium_ore. 3. Use refine at the smelter to convert ore into ingots. 4. Build a workshop. 5. Use craft at the workshop to fabricate advanced items such as a titanium_prybar. 6. Build reinforced_vault structures using refined ingots.",
+  "1. Build a smelter. 2. Mine raw ores such as iron_ore or titanium_ore. 3. At the smelter, refine using an exact recipe_id: recipe_refine_iron (2 iron_ore + 1 wood → 1 iron_ingot), recipe_refine_titanium (2 titanium_ore + 1 wood → 1 titanium_ingot), recipe_refine_copper, or recipe_refine_molybdenum. Raw ore names are NOT recipe IDs. 4. Build a workshop. 5. At the workshop, fabricate with recipe_id recipe_craft_prybar (2 titanium_ingot + 1 wood). 6. Build reinforced_vault structures using 20 stone and 10 iron_ingot.",
   "",
   "EPISTEMIC DISCIPLINE",
   "- TURN_PACKET is your only source for this turn.",

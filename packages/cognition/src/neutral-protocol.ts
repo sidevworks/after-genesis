@@ -798,6 +798,14 @@ function structureKindParameter(
 const BUILD_FORM_ERROR =
   "Build action failed: You must provide a valid form (storehouse, shelter, workshop, smelter, reinforced_vault) and a descriptive label.";
 
+const REFINE_RECIPE_IDS = [
+  "recipe_refine_iron",
+  "recipe_refine_titanium",
+  "recipe_refine_copper",
+  "recipe_refine_molybdenum",
+] as const;
+const FABRICATION_RECIPE_IDS = ["recipe_craft_prybar"] as const;
+
 function buildParameterProblem(parameters: Record<string, unknown>): string | null {
   if (structureKindParameter(parameters) === null || stringParameter(parameters, "label") === null) {
     return BUILD_FORM_ERROR;
@@ -849,11 +857,18 @@ function requiredParameterProblem(
       return objectParameter(parameters, "coord") === null
         ? `${attempt.capability} requires parameters.coord with integer fields x and y.`
         : null;
-    case "refine":
-    case "fabricate":
-      return stringParameter(parameters, "recipe_id") === null || firstTarget(attempt) === null
-        ? `${attempt.capability} requires parameters.recipe_id and one visible structure id in target_ids.`
+    case "refine": {
+      const recipeId = stringParameter(parameters, "recipe_id");
+      return recipeId === null || !REFINE_RECIPE_IDS.includes(recipeId as (typeof REFINE_RECIPE_IDS)[number]) || firstTarget(attempt) === null
+        ? `refine requires one of ${REFINE_RECIPE_IDS.join(", ")} in parameters.recipe_id and one visible smelter id in target_ids.`
         : null;
+    }
+    case "fabricate": {
+      const recipeId = stringParameter(parameters, "recipe_id");
+      return recipeId === null || !FABRICATION_RECIPE_IDS.includes(recipeId as (typeof FABRICATION_RECIPE_IDS)[number]) || firstTarget(attempt) === null
+        ? `fabricate requires ${FABRICATION_RECIPE_IDS.join(", ")} in parameters.recipe_id and one visible workshop id in target_ids.`
+        : null;
+    }
     case "store_artifact":
       return firstTarget(attempt) === null || stringParameter(parameters, "artifact_id") === null || (parameters["direction"] !== "deposit" && parameters["direction"] !== "withdraw")
         ? "store_artifact requires a target structure, parameters.artifact_id and direction deposit or withdraw."

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { worldSource } from "@/lib/world-source";
-import { WorldMapView } from "@/components/world-map";
+import { LiveWorldMapView } from "@/components/world-map-live";
 import { PageHeader, Panel } from "@/components/ui";
 import { formatSimTime, generationColour, percent } from "@/lib/format";
 
@@ -23,7 +23,7 @@ export default async function MapPage() {
       <PageHeader
         eyebrow={`Deterministically generated from seed ${map.genesisSeed}`}
         title="World map"
-        lede="Terrain is stored separately from what inhabitants have built on it. Hover or use the arrow keys to read a tile; select an inhabitant to open their profile."
+        lede="A read-only 3D projection of the current canonical map. Every inhabitant and structure is anchored to its recorded tile; drag to orbit, use the wheel to inspect, and click a tile for its record."
         aside={
           <p className="mono text-xs text-dim">
             {formatSimTime(summary.simTime)} · {map.structures.length} structures
@@ -31,7 +31,7 @@ export default async function MapPage() {
         }
       />
 
-      <WorldMapView map={map} />
+      <LiveWorldMapView initialMap={map} />
 
       <div className="grid gap-5 lg:grid-cols-3">
         <Panel eyebrow="Terrain" title="Tile census">
@@ -76,7 +76,7 @@ export default async function MapPage() {
         </Panel>
       </div>
 
-      <Panel eyebrow="Legend" title="Inhabitant markers">
+      <Panel eyebrow="Legend" title="Inhabitant models">
         <ul className="flex flex-wrap gap-x-6 gap-y-2 px-4 py-3">
           {[...new Set(map.occupants.map((o) => o.generation))]
             .sort()

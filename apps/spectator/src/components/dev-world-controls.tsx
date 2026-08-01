@@ -37,6 +37,7 @@ type GeminiModel = "gemini-3.5-flash-lite";
 type ProviderMode = "gemini" | "offline";
 
 const CONTROL_URL = process.env.NEXT_PUBLIC_DEV_WORLD_CONTROL_URL ?? "http://127.0.0.1:8787";
+const VISIBILITY_STORAGE_KEY = "after-genesis:dev-world-controls-hidden";
 
 function dayOf(simTime: number): string {
   const day = Math.floor(simTime / 1440);
@@ -63,6 +64,7 @@ export function DevWorldControls() {
   const [providerMode, setProviderMode] = useState<ProviderMode>("gemini");
   const [model, setModel] = useState<GeminiModel>("gemini-3.5-flash-lite");
   const [voiceEnabled, setVoiceEnabled] = useState(false);
+  const [hidden, setHidden] = useState(false);
   const liveRefreshRef = useRef(false);
   const lastChainHeadRef = useRef<string | null>(null);
   const cognitionInitializedRef = useRef(false);
@@ -142,14 +144,46 @@ export function DevWorldControls() {
     return () => window.clearInterval(timer);
   }, [enabled, router, status?.running]);
 
+  useEffect(() => {
+    if (!enabled) return;
+    setHidden(window.localStorage.getItem(VISIBILITY_STORAGE_KEY) === "true");
+  }, [enabled]);
+
+  function setToolbarVisibility(nextHidden: boolean) {
+    setHidden(nextHidden);
+    window.localStorage.setItem(VISIBILITY_STORAGE_KEY, String(nextHidden));
+  }
+
   if (!enabled) return null;
+  if (hidden) {
+    return (
+      <button
+        type="button"
+        aria-controls="dev-world-controls"
+        aria-expanded="false"
+        onClick={() => setToolbarVisibility(false)}
+        className="fixed bottom-4 right-4 z-50 rounded border border-amber-dim bg-panel/95 px-3 py-2 font-mono text-[0.65rem] uppercase tracking-[0.12em] text-amber shadow-lg backdrop-blur hover:bg-panel-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber"
+      >
+        Show dev tools
+      </button>
+    );
+  }
   const worldUnavailable = status?.summary == null;
   const progress = status?.progress ?? null;
 
   return (
-    <section className="border-b border-line bg-panel/65 px-4 py-2 sm:px-6">
+    <section id="dev-world-controls" className="border-b border-line bg-panel/65 px-4 py-2 sm:px-6">
       <div className="mx-auto flex max-w-[96rem] flex-wrap items-center gap-2 text-xs">
         <span className="eyebrow mr-2 text-amber">Dev world clock</span>
+        <button
+          type="button"
+          aria-controls="dev-world-controls"
+          aria-expanded="true"
+          onClick={() => setToolbarVisibility(true)}
+          className="rounded border border-line px-2.5 py-1 font-mono text-[0.6rem] uppercase tracking-[0.1em] text-dim hover:border-amber-dim hover:text-amber"
+        >
+          Hide tools
+        </button>
         <select
           value={providerMode}
           disabled={status?.running}

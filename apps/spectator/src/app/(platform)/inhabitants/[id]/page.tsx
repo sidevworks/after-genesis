@@ -4,6 +4,9 @@ import { notFound } from "next/navigation";
 import { worldSource } from "@/lib/world-source";
 import { Badge, Empty, KeyValue, Meter, Panel } from "@/components/ui";
 import { CanonicalEventRow } from "@/components/canonical-event";
+import { CharacterSpeechButton } from "@/components/character-speech-button";
+import { CharacterProfileToolbar } from "@/components/character-profile-toolbar";
+import { CHARACTER_PROFILES, characterProfileForId } from "@/lib/character-profiles";
 import {
   formatDuration,
   formatSimTime,
@@ -24,8 +27,9 @@ const PLACEHOLDER_ID = "none";
 
 export async function generateStaticParams() {
   const inhabitants = await worldSource.getInhabitants();
-  if (inhabitants.length === 0) return [{ id: PLACEHOLDER_ID }];
-  return inhabitants.map((i) => ({ id: i.id }));
+  const ids = new Set([...inhabitants.map((inhabitant) => inhabitant.id), ...CHARACTER_PROFILES.map((profile) => profile.id)]);
+  if (ids.size === 0) return [{ id: PLACEHOLDER_ID }];
+  return [...ids].map((id) => ({ id }));
 }
 
 export async function generateMetadata({
@@ -35,7 +39,8 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const inhabitant = await worldSource.getInhabitant(id);
-  return { title: inhabitant ? `${inhabitant.name} (${inhabitant.id})` : "Unknown inhabitant" };
+  const profile = characterProfileForId(id);
+  return { title: inhabitant ? `${inhabitant.name} (${inhabitant.id})` : profile ? `${profile.name} — Genesis profile` : "Unknown inhabitant" };
 }
 
 export default async function InhabitantPage({
@@ -45,7 +50,67 @@ export default async function InhabitantPage({
 }) {
   const { id } = await params;
   const inhabitant = await worldSource.getInhabitant(id);
-  if (!inhabitant) notFound();
+  if (!inhabitant) {
+    const profile = characterProfileForId(id);
+    if (!profile) notFound();
+
+    return (
+      <div className="space-y-6">
+        <header className="border-b border-line pb-6">
+          <p className="eyebrow">Genesis character profile · live world record pending</p>
+          <h1 className="sr-only">{profile.name}</h1>
+          <div className="mt-2">
+            <CharacterProfileToolbar currentId={profile.id} />
+          </div>
+          <p className="mt-2 text-sm text-muted">{profile.archetype}</p>
+        </header>
+
+        <div className="grid gap-5 lg:grid-cols-[minmax(15rem,0.6fr)_1fr]">
+          <div className="flex h-[min(45dvh,34rem)] items-center justify-center overflow-hidden rounded-sm border border-line bg-panel">
+            <video
+              className="pointer-events-none size-full object-cover"
+              src={`/character-profile/${profile.file}`}
+              autoPlay
+              loop
+              muted
+              playsInline
+              disablePictureInPicture
+              controlsList="nofullscreen nodownload noremoteplayback"
+            />
+          </div>
+          <Panel eyebrow="Canonical starting disposition" title={profile.archetype}>
+            <div className="space-y-4 px-4 py-4">
+              <p className="text-sm leading-relaxed text-muted">{profile.coreDirective}</p>
+              <div>
+                <p className="eyebrow">Preferred actions</p>
+                <p className="mono mt-1.5 text-xs text-amber">{profile.preferredActions.join(" · ")}</p>
+              </div>
+              <div>
+                <p className="eyebrow">Dialogue style</p>
+                <p className="mt-1.5 text-sm leading-relaxed text-muted">{profile.dialogueStyle}</p>
+              </div>
+              <CharacterSpeechButton name={profile.name} line={profile.speech.line} file={profile.speech.file} />
+            </div>
+          </Panel>
+        </div>
+
+        <Panel eyebrow="Starting traits" title="Disposition">
+          <div className="grid gap-px bg-line sm:grid-cols-3">
+            {profile.traits.map((trait) => (
+              <div key={trait.name} className="bg-panel px-4 py-4">
+                <p className="eyebrow">{titleCase(trait.name)}</p>
+                <p className="mono mt-1 text-xl text-amber">{trait.value}%</p>
+              </div>
+            ))}
+          </div>
+        </Panel>
+
+        <p className="border-l-2 border-amber-dim bg-panel/70 px-4 py-3 text-sm leading-relaxed text-muted">
+          This is the published Genesis disposition. The current displayed world does not yet contain this individual’s canonical record, so no live needs, inventory, position, or event history is claimed here.
+        </p>
+      </div>
+    );
+  }
 
   const [events, organisations] = await Promise.all([
     worldSource.getEvents({ limit: 30, filter: { subjectId: inhabitant.id } }),
@@ -53,6 +118,7 @@ export default async function InhabitantPage({
   ]);
 
   const deceased = inhabitant.status === "deceased";
+  const profile = characterProfileForId(inhabitant.id);
   const claimsAbout = events.events.flatMap((e) =>
     (e.claims ?? []).filter((c) => c.byId === inhabitant.id).map((c) => ({ claim: c, event: e })),
   );
@@ -66,7 +132,15 @@ export default async function InhabitantPage({
             <p className="eyebrow">
               {inhabitant.id} · generation {inhabitant.generation}
             </p>
-            <h1 className="mt-1.5 flex items-center gap-3 text-3xl font-medium tracking-tight">
+            {profile ? (
+              <>
+                <h1 className="sr-only">{inhabitant.name}</h1>
+                <div className="mt-2">
+                  <CharacterProfileToolbar currentId={profile.id} />
+                </div>
+              </>
+            ) : (
+              <h1 className="mt-1.5 flex items-center gap-3 text-3xl font-medium tracking-tight">
               <span
                 aria-hidden
                 className="inline-block size-3 rounded-full"
@@ -76,7 +150,8 @@ export default async function InhabitantPage({
                 }}
               />
               <span className={deceased ? "text-gone" : ""}>{inhabitant.name}</span>
-            </h1>
+              </h1>
+            )}
             <p className="mono mt-2 text-xs text-dim">
               born {formatSimTime(inhabitant.birthSimTime)}
               {(inhabitant.parentIds?.length ?? 0) > 0 && (
@@ -111,6 +186,8 @@ export default async function InhabitantPage({
           </div>
         </div>
       </header>
+
+      {profile && <CharacterSpeechButton name={profile.name} line={profile.speech.line} file={profile.speech.file} />}
 
       {deceased && inhabitant.death && (
         <Panel eyebrow="Death record" title={`Ceased activity ${formatSimTime(inhabitant.death.simTime)}`}>

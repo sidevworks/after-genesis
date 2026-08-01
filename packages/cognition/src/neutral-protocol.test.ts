@@ -326,6 +326,18 @@ describe("neutral inhabitant protocol", () => {
     }
   });
 
+  it("rejects an ore name used where refine requires a canonical recipe id", () => {
+    const parsed = parseNeutralModelResponse(
+      response("refine", { recipe_id: "iron_ore" }, ["observed:structure:str_smelter"]),
+      new Set(["observed:structure:str_smelter"]),
+    );
+    expect(parsed).toMatchObject({
+      ok: false,
+      code: "invalid_shape",
+      reason: expect.stringContaining("recipe_refine_iron"),
+    });
+  });
+
   it("feeds a declared physical form into the real engine resolver", () => {
     const state = buildGenesis({
       worldId: "world_neutral_acceptance",

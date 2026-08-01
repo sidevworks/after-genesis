@@ -212,6 +212,8 @@ export interface SceneReference {
   representation: {
     kind: GeometryPrimitive;
     visualSeed: string;
+    /** A presentation-only key for one of the original Genesis character designs. */
+    characterKey?: import("./observatory-character-profiles").ProgenitorCharacterKey;
     componentRefs: ReferenceId[];
     material: string | null;
   };

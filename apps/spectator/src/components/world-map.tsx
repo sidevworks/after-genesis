@@ -1,10 +1,10 @@
 "use client";
 
-import { useCallback, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useId, useMemo, useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import type { Structure, Tile, WorldMap } from "@/lib/world-types";
 import { TERRAIN_COLOUR, TERRAIN_LABEL, formatSimTime, generationColour, percent } from "@/lib/format";
+import { WorldMapThreeView } from "./world-map-3d";
 
 /**
  * The world map.
@@ -14,22 +14,14 @@ import { TERRAIN_COLOUR, TERRAIN_LABEL, formatSimTime, generationColour, percent
  * component is not even given a way to.
  */
 
-function shade(hex: string, amount: number): string {
-  const n = Number.parseInt(hex.slice(1), 16);
-  const clamp = (v: number) => Math.max(0, Math.min(255, Math.round(v)));
-  const r = clamp(((n >> 16) & 255) * (1 + amount));
-  const g = clamp(((n >> 8) & 255) * (1 + amount));
-  const b = clamp((n & 255) * (1 + amount));
-  return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, "0")}`;
-}
-
 function fertilityOf(tile: Tile): number | null {
   return typeof tile.fertility === "number" && Number.isFinite(tile.fertility)
     ? tile.fertility
     : null;
 }
 
-function StructureGlyph({ structure }: { structure: Structure }) {
+/** Reserved for compact non-WebGL exports; the interactive map uses WorldMapThreeView. */
+export function StructureGlyph({ structure }: { structure: Structure }) {
   const { x, y } = structure.at;
   const cx = x + 0.5;
   const cy = y + 0.5;
@@ -142,11 +134,8 @@ export function WorldMapView({
   map: WorldMap;
   variant?: "full" | "compact";
 }) {
-  const router = useRouter();
-  const svgRef = useRef<SVGSVGElement | null>(null);
   const [hovered, setHovered] = useState<{ x: number; y: number } | null>(null);
   const [selected, setSelected] = useState<{ x: number; y: number }>({ x: 15, y: 17 });
-  const [zoom, setZoom] = useState(1);
   const liveId = useId();
 
   const tileAt = useCallback(
@@ -172,16 +161,6 @@ export function WorldMapView({
     return index;
   }, [canSeeTile, map.structures]);
 
-  const structureGlyphs = useMemo(() => {
-    const result: Structure[] = [];
-    for (const structure of structuresByTile.values()) {
-      for (const value of structure) {
-        result.push(value);
-      }
-    }
-    return result;
-  }, [structuresByTile]);
-
   const occupantsByTile = useMemo(() => {
     const index = new Map<string, WorldMap["occupants"]>();
     for (const o of map.occupants) {
@@ -192,30 +171,11 @@ export function WorldMapView({
     return index;
   }, [canSeeTile, map.occupants]);
 
-  const occupantsList = useMemo(() => {
-    const result: Array<(typeof map.occupants)[number]> = [];
-    for (const occupants of occupantsByTile.values()) {
-      for (const inhabitant of occupants) {
-        result.push(inhabitant);
-      }
-    }
-    return result;
-  }, [occupantsByTile]);
-
   const active = hovered ?? selected;
   const activeTile = tileAt(active.x, active.y);
   const activeTileVisible = activeTile === undefined ? false : canSeeTile(active.x, active.y);
   const activeStructures = structuresByTile.get(`${active.x},${active.y}`) ?? [];
   const activeOccupants = occupantsByTile.get(`${active.x},${active.y}`) ?? [];
-
-  const pointerToTile = (clientX: number, clientY: number) => {
-    const rect = svgRef.current?.getBoundingClientRect();
-    if (!rect) return null;
-    const x = Math.floor(((clientX - rect.left) / rect.width) * map.width);
-    const y = Math.floor(((clientY - rect.top) / rect.height) * map.height);
-    if (x < 0 || y < 0 || x >= map.width || y >= map.height) return null;
-    return { x, y };
-  };
 
   const onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     const deltas: Record<string, [number, number]> = {
@@ -269,138 +229,34 @@ export function WorldMapView({
           <div>
             <p className="eyebrow">World map</p>
             <h2 className="text-[0.95rem] font-medium tracking-tight">
-              {map.width}&thinsp;×&thinsp;{map.height} grid
+              {map.width}&thinsp;×&thinsp;{map.height} authoritative 3D grid
             </h2>
           </div>
           <div className="flex items-center gap-2">
-            {!compact && (
-              <div className="flex items-center gap-1" role="group" aria-label="Zoom">
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.max(1, Number((z - 0.25).toFixed(2))))}
-                  className="mono rounded-sm border border-line px-2 py-0.5 text-xs text-muted hover:border-amber-dim hover:text-amber"
-                  aria-label="Zoom out"
-                >
-                  −
-                </button>
-                <span className="mono w-10 text-center text-xs text-dim">{zoom.toFixed(2)}×</span>
-                <button
-                  type="button"
-                  onClick={() => setZoom((z) => Math.min(4, Number((z + 0.25).toFixed(2))))}
-                  className="mono rounded-sm border border-line px-2 py-0.5 text-xs text-muted hover:border-amber-dim hover:text-amber"
-                  aria-label="Zoom in"
-                >
-                  +
-                </button>
-              </div>
-            )}
             <p className="mono text-xs text-dim">
               ({active.x},{active.y})
             </p>
           </div>
         </div>
 
-        <div className={compact ? "p-3" : "overflow-auto p-3"}>
+        <div className="p-3">
           <div
             tabIndex={0}
             role="group"
-            aria-label={`World map, ${map.width} by ${map.height} tiles. Use the arrow keys to move the tile cursor.`}
+            aria-label={`Authoritative 3D world map, ${map.width} by ${map.height} tiles. Use the arrow keys to move the tile cursor.`}
             aria-describedby={liveId}
             onKeyDown={onKeyDown}
             className="rounded-sm"
-            style={{ width: compact ? "100%" : `${zoom * 100}%`, maxWidth: compact ? undefined : "none" }}
           >
-            <svg
-              ref={svgRef}
-              viewBox={`0 0 ${map.width} ${map.height}`}
-              className="block h-auto w-full rounded-sm"
-              style={{ background: "#050809", shapeRendering: "crispEdges" }}
-              onMouseMove={(e) => setHovered(pointerToTile(e.clientX, e.clientY))}
-              onMouseLeave={() => setHovered(null)}
-              onClick={(e) => {
-                const tile = pointerToTile(e.clientX, e.clientY);
-                if (tile) setSelected(tile);
+            <WorldMapThreeView
+              map={map}
+              compact={compact}
+              selected={selected}
+              onSelect={(tile) => {
+                setHovered(null);
+                setSelected(tile);
               }}
-              aria-hidden
-            >
-              {map.tiles.map((tile) => (
-                <rect
-                  key={`${tile.x},${tile.y}`}
-                  x={tile.x}
-                  y={tile.y}
-                  width={1}
-                  height={1}
-                  fill={shade(TERRAIN_COLOUR[tile.terrain], ((fertilityOf(tile) ?? 0.4) - 0.4) * 0.28)}
-                  opacity={canSeeTile(tile.x, tile.y) ? 1 : 0.35}
-                />
-              ))}
-
-              {hasDiscoveryMask &&
-                map.tiles
-                  .filter((tile) => !canSeeTile(tile.x, tile.y))
-                  .map((tile) => (
-                    <rect
-                      key={`unseen-${tile.x},${tile.y}`}
-                      x={tile.x}
-                      y={tile.y}
-                      width={1}
-                      height={1}
-                      fill="rgba(3, 6, 11, 0.88)"
-                    />
-                  ))}
-
-              {/* Recorded land-use claims. A dotted edge, not a fence. */}
-              <g fill="none" stroke="rgba(217,164,65,0.45)" strokeWidth={0.06} strokeDasharray="0.16 0.12">
-                {map.tiles
-                  .filter((t) => t.claimedBy)
-                  .filter((t) => canSeeTile(t.x, t.y))
-                  .map((t) => (
-                    <rect key={`c${t.x},${t.y}`} x={t.x + 0.05} y={t.y + 0.05} width={0.9} height={0.9} />
-                  ))}
-              </g>
-
-              <g style={{ shapeRendering: "geometricPrecision" }}>
-                {structureGlyphs.map((s) => (
-                  <StructureGlyph key={s.id} structure={s} />
-                ))}
-              </g>
-
-              <g style={{ shapeRendering: "geometricPrecision" }}>
-                {occupantsList.map((o, index) => {
-                  const same = occupantsByTile.get(`${o.at.x},${o.at.y}`) ?? [];
-                  const idx = same.indexOf(o);
-                  const offset = same.length > 1 ? (idx - (same.length - 1) / 2) * 0.34 : 0;
-                  const deceased = o.status === "deceased";
-                  return (
-                    <circle
-                      key={o.id + index}
-                      cx={o.at.x + 0.5 + offset}
-                      cy={o.at.y + 0.5}
-                      r={0.26}
-                      fill={deceased ? "none" : generationColour(o.generation)}
-                      stroke={deceased ? "var(--color-gone)" : "#050809"}
-                      strokeWidth={0.08}
-                      strokeDasharray={deceased ? "0.1 0.08" : undefined}
-                      style={{ cursor: "pointer" }}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        router.push(`/inhabitants/${o.id}`);
-                      }}
-                    />
-                  );
-                })}
-              </g>
-
-              <rect
-                x={active.x}
-                y={active.y}
-                width={1}
-                height={1}
-                fill="none"
-                stroke="var(--color-amber)"
-                strokeWidth={0.12}
-              />
-            </svg>
+            />
           </div>
         </div>
 

@@ -42,6 +42,7 @@ describe("prompt determinism", () => {
     expect(built.systemPrompt).toContain("CRITICAL RULES FOR BUILDING & CRAFTING:");
     expect(built.systemPrompt).toContain("Allowed forms: storehouse, shelter, workshop, smelter, reinforced_vault.");
     expect(built.systemPrompt).toContain("THE INDUSTRIAL TECH TREE:");
+    expect(built.systemPrompt).toContain("recipe_refine_iron");
   });
 
   it("carries a declared Genesis character profile into cognition", () => {

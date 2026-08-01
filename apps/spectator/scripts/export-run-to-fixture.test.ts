@@ -222,12 +222,17 @@ describe("Export simulation run to Spectator fixture", () => {
       })),
       structures: Object.values(state.structures).map((s) => ({
         id: s.id,
-        name: s.displayName,
+        // Engine structures are canonical physical objects.  Their creation
+        // time and owner are `createdAt` / `owner`, not the old fixture-only
+        // `creationTime` / `ownerId` aliases.  Exporting those aliases left
+        // `builtAt` undefined and rendered “Day NaN” in the live map.
+        name: s.kind,
         kind: s.kind,
         at: s.location,
-        ownerId: s.ownerId ?? s.governingOrganisationId ?? "none",
-        ownerKind: s.ownerId ? "inhabitant" : "organisation",
-        builtAt: s.creationTime,
+        ownerId: s.owner ?? s.ownerOrganisation ?? "none",
+        ownerKind: s.owner !== null ? "inhabitant" : "organisation",
+        builtAt: s.createdAt,
+        builtByEvent: `evt_${s.createdSequence.toString().padStart(6, "0")}`,
         condition: s.integrity / 100,
         capacity: s.capacity,
       })),
@@ -285,6 +290,8 @@ describe("Export simulation run to Spectator fixture", () => {
       ],
     };
 
+    expect(map.structures.every((structure) => Number.isFinite(structure.builtAt))).toBe(true);
+
     const fixture = {
       generatedBy: "apps/spectator/scripts/export-run-to-fixture.test.ts",
       note:
@@ -295,20 +302,19 @@ describe("Export simulation run to Spectator fixture", () => {
       events: formattedEvents,
       organisations: [],
       artifacts: Object.values(state.artifacts).map((a) => {
-        const creator = state.inhabitants[a.creatorId];
-        const owner = a.ownerId ? state.inhabitants[a.ownerId] : null;
+        const owner = a.owner ? state.inhabitants[a.owner] : null;
         return {
           id: a.id,
-          title: a.displayName,
+          title: a.title,
           kind: a.kind as any,
-          excerpt: a.displayName,
-          creatorIds: [a.creatorId],
-          creatorNames: [creator?.displayName ?? a.creatorId],
-          createdAt: a.creationTime,
+          excerpt: a.content,
+          creatorIds: [...a.creators],
+          creatorNames: a.creators.map((id) => state.inhabitants[id]?.displayName ?? id),
+          createdAt: a.createdAt,
           creationEventId: `evt_000000`,
-          ownerId: a.ownerId ?? "none",
-          ownerName: owner?.displayName ?? a.ownerId ?? "None",
-          ownerKind: (a.ownerId ? "inhabitant" : "organisation") as any,
+          ownerId: a.owner ?? "none",
+          ownerName: owner?.displayName ?? a.owner ?? "None",
+          ownerKind: (a.owner ? "inhabitant" : "organisation") as any,
           publicationStatus: "published" as const,
           provenance: [],
           revisions: [],
@@ -330,8 +336,19 @@ describe("Export simulation run to Spectator fixture", () => {
         trades: [],
         contracts: Object.values(state.contracts).map((c) => ({
           id: c.id,
-          parties: c.parties,
-          status: c.status,
+          kind: "sale" as const,
+          counterpartyIds: [...c.parties],
+          counterpartyNames: c.parties.map((id) => state.inhabitants[id]?.displayName ?? id),
+          summary: c.terms,
+          agreedAt: c.createdAt,
+          status:
+            c.status === "active"
+              ? "active" as const
+              : c.status === "performed"
+                ? "fulfilled" as const
+                : c.status === "terminated"
+                  ? "breached" as const
+                  : "void" as const,
           terms: c.terms,
         })),
         nonMonetaryTransferCount: 0,

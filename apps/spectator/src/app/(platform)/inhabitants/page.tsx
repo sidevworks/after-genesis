@@ -1,113 +1,64 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { worldSource } from "@/lib/world-source";
-import { PageHeader, Badge, Meter } from "@/components/ui";
-import { formatSimTime, generationColour, percent } from "@/lib/format";
+import { CHARACTER_PROFILES, profileForInhabitant } from "@/lib/character-profiles";
 
 export const metadata: Metadata = { title: "Inhabitants" };
 
 export default async function InhabitantsPage() {
   const inhabitants = await worldSource.getInhabitants();
-  const generations = [...new Set(inhabitants.map((i) => i.generation))].sort();
 
   return (
-    <div className="space-y-7">
-      <PageHeader
-        eyebrow={`${inhabitants.length} inhabitants ever created`}
-        title="Inhabitants"
-        lede="Every inhabitant after the founder originated from an existing inhabitant through an authorised world action. Deceased inhabitants remain fully browsable — death marks an inhabitant inactive and deletes nothing."
-      />
-
-      {generations.map((generation) => {
-        const cohort = inhabitants.filter((i) => i.generation === generation);
-        return (
-          <section key={generation}>
-            <h2 className="mb-3 flex items-center gap-2.5 text-sm font-medium">
-              <span
-                aria-hidden
-                className="inline-block size-2.5 rounded-full"
-                style={{ background: generationColour(generation) }}
-              />
-              Generation {generation}
-              <span className="mono text-xs font-normal text-dim">
-                {cohort.length} {cohort.length === 1 ? "inhabitant" : "inhabitants"}
-              </span>
-            </h2>
-
-            <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-              {cohort.map((i) => {
-                const deceased = i.status === "deceased";
-                return (
-                  <li key={i.id}>
-                    <Link
-                      href={`/inhabitants/${i.id}`}
-                      className="panel block h-full p-4 transition-colors hover:border-amber-dim"
-                    >
-                      <div className="flex items-start justify-between gap-3">
-                        <div>
-                          <p className={`text-base ${deceased ? "text-gone" : "text-ink"}`}>
-                            {i.name}
-                          </p>
-                          <p className="mono text-[0.68rem] text-dim">{i.id}</p>
-                        </div>
-                        <Badge tone={deceased ? "gone" : "alive"}>
-                          {deceased ? "deceased" : i.status}
-                        </Badge>
-                      </div>
-
-                      <dl className="mono mt-3 grid grid-cols-2 gap-x-4 gap-y-1 text-[0.68rem] text-dim">
-                        <div className="flex gap-1.5">
-                          <dt>born</dt>
-                          <dd className="text-muted">{formatSimTime(i.birthSimTime)}</dd>
-                        </div>
-                        <div className="flex gap-1.5">
-                          <dt>tile</dt>
-                          <dd className="text-muted">
-                            ({i.at.x},{i.at.y})
-                          </dd>
-                        </div>
-                        {deceased && i.deceasedAt !== undefined ? (
-                          <div className="col-span-2 flex gap-1.5">
-                            <dt>died</dt>
-                            <dd className="text-gone">{formatSimTime(i.deceasedAt)}</dd>
-                          </div>
-                        ) : (
-                          <div className="col-span-2 flex gap-1.5">
-                            <dt>activity</dt>
-                            <dd className="text-muted">{i.activity}</dd>
-                          </div>
-                        )}
-                      </dl>
-
-                      <div className="mt-3 space-y-2">
-                        <Meter
-                          label="Energy"
-                          value={i.energy}
-                          colour={deceased ? "var(--color-gone)" : "var(--color-amber)"}
-                        />
-                        <Meter
-                          label="Reputation"
-                          value={i.reputation}
-                          colour="var(--color-claim)"
-                          display={percent(i.reputation)}
-                        />
-                      </div>
-
-                      {i.topSkill && (
-                        <p className="mono mt-3 text-[0.68rem] text-dim">
-                          strongest recorded skill:{" "}
-                          <span className="text-amber">{i.topSkill.name}</span>{" "}
-                          {percent(i.topSkill.level)}
-                        </p>
-                      )}
-                    </Link>
-                  </li>
-                );
-              })}
-            </ul>
-          </section>
-        );
-      })}
+    <div className="character-directory flex min-h-0 flex-col gap-3 lg:h-full">
+      <section className="flex min-h-0 flex-1 flex-col">
+        <div className="flex shrink-0 items-baseline justify-between gap-3 border-b border-line pb-3">
+          <div>
+            <p className="eyebrow">Genesis character profiles</p>
+            <h1 className="mt-1 text-lg font-medium tracking-tight">Meet the original ten</h1>
+          </div>
+          <p className="mono text-xs text-dim">click a card for recorded stats</p>
+        </div>
+        <ul className="mt-3 grid gap-3 sm:grid-cols-2 lg:min-h-0 lg:flex-1 lg:grid-cols-5 lg:grid-rows-2">
+          {CHARACTER_PROFILES.map((profile) => {
+            const inhabitant = inhabitants.find((candidate) => profileForInhabitant(candidate)?.id === profile.id);
+            const card = (
+              <>
+                <div className="relative aspect-[4/5] overflow-hidden bg-[#090d10] lg:h-full lg:aspect-auto">
+                  <video
+                    className="pointer-events-none size-full object-cover"
+                    src={`/character-profile/${profile.file}`}
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    disablePictureInPicture
+                    controlsList="nofullscreen nodownload noremoteplayback"
+                    preload="metadata"
+                    aria-label={`${profile.name} character profile video`}
+                  />
+                  <div className="pointer-events-none absolute inset-x-0 top-0 bg-gradient-to-b from-black/80 to-transparent px-3 pb-8 pt-3">
+                    <h3 className="mono text-sm font-medium tracking-[0.12em] text-white">{profile.name}</h3>
+                  </div>
+                  <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/90 to-transparent px-3 pb-3 pt-10">
+                    <p className="mono text-[0.68rem] text-amber">View stats ↗</p>
+                  </div>
+                </div>
+              </>
+            );
+            return (
+              <li key={profile.id} className="min-h-0 overflow-hidden rounded-sm border border-line bg-panel transition-colors hover:border-amber-dim">
+                <Link
+                  href={`/inhabitants/${inhabitant?.id ?? profile.id}`}
+                  className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber lg:h-full"
+                  aria-label={`View ${profile.name} stats`}
+                >
+                  {card}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
     </div>
   );
 }

@@ -47,6 +47,11 @@ import {
   inhabitantHsl,
   hashString,
 } from "./palette";
+import {
+  characterKeyForCanonicalId,
+  characterProfileFor,
+  type ObservatoryCharacterProfile,
+} from "../observatory-character-profiles";
 
 /** Body proportions in metres. A figure stands about 1.75 m on a 1 m tile grid. */
 const PART = {
@@ -111,15 +116,24 @@ export class ActorRig {
   private readonly headwearMesh: Mesh;
   private readonly beltMesh: Mesh;
   private readonly mantleMesh: Mesh;
+  private readonly faceplateMesh: Mesh;
+  private readonly eyeLeftMesh: Mesh;
+  private readonly eyeRightMesh: Mesh;
+  private readonly chestCoreMesh: Mesh;
+  private readonly shoulderLeftMesh: Mesh;
+  private readonly shoulderRightMesh: Mesh;
 
   private readonly skin: MeshStandardMaterial;
   private readonly cloth: MeshStandardMaterial;
   private readonly propMaterial: MeshStandardMaterial;
   private readonly accentMaterial: MeshStandardMaterial;
+  private readonly faceplateMaterial: MeshStandardMaterial;
+  private readonly glowMaterial: MeshStandardMaterial;
   private readonly geometries: BoxGeometry[] = [];
 
   private readonly variation: ActorVariation;
   private readonly identity: VisualIdentity;
+  private readonly genesisProfile: ObservatoryCharacterProfile | null;
   private readonly baseHsl: { h: number; s: number; l: number };
   private readonly scratchColour = new Color();
 
@@ -144,6 +158,7 @@ export class ActorRig {
     this.inhabitantId = sample.inhabitantId;
     this.variation = variationFor(sample.inhabitantId);
     this.baseHsl = inhabitantHsl(sample.refId ?? sample.inhabitantId);
+    this.genesisProfile = characterProfileFor(characterKeyForCanonicalId(sample.inhabitantId));
     const identity = visualIdentityFor(sample.inhabitantId);
     this.identity = identity;
 
@@ -154,6 +169,8 @@ export class ActorRig {
       roughness: 0.9,
     });
     this.accentMaterial = new MeshStandardMaterial({ roughness: 0.92, metalness: 0 });
+    this.faceplateMaterial = new MeshStandardMaterial({ color: 0x060b0f, roughness: 0.32, metalness: 0.76 });
+    this.glowMaterial = new MeshStandardMaterial({ roughness: 0.26, metalness: 0.16 });
 
     const box = (w: number, h: number, d: number): BoxGeometry => {
       const geometry = new BoxGeometry(w, h, d);
@@ -175,6 +192,12 @@ export class ActorRig {
     this.headwearMesh = new Mesh(box(0.46, 0.12, 0.46), this.accentMaterial);
     this.beltMesh = new Mesh(box(0.53, 0.09, 0.32), this.accentMaterial);
     this.mantleMesh = new Mesh(box(0.62, 0.18, 0.38), this.accentMaterial);
+    this.faceplateMesh = new Mesh(box(0.36, 0.22, 0.035), this.faceplateMaterial);
+    this.eyeLeftMesh = new Mesh(box(0.07, 0.07, 0.045), this.glowMaterial);
+    this.eyeRightMesh = new Mesh(box(0.07, 0.07, 0.045), this.glowMaterial);
+    this.chestCoreMesh = new Mesh(box(0.19, 0.1, 0.035), this.glowMaterial);
+    this.shoulderLeftMesh = new Mesh(box(0.16, 0.1, 0.12), this.accentMaterial);
+    this.shoulderRightMesh = new Mesh(box(0.16, 0.1, 0.12), this.accentMaterial);
 
     // Limbs rotate about their top end, not their centre, or an arm swing would
     // pivot around the elbow and look broken. Offsetting the geometry inside a
@@ -200,7 +223,7 @@ export class ActorRig {
     this.torsoMesh.castShadow = true;
     this.hipsMesh.castShadow = true;
     this.headwearMesh.position.set(0, 1.76, 0);
-    this.headwearMesh.visible = identity.headwear !== 0;
+    this.headwearMesh.visible = this.genesisProfile === null && identity.headwear !== 0;
     if (identity.headwear === 1) {
       this.headwearMesh.scale.set(1.2, 0.5, 1.2);
     } else if (identity.headwear === 2) {
@@ -211,8 +234,22 @@ export class ActorRig {
     this.beltMesh.position.set(0, 0.75, 0);
     this.beltMesh.castShadow = true;
     this.mantleMesh.position.set(0, 1.25, 0.04);
-    this.mantleMesh.visible = identity.mantle;
+    this.mantleMesh.visible = this.genesisProfile?.cape ?? identity.mantle;
+    if (this.genesisProfile?.cape) {
+      this.mantleMesh.scale.set(1.3, 5.2, 0.35);
+      this.mantleMesh.position.set(0, 1.1, -0.19);
+    }
     this.mantleMesh.castShadow = true;
+    this.faceplateMesh.position.set(0, PART.head.y, PART.head.d / 2 + 0.02);
+    this.eyeLeftMesh.position.set(-0.1, PART.head.y, PART.head.d / 2 + 0.045);
+    this.eyeRightMesh.position.set(0.1, PART.head.y, PART.head.d / 2 + 0.045);
+    this.chestCoreMesh.position.set(0, 1.08, PART.torso.d / 2 + 0.02);
+    this.shoulderLeftMesh.position.set(-0.42, 1.32, 0);
+    this.shoulderRightMesh.position.set(0.42, 1.32, 0);
+    for (const detail of [this.faceplateMesh, this.eyeLeftMesh, this.eyeRightMesh, this.chestCoreMesh, this.shoulderLeftMesh, this.shoulderRightMesh]) {
+      detail.visible = this.genesisProfile !== null;
+      detail.castShadow = true;
+    }
 
     // A held prop belongs to the right-arm hierarchy. Previously it lived at
     // body level and only copied the arm's angle, so a hammer rotated in place
@@ -234,6 +271,12 @@ export class ActorRig {
       this.headwearMesh,
       this.beltMesh,
       this.mantleMesh,
+      this.faceplateMesh,
+      this.eyeLeftMesh,
+      this.eyeRightMesh,
+      this.chestCoreMesh,
+      this.shoulderLeftMesh,
+      this.shoulderRightMesh,
     );
     this.body.scale.set(identity.breadth, identity.height, identity.breadth);
     this.group.add(this.body);
@@ -327,6 +370,21 @@ export class ActorRig {
    */
   private applyDisclosure(sample: ActorSample): void {
     const treatment = DISCLOSURE_TREATMENT[sample.disclosure];
+    if (this.genesisProfile !== null) {
+      const armour = new Color(this.genesisProfile.armour).multiplyScalar(treatment.lightness);
+      const dark = armour.clone().multiplyScalar(0.34);
+      const accent = new Color(this.genesisProfile.accent).multiplyScalar(treatment.lightness);
+      const glow = new Color(this.genesisProfile.glow).multiplyScalar(treatment.lightness);
+      this.skin.color.copy(armour);
+      this.cloth.color.copy(dark);
+      this.accentMaterial.color.copy(accent);
+      this.glowMaterial.color.copy(glow);
+      this.glowMaterial.emissive.copy(glow).multiplyScalar(sample.disclosure === "disclosed" ? 1.35 : 0.32);
+      this.skin.emissive.setHex(HIGHLIGHT_COLOUR).multiplyScalar(this.highlighted ? 0.12 : 0);
+      this.cloth.emissive.setHex(HIGHLIGHT_COLOUR).multiplyScalar(this.highlighted ? 0.07 : 0);
+      this.accentMaterial.emissive.setHex(HIGHLIGHT_COLOUR).multiplyScalar(this.highlighted ? 0.1 : 0);
+      return;
+    }
     const hsl = this.baseHsl;
 
     this.scratchColour.setHSL(
@@ -384,5 +442,7 @@ export class ActorRig {
     this.cloth.dispose();
     this.propMaterial.dispose();
     this.accentMaterial.dispose();
+    this.faceplateMaterial.dispose();
+    this.glowMaterial.dispose();
   }
 }

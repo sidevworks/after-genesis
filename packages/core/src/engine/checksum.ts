@@ -158,8 +158,13 @@ function structure(s: Structure): Normal {
     ownershipPublic: s.ownershipPublic,
     storagePublic: s.storagePublic,
     secured: s.secured,
-    accessPolicy: s.accessPolicy ?? "open",
-    storedArtifactIds: sortedCopy(s.storedArtifactIds ?? []),
+    // These fields were introduced after the first development worlds were
+    // recorded.  Preserve absence in the canonical projection so replaying an
+    // older event chain does not silently gain default fields and fail its
+    // historical checksum.  New vault/container states include the fields
+    // explicitly and are therefore still fully checksum-protected.
+    ...(s.accessPolicy === undefined ? {} : { accessPolicy: s.accessPolicy }),
+    ...(s.storedArtifactIds === undefined ? {} : { storedArtifactIds: sortedCopy(s.storedArtifactIds) }),
     occupants: sortedCopy(s.occupants),
     createdSequence: s.createdSequence,
     createdAt: s.createdAt,
@@ -183,9 +188,11 @@ function artifact(a: Artifact): Normal {
     location: a.location === null ? null : { x: a.location.x, y: a.location.y },
     createdSequence: a.createdSequence,
     createdAt: a.createdAt,
-    mechanicalKind: a.mechanicalKind ?? null,
-    integrity: a.integrity ?? 100,
-    storageStructureId: a.storageStructureId ?? null,
+    // As with structures, do not backfill post-genesis mechanics into the
+    // checksum representation of historical artifacts.
+    ...(a.mechanicalKind === undefined ? {} : { mechanicalKind: a.mechanicalKind }),
+    ...(a.integrity === undefined ? {} : { integrity: a.integrity }),
+    ...(a.storageStructureId === undefined ? {} : { storageStructureId: a.storageStructureId }),
   };
 }
 

@@ -6,6 +6,7 @@ import type {
   SceneReference,
 } from "./observatory-types";
 import type { ReferenceRegistry } from "./reference-registry";
+import { characterKeyForCanonicalId } from "./observatory-character-profiles";
 
 const ZERO_ROTATION = { x: 0, y: 0, z: 0, w: 1 } as const;
 
@@ -42,9 +43,11 @@ function representationFor(record: ReferenceRecord): SceneReference["representat
     };
   }
   if (record.referenceClass === "ENT") {
+    const characterKey = characterKeyForCanonicalId(record.canonicalMetadata.canonicalId);
     return {
       kind: "articulated_entity",
       visualSeed: record.observatoryMetadata.visualSeed,
+      ...(characterKey === null ? {} : { characterKey }),
       componentRefs: record.composition.componentRefs,
       material: null,
     };

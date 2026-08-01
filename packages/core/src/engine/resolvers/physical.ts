@@ -139,7 +139,11 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
     ownershipPublic: input.structureKind !== "reinforced_vault",
     storagePublic: false,
     secured: input.structureKind === "enclosure" || input.structureKind === "wall" || input.structureKind === "reinforced_vault",
-    accessPolicy: input.structureKind === "reinforced_vault" ? "owner_only" : "open",
+    // Keep ordinary historical structures byte-for-byte compatible with the
+    // states that predate vault access control.  Only a vault needs an
+    // explicit policy; an absent policy is mechanically open everywhere it is
+    // read.
+    ...(input.structureKind === "reinforced_vault" ? { accessPolicy: "owner_only" as const } : {}),
     occupants: [],
     createdSequence: ctx.sequence,
     createdAt: ctx.simTime,
@@ -197,7 +201,7 @@ export const buildResolver: Resolver = (ctx, payload): ResolutionResult => {
 /** Resolve a canonical recipe, never a model-supplied materials list. */
 export const refineResolver: Resolver = (ctx, payload): ResolutionResult => {
   const parsed = RefinePayloadSchema.safeParse(payload);
-  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "refine payload is malformed");
+  if (!parsed.success) return reject(ctx, RejectionCode.InvalidPayload, "refine requires a canonical recipeId: recipe_refine_iron, recipe_refine_titanium, recipe_refine_copper, or recipe_refine_molybdenum");
   const recipe = recipeById(parsed.data.recipeId);
   if (recipe === null || recipe.action !== "refine" || recipe.output.kind !== "resource") {
     return reject(ctx, RejectionCode.InvalidPayload, "unknown refining recipe");

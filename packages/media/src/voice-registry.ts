@@ -16,6 +16,27 @@ import type { VoiceKind } from "./manifest.js";
 
 export type { VoiceKind };
 
+/**
+ * The supplied ElevenLabs voices for the published Genesis cohort.
+ *
+ * This lives in the media layer, rather than canonical world state: provider
+ * identifiers are configuration, while the engine keeps its replay-stable
+ * voice handles. Genesis dialogue therefore never reads the environment's
+ * generic adult pools or changes when their order changes.
+ */
+export const GENESIS_ELEVENLABS_VOICE_IDS: Readonly<Record<string, string>> = Object.freeze({
+  inh_01_alpha: "GLSWsaquVBsIPLPPRi2s",
+  inh_02_beta: "0AAqfBIcsRqywS7ceXpK",
+  inh_03_gamma: "JRIj9I6iNUE54uwAYd1w",
+  inh_04_delta: "NXaTw4ifg0LAguvKuIwZ",
+  inh_05_epsilon: "LgVKhF8NfPN1eYSzWQpW",
+  inh_06_zeta: "87tjwokZlpNU7QL3HaLP",
+  inh_07_eta: "N2lVS1w4EtoT3dr4eOWO",
+  inh_08_theta: "qyB4MYCSWkgEVlsboQ7O",
+  inh_09_iota: "WqfqZq3UXPCD87IXHLnm",
+  inh_10_kappa: "VukfMVtvHInVUWoMNPiQ",
+});
+
 export interface VoiceRegistry {
   readonly narration: string;
   readonly adult: Readonly<Record<string, string>>;
@@ -93,6 +114,8 @@ export function buildVoiceRegistry(
 }
 
 export interface SpeakerRef {
+  /** Canonical inhabitant id, present for every contemporary export. */
+  readonly id?: string;
   readonly voiceHandle: string;
   readonly sex: Sex;
   /** Canonical developmental stage (§11B). Selects the child rendering. */
@@ -117,6 +140,14 @@ export function resolveVoiceId(
   speaker: SpeakerRef | null,
 ): string {
   if (kind === "narration" || speaker === null) return registry.narration;
+
+  // Genesis has an explicitly commissioned, character-level roster. Resolve
+  // it before the generic adult/child handles so it is never affected by the
+  // old environment voice pools or the progenitor's sex/roster position.
+  const genesisVoice = speaker.id === undefined
+    ? undefined
+    : GENESIS_ELEVENLABS_VOICE_IDS[speaker.id.trim().toLowerCase()];
+  if (genesisVoice !== undefined) return genesisVoice;
 
   if (speaker.maturity < registry.childMaturityBelow) {
     return registry.child[speaker.sex];

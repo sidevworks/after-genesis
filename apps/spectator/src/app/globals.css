@@ -45,6 +45,36 @@ body {
   background-attachment: fixed;
 }
 
+/* The inhabitants directory is a visual picker, not a scrollable report. */
+@media (min-width: 1024px) {
+  body:has(.character-directory) {
+    display: flex;
+    height: 100dvh;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  body:has(.character-directory) > header {
+    flex: none;
+  }
+
+  body:has(.character-directory) > header + section {
+    display: none;
+  }
+
+  body:has(.character-directory) main {
+    min-height: 0;
+    height: auto;
+    flex: 1;
+    overflow: hidden;
+    padding-block: 1rem;
+  }
+
+  body:has(.character-directory) footer {
+    display: none;
+  }
+}
+
 ::selection {
   background: rgba(217, 164, 65, 0.28);
 }
