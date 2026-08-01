@@ -9,10 +9,17 @@ rules_version = '2';
 // nothing is writable through this API at all.
 //
 // Uploads are performed out of band by an operator running
-// `apps/spectator/scripts/upload-assets.mjs` with an explicitly supplied
-// service account. That path uses the Admin SDK, which bypasses these rules by
-// design — which is the point. There is no browser-reachable write, so a
+// `apps/spectator/scripts/publish-assets.mjs`, which writes through the Cloud
+// Storage API under an operator credential and so is not governed by these
+// rules — which is the point. There is no browser-reachable write, so a
 // compromised spectator build cannot introduce, replace or delete an asset.
+//
+// These rules govern `firebasestorage.googleapis.com/v0/b/<bucket>/o/...`.
+// They do not govern `storage.googleapis.com/<bucket>/...`, which is
+// IAM-controlled and stays private. Serving from that host would require
+// granting `allUsers` in IAM, which this organisation's Domain Restricted
+// Sharing policy forbids — and which could not be scoped to a prefix the way
+// the `match` blocks below are.
 service firebase.storage {
   match /b/{bucket}/o {
     // Published spectator media. Read-only, and deliberately unauthenticated:

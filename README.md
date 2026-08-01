@@ -171,9 +171,31 @@ claude.md        The product specification. The source of truth for intent.
 ```
 
 Media assets — character models, terrain, profile films — are not committed.
-They are served from Cloud Storage (§3) via `NEXT_PUBLIC_ASSET_BASE_URL`; see
-`apps/spectator/scripts/publish-assets.mjs`. Unset, the spectator falls back to
-whatever is in `public/`.
+They are served from Cloud Storage (§3) via `NEXT_PUBLIC_ASSET_BASE_URL`, which
+the spectator resolves through `lib/asset-url.ts`. Unset, it falls back to
+whatever is in `public/`, so a local checkout needs no configuration.
+
+Publishing is two steps, and both are scripted:
+
+```bash
+node apps/spectator/scripts/publish-assets.mjs --optimize --upload
+```
+
+```bash
+node apps/spectator/scripts/deploy-storage-rules.mjs
+```
+
+The first compresses the models — meshopt geometry and WebP textures take the
+set from 229 MB to 29 MB — and syncs them to `gs://<bucket>/spectator/`. The
+second publishes `storage.rules`, which is what actually makes them readable.
+
+Assets are served from Firebase Storage's download endpoint rather than
+`storage.googleapis.com`. The plain host is IAM-controlled and would need
+`allUsers` granted, which this organisation's Domain Restricted Sharing policy
+forbids in any bucket. The Firebase endpoint is governed by Security Rules
+instead, and rules scope by prefix: `spectator/**` is public and everything else
+in the bucket — including whatever the media service writes later — is denied by
+default rather than by remembering to deny it.
 
 ## Design rules that are not negotiable
 

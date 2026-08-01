@@ -219,7 +219,14 @@ function upload() {
   }
   console.log(
     `\nPublished. Point the spectator at it by setting, in the deployment environment:\n` +
-      `\n  NEXT_PUBLIC_ASSET_BASE_URL=https://storage.googleapis.com/${bucket}/spectator\n` +
+      `\n  NEXT_PUBLIC_ASSET_BASE_URL=https://firebasestorage.googleapis.com/v0/b/${bucket}/o/spectator\n` +
+      `\nThat is the Firebase download endpoint, not storage.googleapis.com. Serving\n` +
+      `from the plain GCS host would need an IAM grant of allUsers, which this\n` +
+      `organisation's Domain Restricted Sharing policy forbids in any bucket. The\n` +
+      `Firebase endpoint is governed by storage.rules instead, which opens exactly\n` +
+      `spectator/** and denies the rest — narrower than the IAM grant would have been.\n` +
+      `\nThose rules must be live for the URLs to resolve. Deploy them with:\n` +
+      `\n  node apps/spectator/scripts/deploy-storage-rules.mjs\n` +
       `\nLeft unset, the app keeps loading these paths from public/, which is what a\n` +
       `local checkout with the masters in place already does.\n`,
   );
