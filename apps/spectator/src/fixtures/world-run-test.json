@@ -12,7 +12,7 @@
   "mapHeight": 32,
   "population": {
    "living": 0,
-   "deceased": 0,
+   "deceased": 10,
    "total": 10,
    "byGeneration": [
     0,
@@ -7143,14 +7143,17 @@
    "id": "inh_founder",
    "name": "Aster",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 8,
     "y": 2
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7242,20 +7245,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 63360
   },
   {
    "id": "inh_ember",
    "name": "Ember",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 10,
     "y": 0
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7346,20 +7353,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 61920
   },
   {
    "id": "inh_lumen",
    "name": "Lumen",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 10,
     "y": 1
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7450,20 +7461,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 63360
   },
   {
    "id": "inh_corner_01",
    "name": "Corner 01",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 16,
     "y": 11
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7554,20 +7569,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 63360
   },
   {
    "id": "inh_corner_02",
    "name": "Corner 02",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 8,
     "y": 9
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7659,20 +7678,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 64800
   },
   {
    "id": "inh_corner_03",
    "name": "Corner 03",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 16,
     "y": 11
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7764,20 +7787,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 63360
   },
   {
    "id": "inh_corner_04",
    "name": "Corner 04",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 9,
     "y": 10
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7869,20 +7896,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 60480
   },
   {
    "id": "inh_corner_05",
    "name": "Corner 05",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 7,
     "y": 8
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -7973,20 +8004,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 67680
   },
   {
    "id": "inh_corner_06",
    "name": "Corner 06",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 8,
     "y": 9
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -8078,20 +8113,24 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 61920
   },
   {
    "id": "inh_corner_07",
    "name": "Corner 07",
    "generation": 0,
-   "status": "dead",
+   "status": "deceased",
    "at": {
     "x": 11,
     "y": 9
    },
    "birthSimTime": 0,
    "creationEventId": "evt_000000",
+   "parentIds": [],
+   "childIds": [],
    "energy": 100,
+   "activity": "idle",
    "reputation": 50,
    "traits": [
     {
@@ -8183,7 +8222,8 @@
    },
    "lastActionSimTime": 67680,
    "nextEligibleSimTime": 67695,
-   "inventory": []
+   "inventory": [],
+   "deceasedAt": 60480
   }
  ],
  "events": [
@@ -29427,81 +29467,111 @@
     "id": "inh_founder",
     "name": "Aster",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 63360
    },
    {
     "id": "inh_ember",
     "name": "Ember",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 61920
    },
    {
     "id": "inh_lumen",
     "name": "Lumen",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 63360
    },
    {
     "id": "inh_corner_01",
     "name": "Corner 01",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 63360
    },
    {
     "id": "inh_corner_02",
     "name": "Corner 02",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 64800
    },
    {
     "id": "inh_corner_03",
     "name": "Corner 03",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 63360
    },
    {
     "id": "inh_corner_04",
     "name": "Corner 04",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 60480
    },
    {
     "id": "inh_corner_05",
     "name": "Corner 05",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 67680
    },
    {
     "id": "inh_corner_06",
     "name": "Corner 06",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 61920
    },
    {
     "id": "inh_corner_07",
     "name": "Corner 07",
     "generation": 0,
-    "status": "dead",
+    "parentIds": [],
+    "childIds": [],
+    "status": "deceased",
     "birthSimTime": 0,
-    "creationEventId": "evt_000000"
+    "creationEventId": "evt_000000",
+    "deathSimTime": 60480
    }
   ],
   "rootIds": [

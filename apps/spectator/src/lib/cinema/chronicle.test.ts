@@ -111,7 +111,7 @@ describe("the Chronicle built from the 600-turn export", () => {
 
   it("keeps one canonical segment per envelope the inhabitant participates in", () => {
     for (const inhabitant of run.inhabitants) {
-      const expected = run.activities.filter((a) => a.participants.includes(inhabitant.id)).length;
+      const expected = (run.activities ?? []).filter((a) => a.participants.includes(inhabitant.id)).length;
       expect(canonicalSegments(trackOf(chronicle, inhabitant.id))).toHaveLength(expected);
     }
 
@@ -188,7 +188,6 @@ describe("the Chronicle built from the 600-turn export", () => {
     // `unrecorded` is reserved for intervals that are genuinely undetermined —
     // in this run there are none, and manufacturing one would be a fiction.
     const unrecordedBeforeDeath = chronicle.tracks.flatMap((track) => {
-      const inhabitant = run.inhabitants.find((i) => i.id === track.id);
       return track.segments.filter(
         (segment) => segment.disclosure === "unrecorded" && (track.diedTick === null || segment.startTick < track.diedTick)
       );
@@ -229,7 +228,7 @@ describe("the Chronicle built from the 600-turn export", () => {
 
   it("marks every exported inhabitant as alive or records diedTick if dead", () => {
     for (const track of chronicle.tracks) {
-      const inhabitant = run.inhabitants.find((i) => i.id === track.id);
+      const inhabitant = run.inhabitants.find((i) => i.id === track.inhabitantId);
       if (inhabitant?.status === "alive") expect(track.diedTick).toBeNull();
     }
   });

@@ -54,6 +54,7 @@ function segment(
     sequence: 1,
     actionType: "gather",
     activityState: "gathering",
+    canonicalMinutes: overrides.endTick - overrides.startTick,
     from: { x: 4, y: 4 },
     to: { x: 4, y: 4 },
     focus: null,

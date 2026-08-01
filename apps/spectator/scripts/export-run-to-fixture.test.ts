@@ -2,7 +2,7 @@ import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { parseJsonl, replayHistory } from "@after-genesis/audit";
-import type { CanonicalEvent, WorldState } from "@after-genesis/core";
+import type { CanonicalEvent, Inhabitant, WorldState } from "@after-genesis/core";
 
 const EXPLORE_RADIUS = 5;
 
@@ -64,23 +64,39 @@ describe("Export simulation run to Spectator fixture", () => {
     const state: WorldState = replay.state!;
     const lastEvent = events[events.length - 1]!;
 
-    const livingInhabitants = Object.values(state.inhabitants).filter(
-      (i) => i.status === "active" || i.status === "alive",
-    );
-    const deceasedInhabitants = Object.values(state.inhabitants).filter((i) => i.status === "deceased");
+    // The engine and the fixture use different vocabularies, deliberately: the
+    // engine records `alive`/`dead`, the spectator's world.json presents
+    // `active`/`deceased`. Translate at this boundary and nowhere else.
+    const livingInhabitants = Object.values(state.inhabitants).filter((i) => i.status === "alive");
+    const deceasedInhabitants = Object.values(state.inhabitants).filter((i) => i.status === "dead");
+    const presentedStatus = (status: Inhabitant["status"]): string =>
+      status === "alive" ? "active" : "deceased";
+
+    // Lineage is stored one way — a child names its parents (§7). The fixture
+    // also presents the reverse edge, so derive it rather than expecting the
+    // engine to carry a denormalised copy that could disagree.
+    const childIdsOf = new Map<string, string[]>();
+    for (const inhabitant of Object.values(state.inhabitants)) {
+      for (const parentId of inhabitant.parents) {
+        const existing = childIdsOf.get(parentId);
+        if (existing === undefined) childIdsOf.set(parentId, [inhabitant.id]);
+        else existing.push(inhabitant.id);
+      }
+    }
+    const childrenOf = (id: string): readonly string[] => childIdsOf.get(id) ?? [];
 
     const formattedInhabitants = Object.values(state.inhabitants).map((i) => ({
       id: i.id,
       name: i.displayName,
       generation: i.generation,
-      status: i.status === "alive" ? "active" : i.status,
+      status: presentedStatus(i.status),
       at: i.location,
       birthSimTime: i.birthTime,
       creationEventId: `evt_${i.creationSequence.toString().padStart(6, "0")}`,
-      parentIds: i.parentIds,
-      childIds: i.childIds,
+      parentIds: i.parents,
+      childIds: childrenOf(i.id),
       energy: i.inventory.energy ?? 100,
-      activity: i.activityState,
+      activity: i.activity.state,
       reputation: 50,
       traits: Object.entries(i.traits).map(([name, level]) => ({ name, level })),
       values: i.values,
@@ -109,7 +125,7 @@ describe("Export simulation run to Spectator fixture", () => {
         resource,
         quantity: typeof quantity === "number" ? quantity : 0,
       })),
-      ...(i.deceasedAt !== undefined ? { deceasedAt: i.deceasedAt } : {}),
+      ...(i.deathTime !== null ? { deceasedAt: i.deathTime } : {}),
     }));
 
     const formattedEvents = events.map((e) => {
@@ -164,7 +180,7 @@ describe("Export simulation run to Spectator fixture", () => {
       imageDigest: lastEvent.provenance.deployedDigest,
     };
 
-    const rawDeposits = state.map.deposits ?? Object.values(state.deposits ?? {});
+    const rawDeposits = Object.values(state.deposits);
 
     const discovered = Object.values(state.inhabitants).reduce((acc, inhabitant) => {
       for (const tile of expandDiscovery(inhabitant.knownLocations ?? [], state.map)) {
@@ -250,12 +266,12 @@ describe("Export simulation run to Spectator fixture", () => {
         id: i.id,
         name: i.displayName,
         generation: i.generation,
-        parentIds: i.parentIds,
-        childIds: i.childIds,
-        status: i.status === "alive" ? "active" : i.status,
+        parentIds: i.parents,
+        childIds: childrenOf(i.id),
+        status: presentedStatus(i.status),
         birthSimTime: i.birthTime,
         creationEventId: `evt_${i.creationSequence.toString().padStart(6, "0")}`,
-        ...(i.deceasedAt !== undefined ? { deathSimTime: i.deceasedAt } : {}),
+        ...(i.deathTime !== null ? { deathSimTime: i.deathTime } : {}),
       })),
       rootIds: Object.values(state.inhabitants).filter((i) => i.generation === 0).map((i) => i.id),
       generationCount: 1,

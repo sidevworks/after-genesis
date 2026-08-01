@@ -22,6 +22,7 @@ function segment(over: Partial<ChronicleSegment>): ChronicleSegment {
     activityState: "idle",
     startTick: 0,
     endTick: 60,
+    canonicalMinutes: 60,
     from: { x: 3, y: 4 },
     to: { x: 3, y: 4 },
     focus: null,
