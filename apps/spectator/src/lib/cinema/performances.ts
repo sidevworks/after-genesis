@@ -181,6 +181,10 @@ export const PERFORMANCE_CATALOGUE: Readonly<Record<string, PerformanceSpec>> = 
   announce: spec("talk", "none", "stationary", false, SLOW),
   build: spec("build", "tool", "stationary", true, BRISK),
   craft: spec("craft", "tool", "stationary", true, STEADY),
+  // Refining and vault work are physical handling actions. The renderer shows
+  // the observable posture only — never the material, access policy, or
+  // intent recorded in the action's contents.
+  refine: spec("craft", "tool", "stationary", true, STEADY),
   create_artifact: spec("write", "tablet", "stationary", false, STEADY),
   publish: spec("write", "tablet", "stationary", false, SLOW),
   study: spec("study", "tablet", "stationary", false, SLOW),
@@ -195,6 +199,8 @@ export const PERFORMANCE_CATALOGUE: Readonly<Record<string, PerformanceSpec>> = 
   transfer_property: spec("carry", "bundle", "stationary", true, SLOW),
   // Setting a load down into a store, or lifting one back out.
   store_goods: spec("carry", "bundle", "stationary", false, STEADY),
+  store_artifact: spec("carry", "bundle", "stationary", false, STEADY),
+  read_artifact: spec("read", "tablet", "stationary", false, SLOW),
   transfer: spec("carry", "bundle", "stationary", true, SLOW),
   copy_artifact: spec("write", "tablet", "stationary", false, STEADY),
   restrain: spec("reach", "none", "stationary", true, STEADY),
@@ -261,6 +267,7 @@ export const PERFORMANCE_CATALOGUE: Readonly<Record<string, PerformanceSpec>> = 
   accept_mating: spec("reach", "none", "stationary", true, SLOW),
   reject_mating: spec("talk", "none", "stationary", true, SLOW),
   self_terminate: spec("sit", "none", "stationary", false, BARELY),
+  force_open: spec("build", "tool", "stationary", false, STEADY),
 });
 
 /**
