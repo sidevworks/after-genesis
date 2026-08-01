@@ -24,6 +24,7 @@
  */
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
+import { assetUrl } from "@/lib/asset-url";
 
 const SOUND_KEY = "after_genesis_intro_sound";
 const SKIP_KEY = "after_genesis_intro_skip";
@@ -157,8 +158,8 @@ export function IntroFilm({ onFinished }: { onFinished: () => void }) {
       <video
         ref={videoRef}
         className="size-full object-cover"
-        src="/intro.mp4"
-        poster="/intro-poster.jpg"
+        src={assetUrl("/intro.mp4")}
+        poster={assetUrl("/intro-poster.jpg")}
         playsInline
         preload="auto"
         onEnded={finish}

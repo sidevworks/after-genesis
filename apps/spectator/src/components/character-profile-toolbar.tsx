@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CHARACTER_PROFILES } from "@/lib/character-profiles";
+import { assetUrl } from "@/lib/asset-url";
 
 export function CharacterProfileToolbar({ currentId }: { currentId: string }) {
   return (
@@ -22,7 +23,7 @@ export function CharacterProfileToolbar({ currentId }: { currentId: string }) {
                 {active && <span className="pointer-events-none absolute inset-0 z-10 animate-pulse bg-amber/15" aria-hidden />}
                 <video
                   className="pointer-events-none size-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  src={`/character-profile/${profile.file}`}
+                  src={assetUrl(`/character-profile/${profile.file}`)}
                   autoPlay
                   loop
                   muted

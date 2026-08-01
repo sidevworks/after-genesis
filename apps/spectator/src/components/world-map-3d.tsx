@@ -8,6 +8,7 @@ import { characterKeyForCanonicalId } from "@/lib/observatory-character-profiles
 import { hasDedicatedStructureVisual, projectWorldMap, tilePosition } from "@/lib/world-map-projection";
 import type { SceneReference } from "@/lib/observatory-types";
 import type { Structure, Tile, WorldMap } from "@/lib/world-types";
+import { assetUrl } from "@/lib/asset-url";
 
 export interface MapTileSelection {
   readonly x: number;
@@ -26,7 +27,7 @@ const TERRAIN: Record<string, number> = {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-const TERRAIN_ASSET_URL = "/terrain/tabletop_terrain.glb";
+const TERRAIN_ASSET_URL = assetUrl("/terrain/tabletop_terrain.glb");
 
 type TerrainLibrary = {
   readonly terrain: THREE.MeshStandardMaterial | null;

@@ -13,6 +13,7 @@ import { RenderPass } from "three/examples/jsm/postprocessing/RenderPass.js";
 import { SSAOPass } from "three/examples/jsm/postprocessing/SSAOPass.js";
 import { UnrealBloomPass } from "three/examples/jsm/postprocessing/UnrealBloomPass.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { assetUrl } from "@/lib/asset-url";
 
 type ViewMode = "overview" | "first-person" | "third-person";
 
@@ -26,7 +27,7 @@ const TERRAIN: Record<string, number> = {
   barren: 0x776143,
 };
 
-const TERRAIN_ASSET_URL = "/terrain/tabletop_terrain.glb";
+const TERRAIN_ASSET_URL = assetUrl("/terrain/tabletop_terrain.glb");
 
 type AssetLoadResult = {
   scene: THREE.Object3D;

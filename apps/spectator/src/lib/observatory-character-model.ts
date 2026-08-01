@@ -6,6 +6,7 @@ import {
   type CharacterProp,
 } from "./observatory-character-profiles";
 import type { SceneReference } from "./observatory-types";
+import { assetUrl } from "./asset-url";
 
 export interface ObservatoryCharacterModel {
   readonly group: THREE.Group;
@@ -48,7 +49,7 @@ function loadCharacterAsset(key: string | undefined): Promise<THREE.Object3D | n
   if (existing !== undefined) return existing;
   const loading = new Promise<THREE.Object3D | null>((resolve) => {
     new GLTFLoader().load(
-      encodeURI(`/character-models/${file}`),
+      assetUrl(`/character-models/${file}`),
       (gltf) => resolve(gltf.scene),
       undefined,
       () => resolve(null),

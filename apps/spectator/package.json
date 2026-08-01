@@ -12,6 +12,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "fixtures:generate": "node --experimental-strip-types src/fixtures/generate.mts",
+    "assets:optimize": "node scripts/publish-assets.mjs --optimize",
+    "assets:publish": "node scripts/publish-assets.mjs --optimize --upload",
     "voice:plan": "tsx scripts/render-voice.mts --dry-run",
     "voice:render": "tsx scripts/render-voice.mts"
   },

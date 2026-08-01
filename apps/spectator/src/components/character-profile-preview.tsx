@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { assetUrl } from "@/lib/asset-url";
 
 function disposeObject(object: THREE.Object3D): void {
   object.traverse((node) => {
@@ -99,7 +100,7 @@ function CharacterModelCanvas({ modelFile, name }: { modelFile: string; name: st
     animate();
 
     new GLTFLoader().load(
-      encodeURI(`/character-models/${modelFile}`),
+      assetUrl(`/character-models/${modelFile}`),
       (gltf) => {
         if (disposed) {
           disposeObject(gltf.scene);

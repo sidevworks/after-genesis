@@ -35,6 +35,7 @@ import {
 } from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { ActorSample, PerformanceSpec, PropName } from "../cinema/types";
+import { assetUrl } from "../asset-url";
 import {
   CLIP_BLEND_MINUTES,
   blendPose,
@@ -70,7 +71,7 @@ function loadModel(file: string): Promise<Group | null> {
   if (prior) return prior;
   const job = new Promise<Group | null>((resolve) =>
     new GLTFLoader().load(
-      encodeURI(`/character-models/${file}`),
+      assetUrl(`/character-models/${file}`),
       (gltf) => resolve(gltf.scene),
       undefined,
       () => resolve(null),

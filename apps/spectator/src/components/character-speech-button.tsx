@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { assetUrl } from "@/lib/asset-url";
 
 export function CharacterSpeechButton({
   name,
@@ -49,7 +50,7 @@ export function CharacterSpeechButton({
       </div>
       <audio
         ref={audioRef}
-        src={`/character-profile/speech/${file}`}
+        src={assetUrl(`/character-profile/speech/${file}`)}
         preload="metadata"
         onPlay={() => setPlaying(true)}
         onPause={() => setPlaying(false)}

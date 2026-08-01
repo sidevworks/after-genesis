@@ -62,6 +62,10 @@ firebase-debug.log
 /3D Models/
 apps/spectator/public/character-models/
 
+# Compressed models staged for upload by scripts/publish-assets.mjs.
+# Regenerable from the masters above, so it is built, never committed.
+apps/spectator/.assets-dist/
+
 # Local world data (simulation output is regenerable from seed + model log)
 .worlds/
 .after-genesis/

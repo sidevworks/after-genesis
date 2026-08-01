@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { worldSource } from "@/lib/world-source";
 import { CHARACTER_PROFILES, profileForInhabitant } from "@/lib/character-profiles";
+import { assetUrl } from "@/lib/asset-url";
 
 export const metadata: Metadata = { title: "Inhabitants" };
 
@@ -26,7 +27,7 @@ export default async function InhabitantsPage() {
                 <div className="relative aspect-[4/5] overflow-hidden bg-[#090d10] lg:h-full lg:aspect-auto">
                   <video
                     className="pointer-events-none size-full object-cover"
-                    src={`/character-profile/${profile.file}`}
+                    src={assetUrl(`/character-profile/${profile.file}`)}
                     autoPlay
                     loop
                     muted

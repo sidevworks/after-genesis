@@ -1,0 +1,31 @@
+rules_version = '2';
+
+// Cloud Storage for Firebase holds the spectator's media: character models,
+// terrain, profile films and rendered speech (claude.md §3).
+//
+// §17 requires that the public client have no canonical write path, and §21
+// requires that the media layer be read-only with respect to the world. Both
+// are satisfied here by the simplest possible rule: the world is readable and
+// nothing is writable through this API at all.
+//
+// Uploads are performed out of band by an operator running
+// `apps/spectator/scripts/upload-assets.mjs` with an explicitly supplied
+// service account. That path uses the Admin SDK, which bypasses these rules by
+// design — which is the point. There is no browser-reachable write, so a
+// compromised spectator build cannot introduce, replace or delete an asset.
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Published spectator media. Read-only, and deliberately unauthenticated:
+    // spectators are anonymous by design and the world is public to watch.
+    match /spectator/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Everything else is closed. A new prefix has to be opened deliberately,
+    // rather than inheriting public read because it happened to be uploaded.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}
