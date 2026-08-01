@@ -19,7 +19,7 @@ deliverables. Citations of the form §n refer to sections of that spec.
 
 > The LLM proposes intentions. The deterministic world engine decides reality. (§2)
 
-Everything else — the frozen 60-action vocabulary, the banned floating point, the seeded RNG, the
+Everything else — the frozen action vocabulary, the banned floating point, the seeded RNG, the
 append-only hash chain, the read-only spectator — exists to make that sentence *structurally* true
 rather than a policy the model is trusted to respect.
 
@@ -46,7 +46,7 @@ the most important document here.
 | 2 | [threat-model.md](./threat-model.md) | Assets, actors, ten threats. Prompt injection between inhabitants, inhabitant privilege escalation, replay forgery, spend exhaustion, credential handling, information leakage. **Read this one** |
 | 3 | [world-rules-v1.md](./world-rules-v1.md) | The constitution. Sources, sinks and conservation for all 8 resources; energy and compute economics; time exclusivity; health and death; creation costs and ceilings; what is constitutional vs operational |
 | 4 | [firestore-design.md](./firestore-design.md) | Collections, document shapes, composite indexes, and the security rules that give the public **no write path to canonical state** (§17, §28) |
-| 5 | [schemas.md](./schemas.md) | The event envelope, the inhabitant model, the 60-action catalogue — described from the code that exists |
+| 5 | [schemas.md](./schemas.md) | The event envelope, the inhabitant model, the action catalogue — described from the code that exists |
 | 6 | [state-machines.md](./state-machines.md) | Turn lifecycle, inhabitant creation, condition → treatment → recovery or death, contract lifecycle, confinement |
 | 7 | [testing-strategy.md](./testing-strategy.md) | The four §24 pre-Genesis phases with numeric exit criteria, ten test layers, and every §15 and §11J invariant mapped to a named test |
 | 8 | [cost-control.md](./cost-control.md) | Token cost per turn, projections at populations 1 / 10 / 50 / 200, the spend-ceiling ladder, and the memory budget that stops context growing without bound |
@@ -55,28 +55,16 @@ the most important document here.
 
 ---
 
-## Current status — verified, not claimed
+## Current status
 
-`npx vitest run` at time of writing: **252 tests — 250 passing, 2 failing.**
+In the Status section of [`../README.md`](../README.md), verified by running
+the suite rather than maintained by hand.
 
-| | |
-|---|---|
-| **Implemented and passing** | Determinism primitives (canonical JSON, SHA-256 + domain tags, SplitMix64 RNG, derived ids, sim-time) · canonical event chain and public verifier · state checksum · deterministic 32×32 map generation · persistence adapters (in-memory, file, state, idempotency) · action payload schemas · CI with a gitleaks gate |
-| **In progress** | Engine resolvers (~29 of 60) · observation builder (**2 failing tests**) · cognition package (substantial, **zero tests**) · entity schemas · spectator library layer |
-| **Not started** | Turn scheduler / runtime · replay service · Genesis tooling · ElevenLabs media · Firestore adapter · `firestore.rules` |
-
-### Three things that need attention now
-
-1. **Two failing tests in `packages/core/src/engine/observation.test.ts`.** One is a §15
-   information-leak test — undisclosed organisation membership is reaching an observation that
-   should not contain it. This is the top-ranked threat in the model, currently red.
-2. **`packages/cognition` has no tests at all.** It is the code that parses untrusted model output —
-   the boundary the entire prompt-injection mitigation depends on.
-3. **A service-account private key is stored as raw JSON in `.env`.** The previously exposed key was
-   rotated, and CI now scans history for secrets — but the replacement was pasted back in the same
-   unsafe form. Credentials belong in Secret Manager, or in a file referenced by
-   `GOOGLE_APPLICATION_CREDENTIALS`. Env files get printed by tooling; paths are safe to print, keys
-   are not.
+This page used to carry its own copy. It went stale, as did the one in
+[implementation-plan.md](./implementation-plan.md): both still reported 252
+tests, an untested `cognition` package, two failing observation tests and a raw
+private key in `.env`. None of those are true now. The status lives in one
+place so that it can be trusted in that place.
 
 ---
 

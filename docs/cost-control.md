@@ -16,9 +16,8 @@ figure in this document has been validated against a bill.
 
 | Fact | Value | How verified |
 |---|---|---|
-| Test suite | **252 tests: 250 passing, 2 failing** | `npx vitest run` |
-| Failing tests | Both in `packages/core/src/engine/observation.test.ts` — one is a §15 leakage test | See [threat-model.md](./threat-model.md) T-8 |
-| Map | 32 × 32 = 1,024 tiles, deterministic from seed | `packages/core/src/engine/mapgen.ts`, 16 passing tests |
+| Test suite | See the Status section of [`../README.md`](../README.md) | `npm run typecheck && npm test` |
+| Map | 64 × 64 = 4,096 tiles by default, deterministic from seed | `packages/core/src/engine/mapgen.ts` |
 | Repository | `github.com/sidevworks/after-genesis`, **private**, CI gates on `gitleaks` before typecheck/test/build | `.github/workflows/ci.yml` |
 | Turns executed against a real model | **Zero** | No runtime package exists (`packages/runtime/src/` is empty) |
 

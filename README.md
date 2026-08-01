@@ -36,35 +36,103 @@ say so.
 Pre-Genesis. The world has not started and must not be started until every phase
 in [`docs/testing-strategy.md`](docs/testing-strategy.md) passes.
 
+**This section is the point of truth for project state.** Every figure below was
+produced by running the commands in [Verifying this status](#verifying-this-status)
+against the current tree, not asserted from memory. §26 forbids claiming a
+feature works without testing it, and that rule binds this README too.
+
+*Last verified: 2026-08-02.*
+
 | Layer | State |
 | --- | --- |
 | Determinism primitives (canonical JSON, hashing, seeded RNG) | Implemented, tested |
 | Canonical event envelope + hash chain + verifier | Implemented, tested |
-| Action catalogue (60 actions; 6 resolvers implemented) | In progress |
-| Deterministic world engine | Vertical-slice actions implemented and tested |
-| Persistence adapters | Local memory/file adapters implemented and tested |
-| Cognition service | Provider boundary implemented and tested |
-| Turn runtime | Local worker implemented and integration-tested |
-| Spectator application | Read-only static application implemented |
+| State checksum + deterministic replay | Implemented, tested |
+| Deterministic map generation (64×64 default) | Implemented, tested |
+| Action catalogue — 82 actions declared, all schema-validated | Implemented, tested |
+| Action resolvers — **46 of 82 resolve; 36 return `NOT_IMPLEMENTED`** | In progress |
+| Persistence adapters (in-memory, file, state, idempotency) | Implemented, tested |
 | Firestore adapter | Atomic server adapter and emulator contract suite implemented |
-| Turn scheduler | Deterministic selection, Cloud Tasks adapter and authenticated worker implemented |
+| Cognition service (provider boundary, prompts, memory, budget) | Implemented, tested |
+| Turn runtime and scheduler | Local worker, Cloud Tasks adapter, authenticated worker; integration-tested |
 | Genesis tooling | Offline vertical-slice command implemented |
+| Spectator application | Read-only static application implemented |
+| Media layer (ElevenLabs voices, narration) | Implemented, tested |
+| Accelerated-civilisation trials (§24 phase 3) | Not started |
+| 14-day dress rehearsal (§24 phase 4) | **Not started — gates Genesis** |
 
-Nothing in this table is marked complete unless it has tests that pass. §26 of
-the spec forbids claiming otherwise, and that rule applies to this README.
+### What the 36 unresolved actions are
+
+They are declared, schema-validated, and rejected at resolution with an honest
+`NOT_IMPLEMENTED` rather than silently succeeding. They cluster, and the
+clusters are the substance of what the world cannot yet do:
+
+- **Medicine (§8)** — `inspect_agent`, `diagnose_condition`, `design_treatment`,
+  `apply_treatment`
+- **Learning (§9)** — `study`, `teach`
+- **Contracts and trade (§10)** — `offer_trade`, `offer_contract`,
+  `accept_contract`, `reject_contract`, `perform_contract`, `terminate_contract`
+- **Currency (§10)** — `create_currency`
+- **Care, coordination and disclosure (§11C, §11D, §11E)** —
+  `care_for_dependant`, `supervise`, `interrupt_activity`, `coordinate_work`,
+  `contribute_to_group`, `inspect_inventory`, `audit_records`, `conceal_asset`,
+  `reveal_asset`
+- **Security, law and enforcement (§11F, §11G, §11H)** — `investigate_event`,
+  `report_findings`, `secure_storage`, `attempt_transfer_without_consent`,
+  `accuse`, `present_evidence`, `request_restitution`, `impose_confinement`,
+  `maintain_confinement`, `release_from_confinement`, `visit_confined_agent`,
+  `appeal_decision`, `attempt_escape`, `resist_enforcement`
+
+Physical survival, movement, construction, crafting, lineage, speech,
+organisations and artifacts do resolve.
+
+### Verifying this status
+
+```bash
+npm run typecheck && npm test
+```
+
+```bash
+npm run build --workspace=@after-genesis/spectator
+```
+
+```bash
+npm run world -- replay --output .worlds/3-month-run
+```
+
+As of the date above: typecheck clean in both the root solution and the
+spectator; **1,510 tests pass**, 6 skipped, across 80 files; the spectator
+builds; and a recorded 565-event run replays to its original state checksum
+`e0aa1e31…` with no mismatches.
+
+Two caveats an auditor should know. The replayed run contains no
+`create_inhabitant` events, so it does not exercise the lineage resolver — a
+matching checksum there is not evidence that creation is replay-stable. And the
+spectator is excluded from the root `tsc --build`, so run its typecheck
+separately; `next build` does not check test files.
 
 ## Repository layout
 
 ```
 packages/
   core/          Pure, deterministic, zero-I/O. Schemas, engine, event chain.
-  persistence/   Storage adapters behind ports. In-memory, file, (Firestore: designed).
+  persistence/   Storage adapters behind ports. In-memory, file, Firestore.
   cognition/     Provider-neutral model access, prompt building, memory retrieval.
+  runtime/       Turn scheduler, idempotent worker, Cloud Tasks queue adapter.
+  audit/         Chain verifier and replay. The public verification path.
+  media/         ElevenLabs voices and narration. Read-only w.r.t. the world.
 apps/
+  genesis/       The world CLI: demo, replay, staging bootstrap.
+  worker/        HTTP turn worker, invoked by Cloud Tasks.
   spectator/     Read-only Next.js window onto the world.
 docs/            Architecture, threat model, world rules, testing strategy.
 claude.md        The product specification. The source of truth for intent.
 ```
+
+Media assets — character models, terrain, profile films — are not committed.
+They are served from Cloud Storage (§3) via `NEXT_PUBLIC_ASSET_BASE_URL`; see
+`apps/spectator/scripts/publish-assets.mjs`. Unset, the spectator falls back to
+whatever is in `public/`.
 
 ## Design rules that are not negotiable
 

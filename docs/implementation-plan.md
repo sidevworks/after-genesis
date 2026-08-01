@@ -1,14 +1,16 @@
 # Implementation plan
 
-> **Status refresh — 2026-07-28:** The numerical test summary below captured an
-> earlier intermediate checkout and is retained as historical planning context.
-> The current workspace has an executable offline vertical slice:
-> `npm run world -- demo` creates Genesis, runs deterministic limited-observation
-> turns, appends hash-chained events, exports a read-only map projection, and
-> independently replays to the identical checksum. The turn worker now has
-> integration coverage for successful commit, duplicate delivery, and provider
-> outage/retry. Run `npm test` for the live count. Firestore, production Gemini
-> composition, Cloud Tasks, and public Genesis remain intentionally incomplete.
+> **Where project state lives — 2026-08-02.** The point of truth for what is
+> built and what is not is the Status section of [`../README.md`](../README.md).
+> It is verified by running the suite, and it is the document to share.
+>
+> Everything below is *planning* — ordering, effort estimates and sequencing
+> against §25. The numerical status summary that used to open this file
+> described an intermediate checkout from July and disagreed with reality on
+> nearly every line: it reported 252 tests against the current 1,510, and called
+> `packages/runtime`, `apps/genesis` and the Firestore adapter unstarted when all
+> three are built and tested. It has been removed rather than corrected, because
+> two competing status documents is how a status document stops being trusted.
 
 **Ordering follows §25's 21 steps exactly.** §25 is explicit that they are done in that order, and
 that graphics do not precede the simulation, replay and audit foundations.
@@ -20,116 +22,27 @@ not done under §26.
 
 ---
 
-## 0. Status summary — verified by running the suite
+## 0. Status summary
 
-`npx vitest run` → **252 tests, 250 passing, 2 failing.** Under §26, a component with a failing test
-is not complete, so the two failures below hold `buildObservation` out of the Implemented column.
+Moved. The verified status table now lives in the Status section of
+[`../README.md`](../README.md), together with the commands that produce it.
 
-### Implemented — code exists *and* its tests pass
-
-| Component | Evidence |
-|---|---|
-| Determinism primitives — canonical JSON, SHA-256 + domain tags, SplitMix64 RNG, derived ids, sim-time | `canonical.test.ts` (30 ✓), `rng.test.ts` (24 ✓) |
-| Canonical event chain + verifier | `event.test.ts` (32 ✓), `packages/audit/src/verify.test.ts` (20 ✓) |
-| State checksum | `engine/checksum.test.ts` (22 ✓) |
-| Deterministic 32×32 map generation | `engine/mapgen.test.ts` (16 ✓) |
-| Persistence adapters — in-memory + file event stores, state store, idempotency store, clock | `memory-event-store.test.ts` (12 ✓), `file-event-store.test.ts` (20 ✓), `state-store.test.ts` (24 ✓), `memory-idempotency-store.test.ts` (11 ✓), `clock.test.ts` (10 ✓) |
-| Action payload schemas — 16 grouped modules covering the 60-action vocabulary | `schema/actions/*.ts` — compile-checked; **no dedicated test file** |
-| CI — gitleaks secret scan gating typecheck/test/build | `.github/workflows/ci.yml` |
-
-### In progress — code exists, tests failing or absent
-
-| Component | State |
-|---|---|
-| **Observation builder** (`engine/observation.ts`) | ⚠ **2 failing tests.** One is a §15 leakage test — undisclosed organisation membership reaching an observation. See [threat-model.md](./threat-model.md) T-8 |
-| Engine resolvers | ~29 registered of 60 actions; only `move`, `gather`, `basic` implemented as dedicated modules. No resolver test file |
-| Cognition (`packages/cognition`) | Substantial: Gemini/scripted/replay providers, prompt builder, `untrusted.ts`, memory, budget, parse. **No test file in the package at all** |
-| Entity schemas (`schema/entities/`) | artifact, condition, memory, organisation, structure, skills present; inhabitant/world state not consolidated |
-| Spectator (`apps/spectator`) | Library layer only — `world-source.ts`, `fixture-world-source.ts`, `event-hash.ts`, `format.ts`. No routes, no UI |
-| Audit CLI (`packages/audit/src/cli.ts`) | Verifier tested; CLI entry point untested |
-
-### Not started
-
-Turn scheduler / runtime (`packages/runtime/src/` is **empty**) · replay + audit *service* (as
-opposed to the chain verifier, which exists) · Genesis tooling (`apps/genesis/src/` is **empty**) ·
-ElevenLabs media layer · Firestore adapter (no Firestore reference anywhere in the tree) ·
-`firestore.rules` · security-rules test matrix.
-
-### Immediate priorities
-
-1. **Fix the two failing observation tests.** One is an information leak; it is the top-ranked
-   threat in [threat-model.md](./threat-model.md).
-2. **Test `packages/cognition`.** It is the largest untested surface in the repo, and it is the
-   component that handles untrusted model output.
-3. **Move the service-account key out of `.env`.** Rotated, but re-pasted in the same unsafe form —
-   [threat-model.md](./threat-model.md) T-5 action 3.
+Keeping a second copy here meant keeping two, and the copy that was not being
+shared was the one that went stale — by July it claimed 252 tests and an empty
+`packages/runtime`. One document, verified by running it, or none.
 
 ---
 
 ## 1. Where the project actually is
 
-```mermaid
-flowchart LR
-  subgraph done["DONE"]
-    S1a["1. Repo scaffold<br/><i>partial</i>"]
-    S2a["2. Contract-layer schemas<br/><i>partial</i>"]
-  end
-  subgraph next["NEXT"]
-    S0["0. Rotate the key<br/><b>blocking</b>"]
-    T["Tests for what exists<br/><b>blocking</b>"]
-    S2b["2. 60 payload schemas"]
-    S3["3. Deterministic engine"]
-  end
-  subgraph later["NOT STARTED — 17 more steps"]
-    S4["4–21"]
-  end
-  done --> next --> later --> G["Genesis"]
-  style S0 fill:#4a1010,stroke:#e74c3c,color:#fff
-  style T fill:#4a1010,stroke:#e74c3c,color:#fff
-  style G fill:#0b3d2e,stroke:#2ecc71,color:#fff
-```
+See the Status section of [`../README.md`](../README.md).
 
-### Verified present in the repository
-
-| File | Status |
-|---|---|
-| `packages/core/src/util/canonical.ts` | **Implemented** — canonical JSON, float ban, `NonCanonicalValueError` |
-| `packages/core/src/util/hash.ts` | **Implemented** — SHA-256, `HashDomain` tags, `GENESIS_PREV_HASH`, `hashEquals` |
-| `packages/core/src/util/rng.ts` | **Implemented** — SplitMix64, derived streams, integer-only probability, rejection sampling |
-| `packages/core/src/ids.ts` | **Implemented** — 12 branded id types, `deriveId` from event sequence |
-| `packages/core/src/time.ts` | **Implemented** — `SimTime`/`Duration`, clock, `isNight` |
-| `packages/core/src/event.ts` | **Implemented** — envelope, visibility union, provenance, `sealEvent`, `verifyChain` |
-| `packages/core/src/ports.ts` | **Implemented** (interfaces) — `EventStore`, `StateStore`, `IdempotencyStore`, `ModelAuditStore`, `ModelProvider`, `SpendLimitExceededError` |
-| `packages/core/src/schema/primitives.ts` | **Implemented** — 8 resources, conservation set, bundle algebra, terrain, coords |
-| `packages/core/src/schema/action-spec.ts` | **Implemented** (contract) — 60 action types, 17 activity states, `ActionSpec`, `ProposedActionSchema`, `ResolutionOutcome` |
-| `package.json`, `tsconfig.base.json`, `vitest.config.ts`, `.gitignore`, `.env.example` | **Implemented** |
-| `packages/{cognition,runtime,audit,persistence}/src`, `apps/{genesis,spectator}` | **Empty directories** |
-
-### Verified absent
-
-- No `firestore.rules`, no `firestore.indexes.json`, no Firestore adapter anywhere in the tree.
-- `packages/runtime/src/` and `apps/genesis/src/` are **empty directories** — no scheduler, no
-  Genesis CLI.
-- No media layer, no spectator routes or UI, no security-rules test matrix.
-- No test file in `packages/cognition` despite it being one of the larger packages.
-- `packages/core/src/index.ts` does not re-export `schema/action-spec.js`.
-
-### Honest summary
-
-Steps 1–2 are substantially done and step 3–4 are genuinely under way. The determinism layer, the
-event chain, the verifier and the persistence adapters are real, tested and good — the comments
-explain *why*, not just *what*, and the 250 passing tests are meaningful rather than decorative.
-
-Two caveats keep this from being further along than it looks:
-
-1. **The suite is red.** Two failing observation tests, one of them an information-leak test. Under
-   §26 nothing built on `buildObservation` can be described as working until they pass.
-2. **`packages/cognition` is entirely untested** — and it is the component that ingests untrusted
-   model output, which is the boundary [threat-model.md](./threat-model.md) T-1 depends on.
-
-Call it **step 4 of 21, with the foundations sound and the assurance work lagging the
-implementation.** The remaining work is still the majority of the project, but the hardest
-correctness decisions — encoding, hashing, RNG derivation, chain verification — are made and proven.
+What used to be here — a file-by-file inventory, a "verified absent" list and a
+progress diagram — described the repository as it stood in July: empty
+`runtime` and `genesis` directories, no Firestore, no spectator UI, an untested
+`cognition` package, two failing observation tests. All six of those statements
+are now false. A hand-maintained inventory drifts the moment work continues;
+the README's table is derived from commands anyone can re-run.
 
 ---
 
@@ -142,25 +55,21 @@ Not part of §25's ordering, but blocking everything.
 | Rotate the exposed Firebase service-account key | 0.5 d | ✅ **Done** |
 | First commit; repo live at `github.com/sidevworks/after-genesis` (private) | 0.5 d | ✅ **Done** |
 | CI: gitleaks secret scan gating typecheck / test / build | 1.5 d | ✅ **Done** |
-| Tests for the contract layer (L1–L3): canonical JSON, RNG, event chain, checksum, mapgen | 5 d | ✅ **Done** — 250 passing |
-| **Fix the 2 failing observation tests** (one is a §15 leak) | **1 d** | ❌ **Blocking — top priority** |
-| **Move credentials to Secret Manager; stop pasting keys into `.env`** ([threat-model.md](./threat-model.md) T-5 action 3) | 1 d | ❌ Genesis-blocking |
+| Tests for the contract layer (L1–L3): canonical JSON, RNG, event chain, checksum, mapgen | 5 d | ✅ **Done** |
+| Fix the 2 failing observation tests (one is a §15 leak) | 1 d | ✅ **Done** — `observation.test.ts`, 31 passing |
+| Move credentials to Secret Manager; stop pasting keys into `.env` ([threat-model.md](./threat-model.md) T-5 action 3) | 1 d | ◐ Partly — `.env` now references a keyfile path, not an inline key. Secret Manager still outstanding |
 | Confirm four separate Firebase projects; least-privilege runtime identity (not Admin) | 2 d | ❌ Genesis-blocking |
-| Tests for `packages/cognition` — the untrusted-input boundary, currently 0 tests | **4 d** | ❌ Blocking |
+| Tests for `packages/cognition` — the untrusted-input boundary | 4 d | ✅ **Done** — 6 test files incl. `untrusted`, `parse`, `budget` |
 | Golden-vector suite pinning canonical JSON / RNG / event hashes across the Node matrix | 2 d | ❌ Outstanding |
 | `npm ci --ignore-scripts` in CI; pre-commit secret scan | 0.5 d | ❌ Outstanding |
 | Export `schema/action-spec.js` from `packages/core/src/index.ts` | 0.1 d | ❌ Outstanding |
 | Verify current provider pricing; recompute [cost-control.md](./cost-control.md) | 1 d | ❌ **Genesis-blocking** |
 | **Remaining** | **~11.6 d** | |
 
-The two failing observation tests are the highest-value work available right now: one of them is an
-information leak, which is the top-ranked threat in the model, and everything that consumes an
-observation inherits the defect until it is fixed.
-
-The second-highest is testing `packages/cognition`. It is substantial, complete-looking, and has
-zero tests — and it is precisely the code that parses untrusted model output. §26 is explicit that a
-feature is not done until it is tested; right now the most security-sensitive package in the
-repository is the least verified.
+Both items that once headed this list — the observation leak and the untested
+cognition boundary — are done. What remains outstanding here is credential
+handling and the golden-vector suite; the §24 rehearsal phases in step 20 are
+what actually gate Genesis now.
 
 ---
 

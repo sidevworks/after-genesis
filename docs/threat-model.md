@@ -338,7 +338,7 @@ rules-bypassing write is exactly the corruption that identity is supposed to exc
 |---|---|---|
 | 1 | **Rotate the exposed credential.** | ✅ **Done** — verified: new `private_key_id`, new key body |
 | 2 | **Add a CI secret scan so `.gitignore` is not the only control.** | ✅ **Done** — `.github/workflows/ci.yml` runs `gitleaks` over full history (`fetch-depth: 0`) as job `secrets`, and `typecheck`/`test`/`build` all declare `needs: secrets`. It additionally fails if `.env` is tracked or if a `service-account*.json` / `credentials.json` is tracked |
-| 3 | **Stop storing key material in `.env`.** Move to Secret Manager (§17) or Workload Identity Federation; if a file must be used locally, reference it by path via `GOOGLE_APPLICATION_CREDENTIALS` as `.env.example` already specifies. | ❌ **Outstanding — the replacement key is again raw JSON in `.env`** |
+| 3 | **Stop storing key material in `.env`.** Move to Secret Manager (§17) or Workload Identity Federation; if a file must be used locally, reference it by path via `GOOGLE_APPLICATION_CREDENTIALS` as `.env.example` already specifies. | ◐ **Partly done** — `.env` no longer contains key material; it references a keyfile by path. Secret Manager, and a runtime identity that is not Admin, remain outstanding and Genesis-blocking |
 | 4 | **Confirm the four projects are separate** (§17: dev / staging / rehearsal / production). The credential is for a single project named `after-genesis`; if that is to become production, it must not also be the development project. | ❌ Outstanding |
 | 5 | **Grant least privilege.** The runtime does not need Firebase Admin. It needs `datastore.user` scoped to specific collections plus a Storage writer role on the media bucket. Admin SDK bypasses all security rules, which is why a non-Admin identity is what makes [firestore-design.md](./firestore-design.md) §6 enforced rather than advisory. | ❌ Outstanding |
 | 6 | **Add a pre-commit secret scan** so a key is caught before it reaches CI. | ❌ Outstanding (CI-side only today) |
@@ -494,21 +494,22 @@ context without a valid disclosure event."
 | `invariants/private-ledger-not-in-public-feed.test.ts` | Transfers of a private currency appear in no public projection |
 | `arch/cognition-cannot-import-spectator.test.ts` | Dependency-direction assertion over the module graph |
 
-#### ⚠ Live finding: the observation leakage test is currently RED
+#### Resolved: the observation leakage finding
 
-Verified by running the suite (`npx vitest run`): **252 tests, 250 passing, 2 failing**, both in
-`packages/core/src/engine/observation.test.ts`:
+This section previously recorded T-8 firing — an undisclosed organisation
+membership reaching an observation that should not contain it, plus a night
+sight-radius that did not narrow. Both tests now pass; `observation.test.ts`
+is green at 31 tests.
 
-| Failing test | Significance |
-|---|---|
-| `buildObservation — leakage (§15 security boundary)` › *does not leak undisclosed organisation membership* | **This is T-8 firing.** An undisclosed organisation membership is appearing in an observation that should not contain it — precisely §15's "private information cannot appear in another inhabitant's context without a valid disclosure event" |
-| `buildObservation — range and perception` › *sees less at night (§5 day/night)* | `currentSightRadius` returns 2 both by day and at night — expected strictly less at night. Lower severity, but note it widens the night-time observation window, so it compounds the first |
+The finding is kept in the record rather than deleted. T-8 is a boundary that
+can regress silently, and the value of the leakage test is that it caught it
+once already.
 
-This is the good case, not the bad one: the boundary was tested, and the test caught the leak before
-any world existed. It is recorded here because [testing-strategy.md](./testing-strategy.md) treats an
-untested boundary and a failing boundary test as different states, and because §26 forbids
-describing the observation builder as working. **`buildObservation` is `In progress`, not
-`Implemented`, and T-8 has a demonstrated live failure rather than a theoretical one.**
+This is the good case throughout: the boundary was tested, the test caught the leak before any world
+existed, and the fix is now itself under test. [testing-strategy.md](./testing-strategy.md) treats an
+untested boundary and a failing boundary test as different states — and a *fixed* boundary with a
+regression test standing over it is a third, stronger one. **T-8 is covered by a passing test rather
+than a theoretical argument, which is the only form of assurance §26 accepts.**
 
 ---
 
