@@ -37,6 +37,22 @@ const GenesisInhabitantSchema = z.object({
   privateGoals: z.array(z.string().min(1)).default([]),
 });
 
+/**
+ * How many inhabitants a sealed experiment starts with.
+ *
+ * §1 fixes the founding cohort at ten — the Progenitors — and publishes their
+ * identities in the Genesis manifest. The number is constitutional: it decides
+ * whether social structure has to be built from one lineage or is possible from
+ * the first instant, and it cannot be revised once a world is live.
+ *
+ * The config schema below still accepts one to thirty-two, because development
+ * runs, rehearsals and fixtures legitimately seed other sizes — a three-founder
+ * soak test is cheaper and proves the same mechanics. What must not happen is a
+ * run *labelled sealed* that quietly seeds some other number, so the constraint
+ * is enforced against the sealed classification in `commitGenesis`, not here.
+ */
+export const FOUNDING_COHORT_SIZE = 10;
+
 export const GenesisConfigSchema = z.object({
   worldId: z.string().min(1),
   seed: z.string().min(1),

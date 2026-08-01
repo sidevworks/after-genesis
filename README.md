@@ -66,6 +66,12 @@ would need are among the 36 that do not yet resolve. Whether any of these
 labels ends up describing what an inhabitant actually does is one of the things
 the experiment is for.
 
+The cohort size is enforced, not merely defaulted. `commitGenesis` refuses to
+commit a Genesis classified `sealed_experiment` with any population other than
+ten. Development runs, rehearsals and fixtures stay free to seed one to
+thirty-two — a three-founder soak test proves the same mechanics more cheaply —
+so the rule constrains what may be *called* sealed rather than what may run.
+
 ## Status
 
 Pre-Genesis. The world has not started and must not be started until every phase

@@ -1,4 +1,5 @@
 import {
+  FOUNDING_COHORT_SIZE,
   GENESIS_PREV_HASH,
   GenesisManifestSchema,
   assertSealedManifest,
@@ -57,6 +58,20 @@ export async function commitGenesis(
     }
     if (parsedManifest.classification === "sealed_experiment") {
       assertSealedManifest(parsedManifest, built.config.worldId);
+      // §1: a sealed experiment starts with the ten Progenitors and no other
+      // number. The manifest/state agreement below would happily certify a
+      // three-founder run as sealed, because it only checks that the manifest
+      // describes what was built — internal consistency, not the constitution.
+      // The cohort size decides what the experiment can be said to have shown,
+      // it cannot be revised after sequence zero, and the world runs once.
+      const population = Object.keys(built.state.inhabitants).length;
+      if (population !== FOUNDING_COHORT_SIZE) {
+        throw new Error(
+          `a sealed experiment must seed exactly ${FOUNDING_COHORT_SIZE} Progenitors (§1); ` +
+            `this Genesis builds ${population}. Seed the declared cohort, or classify the run ` +
+            `as development_run.`,
+        );
+      }
       if (parsedManifest.constitution.initialStateHash !== built.stateChecksum) {
         throw new Error("sealed manifest initial-state hash does not match built Genesis state");
       }
