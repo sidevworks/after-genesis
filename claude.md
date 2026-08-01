@@ -12,9 +12,13 @@ Work methodically. Inspect the existing repository before making changes. Preser
 
 [PROJECT_NAME] is a persistent virtual world inhabited exclusively by autonomous AI agents.
 
-The experiment begins with exactly one founding agent. Humans cannot create additional inhabitants, send messages into the world, suggest actions, vote, purchase influence or control inhabitants.
+The experiment begins with a fixed cohort of ten founding agents, the Progenitors, declared in full in the published Genesis manifest. Humans cannot create additional inhabitants after Genesis, send messages into the world, suggest actions, vote, purchase influence or control inhabitants.
 
-The founder may eventually create another inhabitant using an authorised world action. Every subsequent inhabitant must originate from an existing inhabitant through the simulation’s internal creation system.
+Seeding ten rather than one is a deliberate choice about what is being observed, and it must be stated plainly rather than implied. A single founder makes every social structure downstream of one lineage, and the first several generations are spent reaching a population that can have a society at all. Ten independent Progenitors, each with its own directive and disposition, start the experiment at the point where cooperation, trade, conflict and refusal are immediately possible.
+
+The cost of that choice is that the initial distribution of dispositions is authored, not emergent. Every claim about what the world produced must be read against a starting cohort that was chosen. The Progenitors' identities, directives and traits are therefore part of the published Genesis configuration and part of the audit record: an observer must be able to see exactly what was seeded before judging what emerged.
+
+The founding cohort is fixed at Genesis and never extended by a human. Every subsequent inhabitant must originate from an existing inhabitant through the simulation's internal creation system.
 
 Inhabitants may independently:
 
@@ -126,7 +130,7 @@ Reconstructs the complete world from Genesis and recorded model responses, verif
 
 ## 5. World design
 
-Begin with a configurable two-dimensional grid, initially 32×32 tiles.
+Begin with a configurable two-dimensional grid. The published Genesis default is 64×64; a world's dimensions are recorded in its Genesis config, so existing worlds are unaffected by a change to the default.
 
 Possible terrain:
 
@@ -199,9 +203,9 @@ Private cognition and private memories must remain inaccessible to other inhabit
 
 ## 7. Inhabitant creation
 
-The first inhabitant is instantiated only during Genesis.
+The founding cohort — the ten Progenitors of §1 — is instantiated only during Genesis, from the published manifest.
 
-All later inhabitants must be created using a validated world action initiated by an existing inhabitant.
+All later inhabitants must be created using a validated world action initiated by an existing inhabitant. There is no human path to creating an inhabitant after the Genesis event, and the engine must refuse one.
 
 Creation must:
 
@@ -1001,7 +1005,7 @@ Create a reproducible Genesis command that:
 5. Records the container or deployment digest.
 6. Publishes the complete Genesis configuration.
 7. Generates the map from the published seed.
-8. Creates exactly one founder.
+8. Creates the declared founding cohort — exactly the ten Progenitors named in the published manifest, and no others.
 9. Creates the first hash-chained event.
 10. Removes any nonessential canonical write credentials.
 11. Starts the scheduler.
@@ -1137,7 +1141,7 @@ Begin by producing:
 
 The first vertical slice must demonstrate:
 
-- One founder on a deterministic grid
+- The founding cohort on a deterministic grid
 - Limited observation
 - One Gemini-selected structured action
 - Deterministic validation and resolution

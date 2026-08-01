@@ -215,7 +215,7 @@ meshes. The Stage replaces that with:
 - **mount once, live for the component's lifetime**; `render()` mutates
   transforms, uniforms and materials only, and allocates no geometry;
 - **instanced terrain** — one `InstancedMesh` per terrain material covering the
-  full 32×32 map, with per-tile colour jitter and scatter derived from a hash of
+  full map, with per-tile colour jitter and scatter derived from a hash of
   the coordinates, never from `Math.random()`, so the world looks the same on
   every load;
 - **pooled actor rigs**, reused by inhabitant id; absent inhabitants are hidden,

@@ -255,7 +255,7 @@ relationship object would be an information leak by construction
 }
 ```
 
-1024 documents for a 32×32 grid. Terrain is generated deterministically from the published Genesis
+4096 documents at the 64×64 default. Terrain is generated deterministically from the published Genesis
 seed and never written again.
 
 ### 3.6 Other canonical collections (abbreviated)

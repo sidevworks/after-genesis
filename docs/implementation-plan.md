@@ -154,7 +154,7 @@ Firestore adapter (counted under step 19).
 
 **Status: Not started.** Primitives are **Implemented**; generation is not.
 
-Contents: deterministic 32×32 map generation from the published Genesis seed; tile yield and
+Contents: deterministic 64×64 map generation from the published Genesis seed; tile yield and
 regeneration; gather resolution; carry and storage limits; conservation invariant tests.
 
 | | |
@@ -331,7 +331,7 @@ the emergency freeze with its public audit event.
 
 Contents: the §22 twelve-step Genesis command — verify tests, verify production rules, verify
 database emptiness, verify the signed release commit, record the deployment digest, publish the
-Genesis configuration, generate the map from the published seed, create exactly one founder, create
+Genesis configuration, generate the map from the published seed, create the ten declared Progenitors, create
 the first hash-chained event, remove nonessential canonical write credentials, start the scheduler,
 publish public verification data. Atomic or safely reversible before the first canonical event.
 

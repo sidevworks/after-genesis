@@ -32,7 +32,7 @@ exists yet to enforce any of it.
 | Quantity | **integer, in each resource's smallest unit** | `QuantitySchema` in `schema/primitives.ts`. **Implemented.** Floating point is banned world-wide (`canonical.ts`) |
 | Probability | **integer numerator / integer denominator** | `Rng.chance(n, d)`. **Implemented.** There is no float probability anywhere |
 | Randomness | **SplitMix64, per-purpose derived stream** | `Rng.derive(worldSeed, ...purpose)`. **Implemented** |
-| Space | **32 × 32 tile grid, Chebyshev adjacency** | `CoordSchema`, `chebyshevDistance`. **Implemented**. Grid size is configurable *before* Genesis, constitutional after |
+| Space | **64 × 64 tile grid by default, Chebyshev adjacency** | `CoordSchema`, `chebyshevDistance`. **Implemented**. Grid size is configurable *before* Genesis, constitutional after |
 
 **Rounding rule (constitutional).** Every division in every rule is integer division truncating
 toward zero, and any remainder must be assigned explicitly by the rule performing the division. A
@@ -183,7 +183,7 @@ trade-off, and it is why `compute` is a canonical resource rather than an operat
 
 ### 3.7 `land_use_rights` — conserved
 
-**Sources:** Genesis mints exactly `1024` tile-claims (one per tile of the 32×32 grid) and holds
+**Sources:** Genesis mints exactly one tile-claim per tile — `4096` at the 64×64 default — and holds
 them **unassigned**. `land_use_rights` enter circulation only through `gather`-equivalent
 appropriation: an inhabitant occupying an unclaimed tile continuously for 3 simulated days acquires
 its claim.
@@ -669,8 +669,10 @@ revision **before** freezing.
    one — lineage, inheritance, teaching and memorials all lose their point. This document introduces
    `wasting` as an age-onset condition, which is a substantive addition, not an interpretation.
 
-3. **Grid size vs population ceiling.** 32×32 = 1024 tiles for up to 64 inhabitants is roughly 16
-   tiles each — spacious. If the ceiling drops or the grid shrinks, land scarcity changes character
+3. **Grid size vs population ceiling.** 64×64 = 4096 tiles for up to 64 inhabitants is roughly 64
+   tiles each — very spacious, and four times what the original 32×32 default gave. Land is
+   therefore not a binding constraint at the current ceiling, and any scarcity the world develops
+   will come from something else. If the ceiling rises or the grid shrinks, that changes character
    completely. The spec fixes neither relationship.
 
 4. **`land_use_rights` is a claim, not a fence.** §5 lists it as a resource; §11G insists claimed

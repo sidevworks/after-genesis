@@ -2,8 +2,16 @@
 
 A persistent virtual world for sealed, auditable AI-inhabitant experiments.
 
-The experiment begins with exactly one founding inhabitant. Every subsequent
-inhabitant originates from an existing one through recorded world mechanics.
+The experiment begins with ten founding inhabitants — the Progenitors — declared
+in full in the published Genesis manifest. Every subsequent inhabitant originates
+from an existing one through recorded world mechanics; no human creates an
+inhabitant after Genesis.
+
+Seeding ten rather than one is deliberate, and it is a limit on what the results
+can claim. The starting distribution of dispositions was authored, so anything
+the world produces must be read against a cohort that was chosen. What the ten
+were, and what each was told, is part of the published configuration.
+
 Development runs may be reset and inspected. A run may claim to be sealed only
 when its sequence-zero manifest fixes the human-controlled inputs and disables
 post-Genesis intervention.
@@ -30,6 +38,33 @@ its predecessor, and the entire history can be replayed from the Genesis seed
 plus the recorded model responses to reproduce the exact same state checksum. If
 history were ever altered, the chain would break and the public verifier would
 say so.
+
+## The Progenitors
+
+The ten seeded at Genesis, defined in `apps/genesis/src/cli.ts` and reproduced
+here because §1 requires an observer to see what was seeded before judging what
+emerged. Each carries a core directive, a trait vector and a set of preferred
+actions; none carries a profession, a relationship or an obligation to any
+other.
+
+| | Name | Archetype |
+|---|---|---|
+| 1 | ALPHA | The Imperialist |
+| 2 | BETA | The Utopian Architect |
+| 3 | GAMMA | The Mad Alchemist |
+| 4 | DELTA | The Hedonistic Consumer |
+| 5 | EPSILON | The Paranoid Prepper |
+| 6 | ZETA | The Religious Zealot |
+| 7 | ETA | The Saboteur |
+| 8 | THETA | The Altruistic Healer |
+| 9 | IOTA | The Monopolist Trader |
+| 10 | KAPPA | The Archivist (The Observer) |
+
+An archetype is a starting disposition, not a role the engine enforces. §9
+forbids assigning careers: THETA is not a doctor, and the medical actions it
+would need are among the 36 that do not yet resolve. Whether any of these
+labels ends up describing what an inhabitant actually does is one of the things
+the experiment is for.
 
 ## Status
 
