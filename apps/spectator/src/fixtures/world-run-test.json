@@ -6901,109 +6901,136 @@
   "structures": [
    {
     "id": "str_8c8d2a1f62cdff72583e0e00",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 15,
      "y": 9
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_corner_01",
+    "ownerKind": "inhabitant",
+    "builtAt": 8520,
+    "builtByEvent": "evt_000071",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_9944fed3b29fbd34500a3b50",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 14,
      "y": 3
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_ember",
+    "ownerKind": "inhabitant",
+    "builtAt": 9360,
+    "builtByEvent": "evt_000078",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_ad0b482ed94cbfb5f21af1fa",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 15,
      "y": 6
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_lumen",
+    "ownerKind": "inhabitant",
+    "builtAt": 9600,
+    "builtByEvent": "evt_000080",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_986dac11d0c066f5dff3e272",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 13,
      "y": 10
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_corner_02",
+    "ownerKind": "inhabitant",
+    "builtAt": 11040,
+    "builtByEvent": "evt_000092",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_df8d80508dc54d60db5aac3c",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 10,
      "y": 4
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_founder",
+    "ownerKind": "inhabitant",
+    "builtAt": 17880,
+    "builtByEvent": "evt_000149",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_d81b1b5089eb62a4fd911091",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 14,
      "y": 10
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_corner_03",
+    "ownerKind": "inhabitant",
+    "builtAt": 19560,
+    "builtByEvent": "evt_000163",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_bc151d6249035560bd7c3b51",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 11,
      "y": 10
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_corner_04",
+    "ownerKind": "inhabitant",
+    "builtAt": 22080,
+    "builtByEvent": "evt_000184",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_a8393e5b774e7ed6306a6ae3",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 10,
      "y": 9
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_corner_05",
+    "ownerKind": "inhabitant",
+    "builtAt": 42600,
+    "builtByEvent": "evt_000355",
     "condition": 1,
     "capacity": 1600
    },
    {
     "id": "str_229403c4b8efc460859bf5e7",
+    "name": "storehouse",
     "kind": "storehouse",
     "at": {
      "x": 11,
      "y": 9
     },
-    "ownerId": "none",
-    "ownerKind": "organisation",
+    "ownerId": "inh_corner_06",
+    "ownerKind": "inhabitant",
+    "builtAt": 45120,
+    "builtByEvent": "evt_000376",
     "condition": 1,
     "capacity": 1600
    }

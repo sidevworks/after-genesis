@@ -69,6 +69,9 @@ describe("buildGenesis", () => {
         sex: index % 2 === 0 ? "female" : "male",
         modelId: "test-model",
         inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+        traits: { curiosity: 80 },
+        values: ["curiosity"],
+        privateGoals: ["observe"],
       })),
     });
 

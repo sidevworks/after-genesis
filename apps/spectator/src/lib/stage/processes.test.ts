@@ -10,6 +10,7 @@ function actor(overrides: Partial<ActorSample> = {}): ActorSample {
   const segment: ChronicleSegment = {
     id: "seg-1", inhabitantId: "inh-1", activityId: "act-1", sequence: 1,
     actionType: "build", activityState: "construction", startTick: 10, endTick: 20,
+    canonicalMinutes: 2880,
     from: { x: 2, y: 3 }, to: { x: 2, y: 3 }, focus: null, participants: ["inh-1"],
     disclosure: "disclosed", visibility: "public", outcomeStatus: "applied",
     detail: {}, caption: "Canonical build recorded.",

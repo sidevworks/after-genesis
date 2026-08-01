@@ -25,12 +25,15 @@
  */
 import {
   BoxGeometry,
+  Box3,
   Color,
   Group,
   Mesh,
   MeshStandardMaterial,
+  Vector3,
   type Scene,
 } from "three";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import type { ActorSample, PerformanceSpec, PropName } from "../cinema/types";
 import {
   CLIP_BLEND_MINUTES,
@@ -52,6 +55,30 @@ import {
   characterProfileFor,
   type ObservatoryCharacterProfile,
 } from "../observatory-character-profiles";
+
+const MODEL_FILES = ["Alpha.glb", "Beta.glb", "Gamma.glb", "Delta.glb", "Epsilon.glb", "Zeta.glb", "Eta.glb", "Theta.glb", "Iota.glb", "kappa.glb"] as const;
+const modelCache = new Map<string, Promise<Group | null>>();
+function characterFile(id: string): string { let h = 0; for (const c of id) h = Math.imul(h ^ c.charCodeAt(0), 0x45d9f3b); return MODEL_FILES[(h >>> 0) % MODEL_FILES.length]!; }
+function loadModel(file: string): Promise<Group | null> {
+  // Root-relative paths only resolve against a document base URL. Under Node
+  // there is none, and three's FileLoader throws `Invalid URL` out of the
+  // fetch instead of reaching the error callback — an unhandled rejection that
+  // fails whichever test happens to be running. Same guard as
+  // `observatory-character-model.ts`; the primitive rig below is the fallback.
+  if (typeof document === "undefined") return Promise.resolve(null);
+  const prior = modelCache.get(file);
+  if (prior) return prior;
+  const job = new Promise<Group | null>((resolve) =>
+    new GLTFLoader().load(
+      encodeURI(`/character-models/${file}`),
+      (gltf) => resolve(gltf.scene),
+      undefined,
+      () => resolve(null),
+    ),
+  );
+  modelCache.set(file, job);
+  return job;
+}
 
 /** Body proportions in metres. A figure stands about 1.75 m on a 1 m tile grid. */
 const PART = {
@@ -280,6 +307,20 @@ export class ActorRig {
     );
     this.body.scale.set(identity.breadth, identity.height, identity.breadth);
     this.group.add(this.body);
+    void loadModel(characterFile(sample.inhabitantId)).then((source) => {
+      if (source === null) return;
+      const avatar = source.clone(true) as Group;
+      const bounds = new Box3().setFromObject(avatar);
+      const size = bounds.getSize(new Vector3());
+      avatar.scale.setScalar(1.8 / Math.max(size.x, size.y, size.z, 0.1));
+      avatar.updateMatrixWorld(true);
+      const placed = new Box3().setFromObject(avatar);
+      const centre = placed.getCenter(new Vector3());
+      avatar.position.set(-centre.x, -placed.min.y, -centre.z);
+      avatar.traverse((node) => { if (node instanceof Mesh) { node.castShadow = true; node.receiveShadow = true; } });
+      this.body.visible = false;
+      this.group.add(avatar);
+    });
     this.group.visible = false;
     scene.add(this.group);
 

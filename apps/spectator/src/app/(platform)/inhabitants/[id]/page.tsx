@@ -6,7 +6,8 @@ import { Badge, Empty, KeyValue, Meter, Panel } from "@/components/ui";
 import { CanonicalEventRow } from "@/components/canonical-event";
 import { CharacterSpeechButton } from "@/components/character-speech-button";
 import { CharacterProfileToolbar } from "@/components/character-profile-toolbar";
-import { CHARACTER_PROFILES, characterProfileForId } from "@/lib/character-profiles";
+import { CharacterProfilePreview } from "@/components/character-profile-preview";
+import { CHARACTER_PROFILES, characterModelFile, characterProfileForId } from "@/lib/character-profiles";
 import {
   formatDuration,
   formatSimTime,
@@ -66,18 +67,10 @@ export default async function InhabitantPage({
         </header>
 
         <div className="grid gap-5 lg:grid-cols-[minmax(15rem,0.6fr)_1fr]">
-          <div className="flex h-[min(45dvh,34rem)] items-center justify-center overflow-hidden rounded-sm border border-line bg-panel">
-            <video
-              className="pointer-events-none size-full object-cover"
-              src={`/character-profile/${profile.file}`}
-              autoPlay
-              loop
-              muted
-              playsInline
-              disablePictureInPicture
-              controlsList="nofullscreen nodownload noremoteplayback"
-            />
-          </div>
+          <CharacterProfilePreview
+            name={profile.name}
+            modelFile={characterModelFile(profile)}
+          />
           <Panel eyebrow="Canonical starting disposition" title={profile.archetype}>
             <div className="space-y-4 px-4 py-4">
               <p className="text-sm leading-relaxed text-muted">{profile.coreDirective}</p>
@@ -186,6 +179,13 @@ export default async function InhabitantPage({
           </div>
         </div>
       </header>
+
+      {profile && (
+        <CharacterProfilePreview
+          name={profile.name}
+          modelFile={characterModelFile(profile)}
+        />
+      )}
 
       {profile && <CharacterSpeechButton name={profile.name} line={profile.speech.line} file={profile.speech.file} />}
 

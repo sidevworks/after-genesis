@@ -671,7 +671,15 @@ export const createInhabitantResolver: Resolver = (ctx, payload): ResolutionResu
       parents: coCreation.parents,
       inventory: {
         ...endowment,
-        energy: idiv(maxEnergy, 2),
+        // A newborn arrives with a full tank. Half a tank plus no skills, no
+        // property and no one obliged to feed it (§11C) is not a bounded
+        // imperfection, it is a stranding: energy is spent by `move`, and
+        // `rest` is the only way to restore it, so a child that starts short
+        // can walk itself to a standstill before it ever reaches water. The
+        // `low_energy` imperfection is still expressed, as a lower ceiling —
+        // `maxEnergy` above — which is the honest way to say "this one tires
+        // sooner" without deciding its first day for it.
+        energy: maxEnergy,
         compute: idiv(maxCompute, 2),
       },
       traits,

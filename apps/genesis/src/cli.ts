@@ -46,6 +46,13 @@ const DEFAULT_WORLD_ID = "after-genesis-demo";
 const DEFAULT_SEED = "after-genesis-public-demo-seed-v1";
 const PROVENANCE = { sourceCommit: "local-uncommitted", deployedDigest: "local" };
 const DEFAULT_DEMO_STARTER_COUNT = 10;
+/**
+ * Energy below which the offline stand-in rests instead of setting out. Clear
+ * of the costliest single tile (forest at 20, and more after the night
+ * multiplier) so that "go and fetch it" is never proposed as a journey the
+ * actor cannot pay for.
+ */
+const STRANDED_ENERGY = 60;
 
 function seedString(input: string): number {
   let value = 0x811c9dc5;
@@ -485,6 +492,25 @@ export function mechanicalCognition(): CognitionService {
           ? visibleStore
           : undefined;
 
+      // `build` is rejected outright when anything already stands on the tile,
+      // so the stand-in has to choose its own ground rather than assume the
+      // tile under its feet is free. A collision with a structure it cannot
+      // see is a fair rejection; proposing onto one it can see, every turn,
+      // forever, is a livelock.
+      const occupied = (x: number, y: number): boolean =>
+        observation.structures.some(
+          (structure) => structure.location.x === x && structure.location.y === y,
+        );
+      const openBuildSite = (): { readonly x: number; readonly y: number } | null =>
+        observation.tiles
+          .filter((tile) => tile.terrain !== "water" && !occupied(tile.x, tile.y))
+          .sort(
+            (left, right) =>
+              left.distance - right.distance ||
+              turnHash(self.id, input.sequence, `site:${left.x},${left.y}`) -
+                turnHash(self.id, input.sequence, `site:${right.x},${right.y}`),
+          )[0] ?? null;
+
       const heldMaterials = materialKinds.reduce(
         (total, kind) => total + held(kind),
         0,
@@ -612,6 +638,20 @@ export function mechanicalCognition(): CognitionService {
           return { type: "consume", payload: { resource: "food", amount: 1 } };
         }
 
+        // 1b. Rest before travelling when the journey is unaffordable. Every
+        //     errand below is ultimately a `move`, and `move` is priced in
+        //     energy (`terrainMoveCost`, up to 20 a tile and more at night).
+        //     An inhabitant at zero energy that keeps proposing errands
+        //     proposes a journey it can never pay for, and the world engine
+        //     rejects it every turn, forever. `rest` costs nothing and is the
+        //     world's only energy source, so it is the sole way out of that
+        //     trap. The threshold sits well clear of the worst single tile
+        //     while staying below the "too tired to work" check in 3, which
+        //     keeps ordinary behaviour unchanged.
+        if (self.energy < STRANDED_ENERGY) {
+          return { type: "rest", payload: { minutes: 360 } };
+        }
+
         // 2. Nothing to consume: go and get it.
         for (const [need, resource] of [
           ["thirst", "water"],
@@ -635,11 +675,18 @@ export function mechanicalCognition(): CognitionService {
         // proves that the built capability is actually reachable.
         if (store === undefined) {
           if (held("wood") >= 40) {
+            const site = occupied(self.location.x, self.location.y)
+              ? openBuildSite()
+              : { x: self.location.x, y: self.location.y };
+            if (site === null) return exploreFor("wood");
+            if (site.x !== self.location.x || site.y !== self.location.y) {
+              return walkToward(site.x, site.y);
+            }
             return {
               type: "build",
               payload: {
                 structureKind: "storehouse",
-                coord: { x: self.location.x, y: self.location.y },
+                coord: { x: site.x, y: site.y },
                 name: "Lineage stores",
                 materials: { wood: 40 },
               },
@@ -779,7 +826,12 @@ export function mechanicalCognition(): CognitionService {
             },
           };
         }
-        if (chance > 0.87 && held("wood") >= 4 && held("stone") >= 2) {
+        if (
+          chance > 0.87 &&
+          held("wood") >= 4 &&
+          held("stone") >= 2 &&
+          !occupied(self.location.x, self.location.y)
+        ) {
           return {
             type: "build",
             payload: {

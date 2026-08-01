@@ -52,6 +52,16 @@ firebase-debug.log
 /intro.mp4
 /exports/*.mp4
 
+# 3D character masters and the copy staged into the spectator's public tree.
+# ~192 MB each, and the same files twice. Unlike intro.mp4 above these are NOT
+# committed: git history is permanent and Vercel would ship a quarter-gigabyte
+# of static assets to every spectator. They belong in Cloud Storage for Firebase
+# (claude.md §3), served compressed. Until that lands the observatory falls back
+# to the procedural characters in observatory-character-model.ts — the loader
+# already resolves null on a failed fetch, so this degrades rather than breaks.
+/3D Models/
+apps/spectator/public/character-models/
+
 # Local world data (simulation output is regenerable from seed + model log)
 .worlds/
 .after-genesis/

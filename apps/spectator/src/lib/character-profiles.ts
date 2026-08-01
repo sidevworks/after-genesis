@@ -28,6 +28,12 @@ export function characterProfileForId(id: string): GenesisCharacterProfile | und
   return CHARACTER_PROFILES.find((profile) => profile.id === id.trim().toLowerCase());
 }
 
+/** The supplied source uses a lowercase filename only for Kappa. */
+export function characterModelFile(profile: GenesisCharacterProfile): string {
+  if (profile.name === "DELTA") return "Delta-pose.glb";
+  return profile.name === "KAPPA" ? "kappa.glb" : `${profile.name[0]}${profile.name.slice(1).toLowerCase()}.glb`;
+}
+
 export function profileForInhabitant(inhabitant: { id: string; name: string }): GenesisCharacterProfile | undefined {
   const id = inhabitant.id.trim().toLowerCase();
   const name = inhabitant.name.trim().toLowerCase();

@@ -180,6 +180,9 @@ export class Stage {
       starMaterial: this.starMaterial,
       renderer: this.renderer,
     };
+    // Watch is an inspection surface: keep the terrain and inhabitants legible
+    // at every simulated hour rather than making night-time visibility a factor.
+    applySky(skyAt(0.5), this.skyTargets);
 
     this.attachPointerControls();
   }
@@ -249,7 +252,6 @@ export class Stage {
     this.terrain.update(frame.tick);
     this.processes.update(frame.tick, frame.actors);
     this.settlement?.update(frame.tick);
-    applySky(skyAt(frame.dayFraction), this.skyTargets);
 
     const occupied = new Map<string, ActorSample[]>();
     for (const actor of frame.actors) {

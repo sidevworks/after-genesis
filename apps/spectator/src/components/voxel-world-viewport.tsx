@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import * as THREE from "three";
+import { createWatchCharacter, type ObservatoryCharacterModel } from "@/lib/observatory-character-model";
 import type { ObservatoryRun } from "@/lib/observatory-types";
 
 interface Point {
@@ -49,48 +50,14 @@ function fallbackSeed(value: string): string {
 function addCharacter(
   scene: THREE.Scene,
   position: THREE.Vector3,
-  colour: THREE.Color,
+  inhabitantId: string,
+  visualSeed: string,
   isTarget: boolean,
-): THREE.Group {
-  const group = new THREE.Group();
-  const bodyMaterial = new THREE.MeshStandardMaterial({
-    color: colour,
-    roughness: 0.72,
-    metalness: 0.04,
-    emissive: isTarget ? colour.clone().multiplyScalar(0.14) : new THREE.Color(0x000000),
-  });
-  const darkMaterial = new THREE.MeshStandardMaterial({
-    color: colour.clone().multiplyScalar(0.58),
-    roughness: 0.82,
-  });
-  const faceMaterial = new THREE.MeshStandardMaterial({
-    color: colour.clone().offsetHSL(0, -0.08, 0.12),
-    roughness: 0.7,
-  });
-
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.72, 0.72, 0.72), faceMaterial);
-  head.position.y = 2.45;
-  head.castShadow = true;
-  group.add(head);
-
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.82, 1.05, 0.48), bodyMaterial);
-  torso.position.y = 1.55;
-  torso.castShadow = true;
-  group.add(torso);
-
-  const limbGeometry = new THREE.BoxGeometry(0.27, 0.95, 0.3);
-  for (const x of [-0.56, 0.56]) {
-    const arm = new THREE.Mesh(limbGeometry, bodyMaterial);
-    arm.position.set(x, 1.55, 0);
-    arm.castShadow = true;
-    group.add(arm);
-  }
-  for (const x of [-0.23, 0.23]) {
-    const leg = new THREE.Mesh(limbGeometry, darkMaterial);
-    leg.position.set(x, 0.57, 0);
-    leg.castShadow = true;
-    group.add(leg);
-  }
+  action: string | null = null,
+): ObservatoryCharacterModel {
+  const character = createWatchCharacter(inhabitantId, visualSeed, action);
+  const group = character.group;
+  const colour = seedColour(visualSeed);
 
   if (isTarget) {
     const marker = new THREE.Mesh(
@@ -122,7 +89,7 @@ function addCharacter(
 
   group.position.copy(position);
   scene.add(group);
-  return group;
+  return character;
 }
 
 export function VoxelWorldViewport({
@@ -232,6 +199,7 @@ export function VoxelWorldViewport({
     grid.position.z = -0.5;
     scene.add(grid);
 
+    const characterModels: ObservatoryCharacterModel[] = [];
     const cameraAnchor = new THREE.Vector3(0, 0.42, 0);
     if (mode === "follow") {
       for (const inhabitant of run.inhabitants) {
@@ -241,13 +209,15 @@ export function VoxelWorldViewport({
         const character = addCharacter(
           scene,
           new THREE.Vector3(relativeX, 0.42, relativeZ),
-          seedColour(inhabitant.id === targetId ? visualSeed : fallbackSeed(inhabitant.id)),
+          inhabitant.id,
+          inhabitant.id === targetId ? visualSeed : fallbackSeed(inhabitant.id),
           inhabitant.id === targetId,
         );
+        characterModels.push(character);
         if (inhabitant.id === targetId) {
-          cameraAnchor.copy(character.position);
+          cameraAnchor.copy(character.group.position);
           // In first person the followed body would otherwise fill the lens.
-          character.visible = cameraMode !== "first-person";
+          character.group.visible = cameraMode !== "first-person";
         }
       }
     } else {
@@ -275,11 +245,14 @@ export function VoxelWorldViewport({
       const character = addCharacter(
         scene,
         new THREE.Vector3(actorPoint.x - focus.x, 0.42, actorPoint.y - focus.y),
-        seedColour(visualSeed),
+        targetId ?? targetName.toLowerCase(),
+        visualSeed,
         true,
+        movement === null ? null : "move",
       );
-      cameraAnchor.copy(character.position);
-      character.visible = cameraMode !== "first-person";
+      characterModels.push(character);
+      cameraAnchor.copy(character.group.position);
+      character.group.visible = cameraMode !== "first-person";
     }
 
     const target = cameraAnchor.clone().add(new THREE.Vector3(0, 1.35, 0));
@@ -364,6 +337,7 @@ export function VoxelWorldViewport({
     resize();
 
     let frame = 0;
+    const startedAt = performance.now();
     const render = () => {
       // Frame-rate independent-feeling damping keeps orbit changes cinematic
       // while retaining a responsive first-person look.
@@ -371,6 +345,7 @@ export function VoxelWorldViewport({
       azimuth += (desiredAzimuth - azimuth) * damping;
       elevation += (desiredElevation - elevation) * damping;
       distance += (desiredDistance - distance) * 0.12;
+      characterModels.forEach((character) => character.update((performance.now() - startedAt) / 1000));
       updateCamera();
       renderer.render(scene, camera);
       frame = window.requestAnimationFrame(render);

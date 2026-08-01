@@ -34,6 +34,7 @@ describe("settlement framing", () => {
     const construction = {
       id: "build", inhabitantId: "a", activityId: "house", sequence: 1,
       actionType: "build", activityState: "building", startTick: 10, endTick: 20,
+      canonicalMinutes: 2880,
       from: { x: 12, y: 8 }, to: { x: 12, y: 8 }, focus: null,
       participants: ["a"], disclosure: "disclosed" as const, visibility: "public",
       outcomeStatus: "resolved", detail: {}, caption: "Built.",

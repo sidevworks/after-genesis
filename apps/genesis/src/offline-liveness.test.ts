@@ -9,6 +9,14 @@ import { demoConfig, mechanicalCognition } from "./cli.js";
 
 const TURNS_PER_DAY = 12;
 const MAX_TURNS = 100 * TURNS_PER_DAY;
+/** The liveness horizon: 30 simulated days must be reachable. */
+const LIVENESS_HORIZON_MINUTES = 30 * 24 * 60;
+/**
+ * Stall guard. Turns cost what their actions cost, so this is a ceiling on how
+ * many turns 30 days may take, not a schedule. A world that cannot cross the
+ * horizon within it is idling, which is exactly what this test exists to catch.
+ */
+const MAX_LIVENESS_TURNS = 9000;
 
 describe("offline cohort liveness", () => {
   it("seeds all ten worksheet Progenitors by default", () => {
@@ -105,14 +113,29 @@ describe("offline cohort liveness", () => {
     let longestRejectedStreak = 0;
     let rejectedStreak = 0;
 
-    for (let sequence = 1; sequence <= 30 * TURNS_PER_DAY; sequence++) {
-      const actorIds = Object.values(state.inhabitants)
+    // Turns no longer map to a fixed slice of simulated time — the clock now
+    // advances by whatever the chosen actions actually cost, so the horizon is
+    // expressed in days and the turn count is only a stall guard.
+    let sequence = 0;
+    while (state.simTime < LIVENESS_HORIZON_MINUTES && sequence < MAX_LIVENESS_TURNS) {
+      sequence += 1;
+      // Select the way `scheduleNextTurn` does (packages/runtime/src/scheduler.ts):
+      // earliest `nextEligibleTime` wins, ties break on id, and the turn happens
+      // at `max(simTime, nextEligibleTime)`. A fixed round-robin on a fixed
+      // 120-minute step instead hands turns to inhabitants who are mid-activity,
+      // which manufactures BUSY rejections the production scheduler cannot
+      // produce — a 2-day `build` spans 24 such turns. Liveness has to be
+      // measured against the scheduling discipline the world actually runs.
+      const actor = Object.values(state.inhabitants)
         .filter((inhabitant) => inhabitant.status === "alive")
-        .map((inhabitant) => inhabitant.id)
-        .sort();
-      const actorId = actorIds[(sequence - 1) % actorIds.length];
-      if (actorId === undefined) throw new Error(`no living actor at sequence ${sequence}`);
-      const at = simTime(sequence * 120);
+        .sort(
+          (a, b) =>
+            a.nextEligibleTime - b.nextEligibleTime ||
+            (a.id < b.id ? -1 : a.id > b.id ? 1 : 0),
+        )[0];
+      if (actor === undefined) throw new Error(`no living actor at sequence ${sequence}`);
+      const actorId = actor.id;
+      const at = simTime(Math.max(state.simTime, actor.nextEligibleTime));
       const proposal = await cognition.propose({ state, actorId, simTime: at, sequence });
       const action = proposal.action ?? { type: "wait", payload: {} };
       actionCounts[action.type] = (actionCounts[action.type] ?? 0) + 1;
