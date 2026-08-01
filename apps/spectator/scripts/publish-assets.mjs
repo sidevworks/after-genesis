@@ -143,10 +143,39 @@ function optimize() {
   }
 }
 
+/**
+ * Refuse to upload when gcloud is pointed somewhere other than the bucket's
+ * project.
+ *
+ * `gcloud storage` authenticates with gcloud's own active credential, not with
+ * GOOGLE_APPLICATION_CREDENTIALS — so a stale `gcloud config set project` from
+ * some earlier task will silently publish to the wrong project, and the URLs
+ * the spectator is configured for will 404 while the bytes sit somewhere else
+ * entirely. §17 keeps environments separate precisely so that cannot be
+ * confused; a wrong guess here is the kind of cross-project mix-up that
+ * document calls Genesis-blocking.
+ */
+function checkActiveProject() {
+  const probe = spawnSync("gcloud", ["config", "get-value", "project"], { encoding: "utf8" });
+  if (probe.status !== 0) return;
+  const active = probe.stdout.trim();
+  // Firebase buckets are named `<project>.firebasestorage.app` or the older
+  // `<project>.appspot.com`, so the project is the leading label.
+  const bucketProject = bucket.split(".")[0];
+  if (active && bucketProject && active !== bucketProject) {
+    fail(
+      `gcloud is on project "${active}" but the bucket belongs to "${bucketProject}".\n` +
+        `       Run: gcloud config set project ${bucketProject}\n` +
+        `       Or pass --bucket to target "${active}" deliberately.`,
+    );
+  }
+}
+
 function upload() {
   if (!bucket) {
     fail("no bucket — pass --bucket <name> or set FIREBASE_STORAGE_BUCKET_ID");
   }
+  checkActiveProject();
   console.log(`Uploading to gs://${bucket}/spectator/\n`);
   for (const set of ASSET_SETS) {
     // Optimised sets publish from the staging tree; everything else publishes
