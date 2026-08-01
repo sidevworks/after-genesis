@@ -58,6 +58,29 @@ describe("buildGenesis", () => {
     expect(built.state.inhabitants.inh_ember?.privateGoals).toEqual(["learn from others"]);
   });
 
+  it("places every Genesis inhabitant on passable land", () => {
+    const built = buildGenesis({
+      ...config,
+      width: 64,
+      height: 64,
+      inhabitants: Array.from({ length: 10 }, (_, index) => ({
+        id: `inh_genesis_${index}`,
+        displayName: `Genesis ${index}`,
+        sex: index % 2 === 0 ? "female" : "male",
+        modelId: "test-model",
+        inventory: { energy: 800, compute: 500, food: 10, water: 10 },
+      })),
+    });
+
+    for (const inhabitant of Object.values(built.state.inhabitants)) {
+      const tile = built.state.map.terrain[
+        inhabitant.location.y * built.state.map.width + inhabitant.location.x
+      ];
+      expect(tile).toBeDefined();
+      expect(tile).not.toBe("water");
+    }
+  });
+
   it("rejects duplicate Genesis inhabitant ids", () => {
     expect(() =>
       buildGenesis({

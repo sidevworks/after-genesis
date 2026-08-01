@@ -26,6 +26,8 @@ const TERRAIN: Record<string, number> = {
   barren: 0x776143,
 };
 
+const TERRAIN_ASSET_URL = "/terrain/tabletop_terrain.glb";
+
 type AssetLoadResult = {
   scene: THREE.Object3D;
 };
@@ -36,7 +38,18 @@ function loadAssetModel(url: string): Promise<AssetLoadResult | null> {
   const cached = modelAssetCache.get(url);
   if (cached !== undefined) return cached;
 
-  const loader = new GLTFLoader();
+  // Kenney's source GLBs refer to a sibling `Textures/colormap.png`. The
+  // published library deliberately keeps its commercial and industrial colour
+  // maps separate, so resolve that relative reference to the matching asset.
+  const manager = new THREE.LoadingManager();
+  manager.setURLModifier((resourceUrl) =>
+    resourceUrl.endsWith("Textures/colormap.png")
+      ? url.endsWith("/well.glb")
+        ? "/asset-library/textures/industrial-colormap.png"
+        : "/asset-library/textures/commercial-colormap.png"
+      : resourceUrl,
+  );
+  const loader = new GLTFLoader(manager);
   const loading = new Promise<AssetLoadResult | null>((resolve) => {
     loader.load(
       encodeURI(url),
@@ -48,6 +61,60 @@ function loadAssetModel(url: string): Promise<AssetLoadResult | null> {
 
   modelAssetCache.set(url, loading);
   return loading;
+}
+
+function terrainMaterialFromAsset(root: THREE.Object3D, name: string): THREE.MeshStandardMaterial | null {
+  let found: THREE.MeshStandardMaterial | null = null;
+  root.traverse((node) => {
+    if (found !== null || !(node instanceof THREE.Mesh)) return;
+    const materials = Array.isArray(node.material) ? node.material : [node.material];
+    const candidate = materials.find((material) => material.name === name && material instanceof THREE.MeshStandardMaterial);
+    if (candidate instanceof THREE.MeshStandardMaterial) found = candidate;
+  });
+  return found;
+}
+
+function cloneTerrainMaterial(source: THREE.MeshStandardMaterial, tint: number): THREE.MeshStandardMaterial {
+  const clone = source.clone();
+  clone.color.multiply(new THREE.Color(tint));
+  clone.needsUpdate = true;
+  return clone;
+}
+
+function terrainNoise(value: string): number {
+  let hash = 0x811c9dc5;
+  for (const character of value) hash = Math.imul(hash ^ character.charCodeAt(0), 0x01000193);
+  return (hash >>> 0) / 0x1_0000_0000;
+}
+
+function placeTerrainRock(
+  world: THREE.Scene,
+  template: THREE.Object3D,
+  position: THREE.Vector3,
+  groundY: number,
+  targetHeight: number,
+): void {
+  const prop = template.clone(true);
+  prop.traverse((node) => {
+    if (!(node instanceof THREE.Mesh)) return;
+    node.castShadow = true;
+    node.receiveShadow = true;
+    node.material = Array.isArray(node.material)
+      ? node.material.map((material) => material.clone())
+      : node.material.clone();
+  });
+  const bounds = new THREE.Box3().setFromObject(prop);
+  const size = bounds.getSize(new THREE.Vector3());
+  if (size.y <= 0.0001) return;
+  const scale = targetHeight / size.y;
+  const center = bounds.getCenter(new THREE.Vector3());
+  prop.scale.setScalar(scale);
+  prop.position.set(
+    position.x - center.x * scale,
+    groundY - bounds.min.y * scale,
+    position.z - center.z * scale,
+  );
+  world.add(prop);
 }
 
 function disposeRenderedObject(object: THREE.Object3D): void {
@@ -178,6 +245,8 @@ function ObservatoryThreeViewport({
     const artifactModels: THREE.Object3D[] = [];
     const structureLoadJobs: Promise<unknown>[] = [];
     const artifactLoadJobs: Promise<unknown>[] = [];
+    const terrainMeshes = new Map<string, THREE.Mesh[]>();
+    const terrainReferences: SceneReference[] = [];
     let cancelled = false;
 
     const addStructureFallback = (reference: SceneReference) => {
@@ -347,6 +416,8 @@ function ObservatoryThreeViewport({
         object.userData.refId = reference.refId;
         world.add(object);
         selectable.push(object);
+        terrainMeshes.set(material, [...(terrainMeshes.get(material) ?? []), object]);
+        terrainReferences.push(reference);
       } else if (isStructure(reference) && showStructures) {
         spawnStructure(reference);
       } else if (isArtifact(reference) && showArtifacts) {
@@ -359,6 +430,43 @@ function ObservatoryThreeViewport({
         selectable.push(character.group);
       }
     }
+    void loadAssetModel(TERRAIN_ASSET_URL).then((result) => {
+      if (cancelled || result === null) return;
+      const grass = terrainMaterialFromAsset(result.scene, "TerrainShader");
+      const rock = terrainMaterialFromAsset(result.scene, "Rock");
+      const apply = (terrain: string, source: THREE.MeshStandardMaterial | null, tint: number) => {
+        if (source === null) return;
+        for (const mesh of terrainMeshes.get(terrain) ?? []) {
+          const previous = mesh.material;
+          mesh.material = cloneTerrainMaterial(source, tint);
+          if (!Array.isArray(previous)) previous.dispose();
+        }
+      };
+      apply("plains", grass, 0x7b9752);
+      apply("fertile", grass, 0x94ad59);
+      apply("forest", grass, 0x476b40);
+      apply("barren", grass, 0x877151);
+      apply("stone", rock, 0x92979a);
+      apply("stone_deposit", rock, 0x9ba1a4);
+
+      const rockProp = result.scene.getObjectByName("Rock_9");
+      if (rockProp === undefined) return;
+      let placed = 0;
+      for (const reference of terrainReferences) {
+        if (placed >= 56 || cancelled) return;
+        const terrain = reference.representation.material;
+        if ((terrain !== "stone" && terrain !== "stone_deposit" && terrain !== "barren") || terrainNoise(reference.refId) <= 0.74) continue;
+        const { x, y, z } = reference.transform.position;
+        placeTerrainRock(
+          world,
+          rockProp,
+          new THREE.Vector3(x + (terrainNoise(`${reference.refId}:x`) - 0.5) * 0.42, 0, z + (terrainNoise(`${reference.refId}:z`) - 0.5) * 0.42),
+          Math.max(y, 0.34),
+          0.32 + terrainNoise(`${reference.refId}:size`) * 0.34,
+        );
+        placed += 1;
+      }
+    });
     void Promise.allSettled(structureLoadJobs);
     void Promise.allSettled(artifactLoadJobs);
     const actionEffects = new ObservatoryActionEffects(world);

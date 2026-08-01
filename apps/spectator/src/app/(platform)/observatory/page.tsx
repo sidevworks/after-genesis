@@ -1,19 +1,33 @@
 import type { Metadata } from "next";
+import { readFile } from "node:fs/promises";
 import { ObservatoryScene } from "@/components/observatory-scene";
 import { ObservatorySearch } from "@/components/observatory-search";
 import { Badge, Panel, Stat } from "@/components/ui";
+import { liveObservatoryPath } from "@/lib/dev-world-paths";
 import { formatSimTime } from "@/lib/format";
 import { observatorySource } from "@/lib/observatory-source";
+import { buildReferenceRegistry } from "@/lib/reference-registry";
+import { buildSceneDescription } from "@/lib/scene-adapter";
+import type { ObservatoryRun } from "@/lib/observatory-types";
 
 export const metadata: Metadata = {
   title: "Observatory",
   description: "A read-only, universal view of the completed After Genesis run.",
 };
 
-export default function ObservatoryPage() {
-  const run = observatorySource.getRun();
-  const scene = observatorySource.getScene();
-  const records = observatorySource.getReferences();
+async function readRun(): Promise<ObservatoryRun> {
+  if (process.env.NEXT_PUBLIC_DEV_WORLD_CONTROLS !== "true") {
+    return observatorySource.getRun();
+  }
+
+  return JSON.parse(await readFile(liveObservatoryPath(), "utf8")) as ObservatoryRun;
+}
+
+export default async function ObservatoryPage() {
+  const run = await readRun();
+  const registry = buildReferenceRegistry(run);
+  const scene = buildSceneDescription(run, registry, run.world.simTime);
+  const records = registry.records;
   const entities = records.filter((record) => record.referenceClass === "ENT");
   const events = records.filter((record) => record.referenceClass === "EVT");
   const actions = records.filter((record) => record.referenceClass === "ACT");

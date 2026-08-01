@@ -1,4 +1,4 @@
-import runFixture from "../fixtures/pre-genesis-run.json";
+import runFixture from "../fixtures/observatory-run.json";
 import { buildReferenceRegistry, resolveReference, searchReferences } from "./reference-registry";
 import { buildSceneDescription } from "./scene-adapter";
 import type {
@@ -54,8 +54,8 @@ function liveObservatoryPath(runtime: ReturnType<typeof resolveNodeRuntime>): st
   const candidates = [
     runtime.resolve(cwd, ".dev-world", "observatory-run.json"),
     runtime.resolve(cwd, "apps", "spectator", ".dev-world", "observatory-run.json"),
-    runtime.resolve(cwd, "apps", "spectator", "src", "fixtures", "pre-genesis-run.json"),
-    runtime.resolve(cwd, "src", "fixtures", "pre-genesis-run.json"),
+    runtime.resolve(cwd, "apps", "spectator", "src", "fixtures", "observatory-run.json"),
+    runtime.resolve(cwd, "src", "fixtures", "observatory-run.json"),
   ];
 
   if (process.env.NEXT_PUBLIC_DEV_WORLD_CONTROLS === "true") {

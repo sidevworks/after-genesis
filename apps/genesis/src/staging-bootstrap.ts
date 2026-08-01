@@ -51,8 +51,8 @@ export function buildStagingGenesisConfig(
   return {
     worldId,
     seed,
-    width: 32,
-    height: 32,
+    width: 64,
+    height: 64,
     founder: {
       id: "inh_staging_founder",
       displayName: founderName,

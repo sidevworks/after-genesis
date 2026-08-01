@@ -25,9 +25,14 @@ export default async function MapPage() {
         title="World map"
         lede="A read-only 3D projection of the current canonical map. Every inhabitant and structure is anchored to its recorded tile; drag to orbit, use the wheel to inspect, and click a tile for its record."
         aside={
-          <p className="mono text-xs text-dim">
-            {formatSimTime(summary.simTime)} · {map.structures.length} structures
-          </p>
+          <div className="text-right">
+            <p className="mono text-xs text-dim">
+              {formatSimTime(summary.simTime)} · {map.structures.length} structures
+            </p>
+            <p className="mt-1 text-[0.65rem] text-dim">
+              Terrain elements: Tabletop Terrain by fangzhangmnm · CC BY 4.0
+            </p>
+          </div>
         }
       />
 

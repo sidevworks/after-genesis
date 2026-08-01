@@ -72,11 +72,11 @@ describe("generateMap", () => {
     expect(mapHash(generateMap("genesis-0001"))).not.toBe(mapHash(generateMap("genesis-0002")));
   });
 
-  it("defaults to 32x32 (§5)", () => {
+  it("defaults to the long-lived 64x64 Genesis grid (§5)", () => {
     const map = generateMap("size");
     expect(map.width).toBe(DEFAULT_MAP_WIDTH);
     expect(map.height).toBe(DEFAULT_MAP_HEIGHT);
-    expect(map.terrain).toHaveLength(32 * 32);
+    expect(map.terrain).toHaveLength(64 * 64);
   });
 
   it("respects explicit dimensions", () => {

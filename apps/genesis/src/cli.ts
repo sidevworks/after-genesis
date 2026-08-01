@@ -275,8 +275,8 @@ export function demoConfig(
   return {
     worldId: DEFAULT_WORLD_ID,
     seed: DEFAULT_SEED,
-    width: 32,
-    height: 32,
+    width: 64,
+    height: 64,
     founder: {
       id: founder.id,
       displayName: founder.displayName,

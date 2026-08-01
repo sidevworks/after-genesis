@@ -26,8 +26,14 @@ import { Rng } from "../util/rng.js";
 import type { DepositMap, WorldMap } from "./state.js";
 import { idiv } from "./state.js";
 
-export const DEFAULT_MAP_WIDTH = 32;
-export const DEFAULT_MAP_HEIGHT = 32;
+/**
+ * The published Genesis default.  64×64 gives a multi-year settlement room to
+ * expand without making the canonical grid impractically large to replay or
+ * inspect.  A world's dimensions are recorded in its Genesis config, so this
+ * affects only new worlds; existing 32×32 worlds remain byte-identical.
+ */
+export const DEFAULT_MAP_WIDTH = 64;
+export const DEFAULT_MAP_HEIGHT = 64;
 
 /** Noise values live in 0..`NOISE_MAX`. */
 const NOISE_MAX = 255;
