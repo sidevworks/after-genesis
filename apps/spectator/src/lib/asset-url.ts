@@ -36,6 +36,8 @@
  * a spectator build has no canonical write route (§17) — an asset host is not a
  * capability, it is a file server.
  */
+import manifest from "./asset-manifest.json";
+
 const RAW_BASE = process.env.NEXT_PUBLIC_ASSET_BASE_URL ?? "";
 
 /** The configured base with any trailing slash removed, so joins stay clean. */
@@ -50,12 +52,35 @@ function isFirebaseDownloadEndpoint(base: string): boolean {
 }
 
 /**
+ * Logical path → published, content-hashed path.
+ *
+ * Written by `scripts/publish-assets.mjs` and committed, so resolution happens
+ * at build time and the page makes no extra request to discover its own asset
+ * names. It is a lockfile: the manifest in the tree is the set of assets that
+ * build expects, and publishing without committing it leaves the two
+ * disagreeing.
+ */
+const PUBLISHED: Readonly<Record<string, string>> = manifest.assets;
+
+/**
  * Resolve `path` against `base`. Pure, so every shape is directly testable
  * without rebuilding the module to change an inlined environment variable.
+ *
+ * `published` is injected rather than read from the module so tests can state
+ * their own mapping instead of depending on whatever was last published.
  */
-export function resolveAssetUrl(base: string, path: string): string {
-  const relative = path.replace(/^\/+/, "");
-  if (base === "") return `/${encodeURI(relative)}`;
+export function resolveAssetUrl(
+  base: string,
+  path: string,
+  published: Readonly<Record<string, string>> = PUBLISHED,
+): string {
+  const logical = path.replace(/^\/+/, "");
+  // Local `public/` holds plain filenames, so hashing applies only once a host
+  // is configured. An asset missing from the manifest falls back to its plain
+  // name rather than failing the build: it will still resolve if it was
+  // published under that name, and a 404 is a better failure than a blank page.
+  if (base === "") return `/${encodeURI(logical)}`;
+  const relative = published[logical] ?? logical;
   if (isFirebaseDownloadEndpoint(base)) {
     // `%2F` rather than `/`: the endpoint treats the object name as one
     // segment, and an unescaped slash addresses a different resource.
