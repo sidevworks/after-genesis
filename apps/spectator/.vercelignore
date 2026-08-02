@@ -1,0 +1,9 @@
+# Master media is published to Firebase Storage under spectator/ and resolved
+# through NEXT_PUBLIC_ASSET_BASE_URL. Keep it out of the Vercel function/static
+# bundle; local development still uses public/ when that variable is unset.
+public/character-models/
+public/character-profile/
+public/terrain/
+public/voice/
+public/intro.mp4
+public/intro-poster.jpg
