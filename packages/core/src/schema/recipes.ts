@@ -1,5 +1,5 @@
-// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
-// SPDX-License-Identifier: BUSL-1.1
+// Copyright (c) 2026 Sary Ismail. Licensed under the Apache License, Version 2.0; see LICENSE.
+// SPDX-License-Identifier: Apache-2.0
 /**
  * Canonical physical recipes. They are engine data, not model suggestions:
  * a model may select an id but cannot alter its inputs, location or output.

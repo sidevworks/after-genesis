@@ -253,7 +253,7 @@ the performance catalogue covers the entire `ActionTypeSchema` vocabulary, and
 those actions will render the first time a world produces them.
 
 Seeing them requires a run with real model cognition, which is gated behind the
-pre-Genesis testing programme in `HANDOVER.md`. Nothing here should be taken as
+pre-Genesis testing programme in `docs/testing-strategy.md`. Nothing here should be taken as
 a reason to shorten that programme.
 
 ## 10. Testing

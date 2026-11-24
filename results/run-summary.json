@@ -1,0 +1,2144 @@
+[
+  {
+    "run": "3-month-run",
+    "founders": 10,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen",
+      "Corner 01",
+      "Corner 02",
+      "Corner 03",
+      "Corner 04",
+      "Corner 05",
+      "Corner 06",
+      "Corner 07"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 10,
+      "alive": 0
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 535
+    },
+    "events": 565,
+    "acceptedActions": 529,
+    "rejectedActions": 35,
+    "rejectionCodes": {
+      "BUSY": 26,
+      "INVALID_PAYLOAD": 6,
+      "DEAD": 3
+    },
+    "lastAcceptedDay": 46.9,
+    "inWorldDays": 47,
+    "actors": 10,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 9,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 185,
+        "accepted": 185,
+        "rejected": 0
+      },
+      "move": {
+        "total": 115,
+        "accepted": 115,
+        "rejected": 0
+      },
+      "rest": {
+        "total": 130,
+        "accepted": 130,
+        "rejected": 0
+      },
+      "build": {
+        "total": 15,
+        "accepted": 9,
+        "rejected": 6
+      },
+      "consume": {
+        "total": 106,
+        "accepted": 88,
+        "rejected": 18
+      },
+      "store_goods": {
+        "total": 2,
+        "accepted": 2,
+        "rejected": 0
+      },
+      "wait": {
+        "total": 11,
+        "accepted": 0,
+        "rejected": 11
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": true,
+    "replayReproducedAtCommit": "4578afd (HEAD before release)",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "codex-gemini-canary",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.6-flash": 3
+    },
+    "events": 4,
+    "acceptedActions": 3,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0.3,
+    "inWorldDays": 0.3,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "wait": {
+        "total": 3,
+        "accepted": 3,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 6,
+    "inputTokens": 11868,
+    "outputTokens": 97,
+    "recordedCostUsd": 0.018532,
+    "perInWorldDay": {
+      "calls": 24,
+      "inputTokens": 47472,
+      "outputTokens": 388,
+      "costUsd": 0.074128
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "502d911",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "codex-gemini-canary-fixed",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.6-flash": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "502d911",
+    "contemporaneousAuditReport": null
+  },
+  {
+    "run": "codex-systematic-check",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 36
+    },
+    "events": 37,
+    "acceptedActions": 36,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 3,
+    "inWorldDays": 3,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "rest": {
+        "total": 11,
+        "accepted": 11,
+        "rejected": 0
+      },
+      "move": {
+        "total": 24,
+        "accepted": 24,
+        "rejected": 0
+      },
+      "consume": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "502d911",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "demo-20-check",
+    "founders": 20,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen",
+      "Corner 01",
+      "Corner 02",
+      "Corner 03",
+      "Corner 04",
+      "Corner 05",
+      "Corner 06",
+      "Corner 07",
+      "Corner 08",
+      "Corner 09",
+      "Corner 10",
+      "Corner 11",
+      "Corner 12",
+      "Corner 13",
+      "Corner 14",
+      "Corner 15",
+      "Corner 16",
+      "Corner 17"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 20,
+      "alive": 20
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "dev-rehearsal",
+    "founders": 10,
+    "founderNames": [
+      "ALPHA",
+      "BETA",
+      "GAMMA",
+      "DELTA",
+      "EPSILON",
+      "ZETA",
+      "ETA",
+      "THETA",
+      "IOTA",
+      "KAPPA"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 10,
+      "alive": 10
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 112
+    },
+    "events": 121,
+    "acceptedActions": 107,
+    "rejectedActions": 13,
+    "rejectionCodes": {
+      "TOO_FAR": 1,
+      "BUSY": 8,
+      "INVALID_PAYLOAD": 3,
+      "INSUFFICIENT_RESOURCES": 1
+    },
+    "lastAcceptedDay": 9.9,
+    "inWorldDays": 10,
+    "actors": 10,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 4,
+    "communications": 26,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 13,
+        "accepted": 13,
+        "rejected": 0
+      },
+      "move": {
+        "total": 14,
+        "accepted": 13,
+        "rejected": 1
+      },
+      "rest": {
+        "total": 10,
+        "accepted": 10,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 21,
+        "accepted": 21,
+        "rejected": 0
+      },
+      "announce": {
+        "total": 5,
+        "accepted": 5,
+        "rejected": 0
+      },
+      "communicate": {
+        "total": 24,
+        "accepted": 21,
+        "rejected": 3
+      },
+      "wait": {
+        "total": 17,
+        "accepted": 9,
+        "rejected": 8
+      },
+      "offer_trade": {
+        "total": 2,
+        "accepted": 2,
+        "rejected": 0
+      },
+      "build": {
+        "total": 5,
+        "accepted": 4,
+        "rejected": 1
+      },
+      "consume": {
+        "total": 8,
+        "accepted": 8,
+        "rejected": 0
+      },
+      "store_goods": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 130,
+    "inputTokens": 2364402,
+    "outputTokens": 38847,
+    "recordedCostUsd": 0.806517,
+    "perInWorldDay": {
+      "calls": 13,
+      "inputTokens": 236440.2,
+      "outputTokens": 3884.7,
+      "costUsd": 0.0806517
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": true,
+    "replayReproducedAtCommit": "4578afd (HEAD before release)",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "dev-rehearsal-archive-2026-08-01T0109",
+    "founders": 10,
+    "founderNames": [
+      "ALPHA",
+      "BETA",
+      "GAMMA",
+      "DELTA",
+      "EPSILON",
+      "ZETA",
+      "ETA",
+      "THETA",
+      "IOTA",
+      "KAPPA"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 10,
+      "alive": 10
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 370
+    },
+    "events": 389,
+    "acceptedActions": 355,
+    "rejectedActions": 33,
+    "rejectionCodes": {
+      "INVALID_PAYLOAD": 8,
+      "INSUFFICIENT_RESOURCES": 3,
+      "BUSY": 18,
+      "TOO_FAR": 1,
+      "IMPASSABLE": 2,
+      "NOTHING_TO_GATHER": 1
+    },
+    "lastAcceptedDay": 32.3,
+    "inWorldDays": 32.3,
+    "actors": 10,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 4,
+    "builds": 9,
+    "communications": 87,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "move": {
+        "total": 33,
+        "accepted": 28,
+        "rejected": 5
+      },
+      "gather": {
+        "total": 23,
+        "accepted": 22,
+        "rejected": 1
+      },
+      "rest": {
+        "total": 45,
+        "accepted": 45,
+        "rejected": 0
+      },
+      "announce": {
+        "total": 17,
+        "accepted": 17,
+        "rejected": 0
+      },
+      "communicate": {
+        "total": 72,
+        "accepted": 70,
+        "rejected": 2
+      },
+      "wait": {
+        "total": 34,
+        "accepted": 24,
+        "rejected": 10
+      },
+      "build": {
+        "total": 12,
+        "accepted": 9,
+        "rejected": 3
+      },
+      "consume": {
+        "total": 37,
+        "accepted": 31,
+        "rejected": 6
+      },
+      "offer_trade": {
+        "total": 24,
+        "accepted": 24,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 80,
+        "accepted": 80,
+        "rejected": 0
+      },
+      "create_artifact": {
+        "total": 4,
+        "accepted": 4,
+        "rejected": 0
+      },
+      "transfer_property": {
+        "total": 2,
+        "accepted": 0,
+        "rejected": 2
+      },
+      "store_goods": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "refine": {
+        "total": 4,
+        "accepted": 0,
+        "rejected": 4
+      }
+    },
+    "modelCalls": 426,
+    "inputTokens": 8167876,
+    "outputTokens": 127477,
+    "recordedCostUsd": 2.769353,
+    "perInWorldDay": {
+      "calls": 13.175257731958762,
+      "inputTokens": 252614.7216494845,
+      "outputTokens": 3942.5876288659792,
+      "costUsd": 0.08565009278350516
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "6afcafa",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "dev-repair-smoke",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.6-flash": 10
+    },
+    "events": 11,
+    "acceptedActions": 10,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0.8,
+    "inWorldDays": 0.8,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 4,
+        "accepted": 4,
+        "rejected": 0
+      },
+      "wait": {
+        "total": 6,
+        "accepted": 6,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 17,
+    "inputTokens": 57037,
+    "outputTokens": 1503,
+    "recordedCostUsd": 0.09684,
+    "perInWorldDay": {
+      "calls": 20.4,
+      "inputTokens": 68444.4,
+      "outputTokens": 1803.6,
+      "costUsd": 0.11620799999999999
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "7e9da31",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "dev-smoke-gemini",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.6-flash": 10
+    },
+    "events": 11,
+    "acceptedActions": 10,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0.8,
+    "inWorldDays": 0.8,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 2,
+        "accepted": 2,
+        "rejected": 0
+      },
+      "wait": {
+        "total": 8,
+        "accepted": 8,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 20,
+    "inputTokens": 63554,
+    "outputTokens": 1736,
+    "recordedCostUsd": 0.108362,
+    "perInWorldDay": {
+      "calls": 24,
+      "inputTokens": 76264.8,
+      "outputTokens": 2083.2,
+      "costUsd": 0.1300344
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "7e9da31",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-artifacts-1",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 24
+    },
+    "events": 25,
+    "acceptedActions": 24,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 2,
+    "inWorldDays": 2,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 10,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 13,
+        "accepted": 13,
+        "rejected": 0
+      },
+      "announce": {
+        "total": 10,
+        "accepted": 10,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 24,
+    "inputTokens": 57300,
+    "outputTokens": 2116,
+    "recordedCostUsd": 0.022498,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 28650,
+      "outputTokens": 1058,
+      "costUsd": 0.011249
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-artifacts-2",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM configured, no call recorded",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "46b5ad2",
+    "contemporaneousAuditReport": null
+  },
+  {
+    "run": "emergence-v2-artifacts-3",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 36
+    },
+    "events": 37,
+    "acceptedActions": 36,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 3,
+    "inWorldDays": 3,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 21,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 14,
+        "accepted": 14,
+        "rejected": 0
+      },
+      "announce": {
+        "total": 21,
+        "accepted": 21,
+        "rejected": 0
+      },
+      "move": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 36,
+    "inputTokens": 104971,
+    "outputTokens": 3687,
+    "recordedCostUsd": 0.040733,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 34990.333333333336,
+      "outputTokens": 1229,
+      "costUsd": 0.013577666666666667
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-final-1",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 600
+    },
+    "events": 601,
+    "acceptedActions": 497,
+    "rejectedActions": 103,
+    "rejectionCodes": {
+      "NOTHING_TO_GATHER": 47,
+      "INSUFFICIENT_ENERGY": 52,
+      "INVALID_PAYLOAD": 2,
+      "INSUFFICIENT_RESOURCES": 2
+    },
+    "lastAcceptedDay": 50,
+    "inWorldDays": 50,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 14,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 113,
+        "accepted": 113,
+        "rejected": 0
+      },
+      "communicate": {
+        "total": 16,
+        "accepted": 14,
+        "rejected": 2
+      },
+      "gather": {
+        "total": 331,
+        "accepted": 233,
+        "rejected": 98
+      },
+      "move": {
+        "total": 33,
+        "accepted": 32,
+        "rejected": 1
+      },
+      "rest": {
+        "total": 57,
+        "accepted": 57,
+        "rejected": 0
+      },
+      "consume": {
+        "total": 46,
+        "accepted": 44,
+        "rejected": 2
+      },
+      "wait": {
+        "total": 4,
+        "accepted": 4,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 600,
+    "inputTokens": 1935858,
+    "outputTokens": 54575,
+    "recordedCostUsd": 0.717594,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 38717.16,
+      "outputTokens": 1091.5,
+      "costUsd": 0.01435188
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "46b5ad2",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-physics-1",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 30
+    },
+    "events": 31,
+    "acceptedActions": 15,
+    "rejectedActions": 15,
+    "rejectionCodes": {
+      "INVALID_PAYLOAD": 15
+    },
+    "lastAcceptedDay": 2.5,
+    "inWorldDays": 2.5,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 12,
+        "accepted": 12,
+        "rejected": 0
+      },
+      "communicate": {
+        "total": 15,
+        "accepted": 0,
+        "rejected": 15
+      },
+      "gather": {
+        "total": 3,
+        "accepted": 3,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 31,
+    "inputTokens": 83038,
+    "outputTokens": 4210,
+    "recordedCostUsd": 0.035457,
+    "perInWorldDay": {
+      "calls": 12.4,
+      "inputTokens": 33215.2,
+      "outputTokens": 1684,
+      "costUsd": 0.0141828
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-physics-2",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 30
+    },
+    "events": 31,
+    "acceptedActions": 23,
+    "rejectedActions": 7,
+    "rejectionCodes": {
+      "INVALID_PAYLOAD": 7
+    },
+    "lastAcceptedDay": 2.5,
+    "inWorldDays": 2.5,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 14,
+        "accepted": 14,
+        "rejected": 0
+      },
+      "communicate": {
+        "total": 7,
+        "accepted": 0,
+        "rejected": 7
+      },
+      "gather": {
+        "total": 9,
+        "accepted": 9,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 30,
+    "inputTokens": 83677,
+    "outputTokens": 2646,
+    "recordedCostUsd": 0.031735,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 33470.8,
+      "outputTokens": 1058.4,
+      "costUsd": 0.012694
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-schema-check",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "46b5ad2",
+    "contemporaneousAuditReport": null
+  },
+  {
+    "run": "emergence-v2-schema-check-2",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 210
+    },
+    "events": 211,
+    "acceptedActions": 144,
+    "rejectedActions": 66,
+    "rejectionCodes": {
+      "NOTHING_TO_GATHER": 28,
+      "INSUFFICIENT_ENERGY": 32,
+      "INVALID_PAYLOAD": 6
+    },
+    "lastAcceptedDay": 17.5,
+    "inWorldDays": 17.5,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 43,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 34,
+        "accepted": 34,
+        "rejected": 0
+      },
+      "communicate": {
+        "total": 49,
+        "accepted": 43,
+        "rejected": 6
+      },
+      "gather": {
+        "total": 113,
+        "accepted": 53,
+        "rejected": 60
+      },
+      "move": {
+        "total": 6,
+        "accepted": 6,
+        "rejected": 0
+      },
+      "rest": {
+        "total": 3,
+        "accepted": 3,
+        "rejected": 0
+      },
+      "consume": {
+        "total": 5,
+        "accepted": 5,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 210,
+    "inputTokens": 698854,
+    "outputTokens": 19963,
+    "recordedCostUsd": 0.259708,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 39934.514285714286,
+      "outputTokens": 1140.7428571428572,
+      "costUsd": 0.014840457142857142
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-social-1",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 18
+    },
+    "events": 19,
+    "acceptedActions": 18,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 1.5,
+    "inWorldDays": 1.5,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 18,
+        "accepted": 18,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 18,
+    "inputTokens": 33077,
+    "outputTokens": 1447,
+    "recordedCostUsd": 0.013552,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 22051.333333333332,
+      "outputTokens": 964.6666666666666,
+      "costUsd": 0.009034666666666667
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-social-2",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 18
+    },
+    "events": 19,
+    "acceptedActions": 18,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 1.5,
+    "inWorldDays": 1.5,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 18,
+        "accepted": 18,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 18,
+    "inputTokens": 33491,
+    "outputTokens": 1377,
+    "recordedCostUsd": 0.013501,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 22327.333333333332,
+      "outputTokens": 918,
+      "costUsd": 0.009000666666666667
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-social-3",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 18
+    },
+    "events": 19,
+    "acceptedActions": 18,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 1.5,
+    "inWorldDays": 1.5,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 18,
+        "accepted": 18,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 18,
+    "inputTokens": 33865,
+    "outputTokens": 1271,
+    "recordedCostUsd": 0.013348,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 22576.666666666668,
+      "outputTokens": 847.3333333333334,
+      "costUsd": 0.008898666666666668
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-social-4",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 12
+    },
+    "events": 13,
+    "acceptedActions": 7,
+    "rejectedActions": 5,
+    "rejectionCodes": {
+      "INVALID_PAYLOAD": 5
+    },
+    "lastAcceptedDay": 1,
+    "inWorldDays": 1,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 7,
+        "accepted": 7,
+        "rejected": 0
+      },
+      "announce": {
+        "total": 5,
+        "accepted": 0,
+        "rejected": 5
+      }
+    },
+    "modelCalls": 12,
+    "inputTokens": 23127,
+    "outputTokens": 823,
+    "recordedCostUsd": 0.009004,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 23127,
+      "outputTokens": 823,
+      "costUsd": 0.009004
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "emergence-v2-social-5",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 1,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": null
+  },
+  {
+    "run": "emergence-v2-social-6",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 9
+    },
+    "events": 10,
+    "acceptedActions": 9,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0.8,
+    "inWorldDays": 0.8,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 3,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 6,
+        "accepted": 6,
+        "rejected": 0
+      },
+      "announce": {
+        "total": 3,
+        "accepted": 3,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 9,
+    "inputTokens": 18090,
+    "outputTokens": 790,
+    "recordedCostUsd": 0.007407,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 24120,
+      "outputTokens": 1053.3333333333333,
+      "costUsd": 0.009876000000000001
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "gemini-check",
+    "founders": 1,
+    "founderNames": [
+      "Aster"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 1,
+      "alive": 1
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 1
+    },
+    "events": 2,
+    "acceptedActions": 1,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0.1,
+    "inWorldDays": 0.1,
+    "actors": 1,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 1,
+    "inputTokens": 1207,
+    "outputTokens": 58,
+    "recordedCostUsd": 0.000508,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 14484,
+      "outputTokens": 696,
+      "costUsd": 0.006096
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "87eae19",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "instinct-probe",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "ce17581",
+    "contemporaneousAuditReport": null
+  },
+  {
+    "run": "manual-progress",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 2115
+    },
+    "events": 2137,
+    "acceptedActions": 1815,
+    "rejectedActions": 321,
+    "rejectionCodes": {
+      "BUSY": 21,
+      "INVALID_PAYLOAD": 32,
+      "INSUFFICIENT_RESOURCES": 268
+    },
+    "lastAcceptedDay": 178,
+    "inWorldDays": 178,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 268,
+    "artifacts": 0,
+    "builds": 3,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "move": {
+        "total": 754,
+        "accepted": 754,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 103,
+        "accepted": 103,
+        "rejected": 0
+      },
+      "rest": {
+        "total": 597,
+        "accepted": 597,
+        "rejected": 0
+      },
+      "consume": {
+        "total": 354,
+        "accepted": 333,
+        "rejected": 21
+      },
+      "build": {
+        "total": 35,
+        "accepted": 3,
+        "rejected": 32
+      },
+      "store_goods": {
+        "total": 25,
+        "accepted": 25,
+        "rejected": 0
+      },
+      "create_inhabitant": {
+        "total": 268,
+        "accepted": 0,
+        "rejected": 268
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "physics-v2",
+    "founders": 1,
+    "founderNames": [
+      "Aster"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 1,
+      "alive": 1
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 6
+    },
+    "events": 7,
+    "acceptedActions": 6,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0.5,
+    "inWorldDays": 0.5,
+    "actors": 1,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 3,
+        "accepted": 3,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 3,
+        "accepted": 3,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 6,
+    "inputTokens": 10011,
+    "outputTokens": 348,
+    "recordedCostUsd": 0.003878,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 20022,
+      "outputTokens": 696,
+      "costUsd": 0.007756
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "e40338c",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "push-test",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 3
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 24
+    },
+    "events": 25,
+    "acceptedActions": 24,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 2,
+    "inWorldDays": 2,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "move": {
+        "total": 24,
+        "accepted": 24,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "7e96d06",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "tmp-demo-check",
+    "founders": 10,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen",
+      "Corner 01",
+      "Corner 02",
+      "Corner 03",
+      "Corner 04",
+      "Corner 05",
+      "Corner 06",
+      "Corner 07"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 10,
+      "alive": 10
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 0
+    },
+    "events": 1,
+    "acceptedActions": 0,
+    "rejectedActions": 0,
+    "rejectionCodes": {},
+    "lastAcceptedDay": 0,
+    "inWorldDays": 0,
+    "actors": 0,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": null,
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "verify-100",
+    "founders": 1,
+    "founderNames": [
+      "Aster"
+    ],
+    "cognition": "LLM",
+    "finalPopulation": {
+      "total": 1,
+      "alive": 1
+    },
+    "models": {
+      "gemini-3.5-flash-lite": 1200
+    },
+    "events": 1201,
+    "acceptedActions": 1081,
+    "rejectedActions": 119,
+    "rejectionCodes": {
+      "NOTHING_TO_GATHER": 53,
+      "INSUFFICIENT_ENERGY": 45,
+      "INSUFFICIENT_RESOURCES": 7,
+      "IMPASSABLE": 13,
+      "TOO_FAR": 1
+    },
+    "lastAcceptedDay": 100,
+    "inWorldDays": 100,
+    "actors": 1,
+    "births": 0,
+    "birthAttempts": 0,
+    "artifacts": 0,
+    "builds": 0,
+    "communications": 0,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "observe": {
+        "total": 366,
+        "accepted": 366,
+        "rejected": 0
+      },
+      "gather": {
+        "total": 510,
+        "accepted": 412,
+        "rejected": 98
+      },
+      "move": {
+        "total": 75,
+        "accepted": 61,
+        "rejected": 14
+      },
+      "consume": {
+        "total": 98,
+        "accepted": 91,
+        "rejected": 7
+      },
+      "rest": {
+        "total": 104,
+        "accepted": 104,
+        "rejected": 0
+      },
+      "wait": {
+        "total": 47,
+        "accepted": 47,
+        "rejected": 0
+      }
+    },
+    "modelCalls": 1200,
+    "inputTokens": 4616058,
+    "outputTokens": 78990,
+    "recordedCostUsd": 1.583101,
+    "perInWorldDay": {
+      "calls": 12,
+      "inputTokens": 46160.58,
+      "outputTokens": 789.9,
+      "costUsd": 0.01583101
+    },
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "177e082",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  },
+  {
+    "run": "year-one",
+    "founders": 3,
+    "founderNames": [
+      "Aster",
+      "Ember",
+      "Lumen"
+    ],
+    "cognition": "offline-instinct",
+    "finalPopulation": {
+      "total": 3,
+      "alive": 1
+    },
+    "models": {
+      "offline-instinct-cognition-v2": 4380
+    },
+    "events": 4381,
+    "acceptedActions": 436,
+    "rejectedActions": 3944,
+    "rejectionCodes": {
+      "NOT_IMPLEMENTED": 13,
+      "IMPASSABLE": 1461,
+      "DEAD": 2470
+    },
+    "lastAcceptedDay": 56.2,
+    "inWorldDays": 365,
+    "actors": 3,
+    "births": 0,
+    "birthAttempts": 1,
+    "artifacts": 4,
+    "builds": 0,
+    "communications": 13,
+    "byType": {
+      "genesis": {
+        "total": 1,
+        "accepted": 1,
+        "rejected": 0
+      },
+      "rest": {
+        "total": 468,
+        "accepted": 160,
+        "rejected": 308
+      },
+      "gather": {
+        "total": 805,
+        "accepted": 47,
+        "rejected": 758
+      },
+      "create_artifact": {
+        "total": 102,
+        "accepted": 4,
+        "rejected": 98
+      },
+      "consume": {
+        "total": 1439,
+        "accepted": 204,
+        "rejected": 1235
+      },
+      "study": {
+        "total": 74,
+        "accepted": 0,
+        "rejected": 74
+      },
+      "move": {
+        "total": 1469,
+        "accepted": 8,
+        "rejected": 1461
+      },
+      "communicate": {
+        "total": 13,
+        "accepted": 13,
+        "rejected": 0
+      },
+      "teach": {
+        "total": 9,
+        "accepted": 0,
+        "rejected": 9
+      },
+      "create_inhabitant": {
+        "total": 1,
+        "accepted": 0,
+        "rejected": 1
+      }
+    },
+    "modelCalls": 0,
+    "inputTokens": 0,
+    "outputTokens": 0,
+    "recordedCostUsd": 0,
+    "perInWorldDay": null,
+    "chainVerifiedNow": true,
+    "replayWithCurrentEngine": false,
+    "replayReproducedAtCommit": "c6802a9",
+    "contemporaneousAuditReport": {
+      "chainOk": true,
+      "replayOk": true
+    }
+  }
+]

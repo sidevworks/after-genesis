@@ -1,0 +1,17 @@
+After Genesis — created by Sary Ismail (SI Devworks). https://github.com/sidevworks/after-genesis
+
+Copyright (c) 2026 Sary Ismail.
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+Redistributions of this work, or of any derivative work, in source or binary
+form, must retain this NOTICE file, as required by section 4(d) of the Apache
+License, Version 2.0.
+
+Assets and data in this repository are licensed separately; see
+LICENSE-ASSETS.md. Third-party content keeps its own licence:
+
+- Kenney city kits (Assets/kenney_*) — by Kenney (www.kenney.nl), CC0 1.0.
+- Terrain materials and selected vegetation/rock props in
+  apps/spectator/public/terrain/ — derived from "Tabletop Terrain" by
+  fangzhangmnm, CC BY 4.0,
+  https://sketchfab.com/3d-models/tabletop-terrain-895fa26a095c4e3896305e13e0abb5a1

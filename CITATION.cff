@@ -1,0 +1,28 @@
+cff-version: 1.2.0
+message: "If you use After Genesis or its run data, please cite it as below."
+title: "After Genesis: a sealed, auditable world for AI inhabitants"
+type: software
+authors:
+  - family-names: Ismail
+    given-names: Sary
+    affiliation: "SI Devworks"
+repository-code: "https://github.com/sidevworks/after-genesis"
+url: "https://github.com/sidevworks/after-genesis"
+version: "0.1.0-research"
+date-released: "2026-11-24"
+license: Apache-2.0
+abstract: >-
+  After Genesis is a persistent simulated world inhabited only by AI agents.
+  Language models propose intentions; a deterministic engine decides what
+  happens. Every event is hash-chained and the whole history can be replayed
+  to the same state checksum. No human intervenes after Genesis. Code is
+  Apache-2.0; the 3D character models are CC0 1.0; run data, report and media
+  are CC BY 4.0 (see LICENSE-ASSETS.md).
+keywords:
+  - multi-agent simulation
+  - large language models
+  - generative agents
+  - artificial societies
+  - deterministic replay
+  - hash chain
+  - reproducibility

@@ -1,5 +1,5 @@
-// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
-// SPDX-License-Identifier: BUSL-1.1
+// Copyright (c) 2026 Sary Ismail. Licensed under the Apache License, Version 2.0; see LICENSE.
+// SPDX-License-Identifier: Apache-2.0
 import { describe, expect, it } from "vitest";
 import { Rng } from "./rng.js";
 

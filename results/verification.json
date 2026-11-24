@@ -1,0 +1,281 @@
+[
+  {
+    "run": "3-month-run",
+    "events": 565,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "2f75fdf0c1998c4943afed9e465579cf959be22080748494b6923f6180cafbfd",
+    "replayWithEngineAtHEAD": true,
+    "replayReproducedAtCommit": "4578afd (HEAD before release)"
+  },
+  {
+    "run": "codex-gemini-canary",
+    "events": 4,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "93a87c1f6a508a2e4cff6a7a398953df56dc2748b1fd42a0291a5ebae7b4d185",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "502d911"
+  },
+  {
+    "run": "codex-gemini-canary-fixed",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "d24c16ab1ce0ddf61b3565e1d5c85bbdc690fda6f422786f8412c0e8f82abb28",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "502d911"
+  },
+  {
+    "run": "codex-systematic-check",
+    "events": 37,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "c5441d3dd3d863af0ee9a2040a6a6d4d1e700a102d68321ad3b21f24ac4bfad6",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "502d911"
+  },
+  {
+    "run": "demo-20-check",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "04d906f9aaa71e2ba1fc7c7aa5732eefc7a46acf02cb91e6d4b67b9ff01d1214",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "dev-rehearsal",
+    "events": 121,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "a326d730faa065e4540a2383d99c4f87d7a5965c9e9d55cfbac8023bcdd2643a",
+    "replayWithEngineAtHEAD": true,
+    "replayReproducedAtCommit": "4578afd (HEAD before release)"
+  },
+  {
+    "run": "dev-rehearsal-archive-2026-08-01T0109",
+    "events": 389,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "4abe84fc0199b6ac8c2e2817aea2a0ce59138acf597c118f2ef5a376c3f3d7b4",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "6afcafa"
+  },
+  {
+    "run": "dev-repair-smoke",
+    "events": 11,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "b9b79ecbc67e3842937e6092bcb12c9defb9423e92f050b234ea8fcf15be0d54",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "7e9da31"
+  },
+  {
+    "run": "dev-smoke-gemini",
+    "events": 11,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "23e427a83e4893bdd4a182626c176378703de0d247ecc6dbe0353bdc827f1fa6",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "7e9da31"
+  },
+  {
+    "run": "emergence-v2-artifacts-1",
+    "events": 25,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "d3c642fe69956cef48867b3522cf01f9fdf4333edc5e1eb663999e6951a04f17",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-artifacts-2",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "df08d4bad07cf69e31c1ae3fe5d370c8360c93274b6074b29eee5eb7f60cb8f6",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "46b5ad2"
+  },
+  {
+    "run": "emergence-v2-artifacts-3",
+    "events": 37,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "cabb5f09bc7a123efe2edf0778ad2596b99abbcce9b1435c97288a52a191ba85",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-final-1",
+    "events": 601,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "ad2748e1b502d737f8a994322ab69fb1573788a87f123d1f9d20c69f8803cd0d",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "46b5ad2"
+  },
+  {
+    "run": "emergence-v2-physics-1",
+    "events": 31,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "5304bfffb75fdb9da93cbe01c6131d376336afddde6efbc0e8bba651b2717f10",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-physics-2",
+    "events": 31,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "fb21b9ba52ab0b8aa3dfe7cbb8c31137a3bdb543b6d831e609617f230f67764f",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-schema-check",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "df08d4bad07cf69e31c1ae3fe5d370c8360c93274b6074b29eee5eb7f60cb8f6",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "46b5ad2"
+  },
+  {
+    "run": "emergence-v2-schema-check-2",
+    "events": 211,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "bcfa310c7fec800ebc8b2ce0de990dc29fc5ae0fc3d6e8e7f68846fadf93e428",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-social-1",
+    "events": 19,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "a95a58266ef13fabc1218b25865bacd04f6a85ad32605bcb08a7fddcaa5348d1",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-social-2",
+    "events": 19,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "85dfdc245e46143f4c87bcc23377fcdb3c2244deb373df2313749dbcd7442470",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-social-3",
+    "events": 19,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "1d48aad226a3cd498679c78407111ee107c0a93193ef37ab8a0395ee18065498",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-social-4",
+    "events": 13,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "ce6036202f6ce68b109f20fe2ced46f05f41c7e941311aeb77a8658ebde61996",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-social-5",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "a4247762377b57bd0a18208fe7c8e6fcf658ced53e5f82b9228624f84f6f205f",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "emergence-v2-social-6",
+    "events": 10,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "301411ce2370a2b3d3bdbc35669d7212f327e7dc16b45b845bdf9f5e51070084",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "gemini-check",
+    "events": 2,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "62cc9f2391a36989d275e9284b0e78e871669fdc701efbf1447b94dfe80e7466",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "87eae19"
+  },
+  {
+    "run": "instinct-probe",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "da5f19eddbbd4c8db6696c1f2c3cd52aa15f00539634345feec22cccf0474e51",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "ce17581"
+  },
+  {
+    "run": "manual-progress",
+    "events": 2137,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "8f40c22b7bdbbab34fb49eb931afef04da3003ab3185f912399860fc7dc90060",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "physics-v2",
+    "events": 7,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "5467b5e94bd69bf0f4b6792d7fa19c3f004e111ebc47de0044e6242a0c880da4",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "e40338c"
+  },
+  {
+    "run": "push-test",
+    "events": 25,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "71bc7462359a4164aa3ca2ac457738985f0d9647fea40a083f4a1542dd911e56",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "7e96d06"
+  },
+  {
+    "run": "tmp-demo-check",
+    "events": 1,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "31239f8a882c6eb6cc997fdbad93e2fae71032620e34d1d66bd209706f03b1d2",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": null
+  },
+  {
+    "run": "verify-100",
+    "events": 1201,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "7a8db5492b215bdb0976e54b4d7972f3168dece5e7e5753377a02525fe53a181",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "177e082"
+  },
+  {
+    "run": "year-one",
+    "events": 4381,
+    "chainOk": true,
+    "violations": 0,
+    "headHash": "b6d6b1ac43d94427a63a191dccb434c2cc820426d8cc3da50cfd25f31e7d3425",
+    "replayWithEngineAtHEAD": false,
+    "replayReproducedAtCommit": "c6802a9"
+  }
+]
