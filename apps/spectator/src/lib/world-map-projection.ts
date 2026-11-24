@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 import type { Coord, Structure, WorldMap } from "./world-types";
 
 /** Every closed-union construction kind the engine can currently create. */

@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 import { describe, expect, it } from "vitest";
 import type { ActorSample } from "./types";
 import { broadcastStoryFor, processStageAt, readableAction } from "./broadcast";

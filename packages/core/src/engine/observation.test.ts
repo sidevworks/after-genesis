@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 /**
  * Adversarial tests for the observation boundary (§6, §11E, §15).
  *

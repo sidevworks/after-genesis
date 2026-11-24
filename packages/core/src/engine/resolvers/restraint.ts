@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 /** Neutral physical restraint and release. Neither action implies legitimacy. */
 import { deriveConfinementId } from "../../ids.js";
 import { getActionSpec } from "../../schema/actions/index.js";

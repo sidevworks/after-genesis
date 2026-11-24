@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 /**
  * `ag-verify` — the command a member of the public runs to check an exported
  * history (§16, §28).

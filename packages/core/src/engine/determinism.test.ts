@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 /**
  * The property that the whole platform rests on (§15, §16, §28).
  *

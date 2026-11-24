@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 import { spawn, type ChildProcess } from "node:child_process";
 import { mkdir, readFile, rm } from "node:fs/promises";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";

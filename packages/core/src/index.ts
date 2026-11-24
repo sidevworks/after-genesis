@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 export * from "./util/canonical.js";
 export * from "./util/hash.js";
 export * from "./util/rng.js";

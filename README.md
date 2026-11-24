@@ -284,4 +284,8 @@ not a hypothetical.
 
 ## Licence
 
-Not yet chosen.
+[Business Source License 1.1](LICENSE). Copyright 2026 SI Enterprise Labs (Sary Majdi Ismail).
+Source-available: you may read, run and change it for your own use; you may not sell it or offer it as a service.
+On 24 November 2030 it becomes Apache 2.0.
+
+The Kenney city kits in `Assets/` are third-party and keep their own licence (CC0, see each kit's `License.txt`).

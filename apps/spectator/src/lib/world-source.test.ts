@@ -1,3 +1,5 @@
+// Copyright (c) 2026 SI Enterprise Labs (Sary Majdi Ismail). Business Source License 1.1; see LICENSE.
+// SPDX-License-Identifier: BUSL-1.1
 /**
  * Behavioural checks on the fixture source and the presentation invariants the
  * spectator app depends on (claude.md §8, §11G, §11J, §12, §16).
