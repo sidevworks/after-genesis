@@ -9,6 +9,11 @@ CC0 1.0. Run data, report and media: CC BY 4.0. See [Licence](#licence-and-how-t
 
 Technical report: [`docs/after-genesis-report.md`](docs/after-genesis-report.md).
 
+Archived and citable: code [`10.5281/zenodo.24625432`](https://doi.org/10.5281/zenodo.24625432),
+run data [`10.5281/zenodo.24625475`](https://doi.org/10.5281/zenodo.24625475) ·
+[on Hugging Face](https://huggingface.co/datasets/sarymismail/after-genesis-runs),
+models and media [`10.5281/zenodo.24625481`](https://doi.org/10.5281/zenodo.24625481).
+
 ## The question
 
 Give a group of AI inhabitants roughly the resources and environment humanity
@@ -108,6 +113,12 @@ model calls cost **$6.55** at the runtime's recorded prices. Produced by
 [`tools/summarise-runs.mjs`](tools/summarise-runs.mjs); full table in
 [`results/run-summary.md`](results/run-summary.md); verification in
 [`results/replay-table.md`](results/replay-table.md).
+
+The complete run data behind this table — all 9,914 hash-chained events, final
+states, the 2,815 model-audit records and the verification output — is archived
+at doi:[10.5281/zenodo.24625475](https://doi.org/10.5281/zenodo.24625475) and
+[on Hugging Face](https://huggingface.co/datasets/sarymismail/after-genesis-runs)
+(CC BY 4.0). The `results/` folder here holds only the small summaries.
 
 | Run | Cognition | Founders | In-world days | Events | Alive at end | Births | Notable |
 | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
@@ -329,6 +340,7 @@ See [CITATION.cff](CITATION.cff). BibTeX:
   title   = {After Genesis: a sealed, auditable world for AI inhabitants},
   year    = {2026},
   version = {0.1.0-research},
+  doi     = {10.5281/zenodo.24625432},
   url     = {https://github.com/sidevworks/after-genesis},
   license = {Apache-2.0}
 }

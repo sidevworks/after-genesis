@@ -8,6 +8,19 @@ authors:
     affiliation: "SI Devworks"
 repository-code: "https://github.com/sidevworks/after-genesis"
 url: "https://github.com/sidevworks/after-genesis"
+identifiers:
+  - type: doi
+    value: "10.5281/zenodo.24625432"
+    description: "Archived research release (code)"
+  - type: doi
+    value: "10.5281/zenodo.24625475"
+    description: "Run data, July–August 2026"
+  - type: doi
+    value: "10.5281/zenodo.24625481"
+    description: "3D character models and media"
+  - type: url
+    value: "https://huggingface.co/datasets/sarymismail/after-genesis-runs"
+    description: "Run data on Hugging Face"
 version: "0.1.0-research"
 date-released: "2026-11-24"
 license: Apache-2.0
